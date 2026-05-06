@@ -1,0 +1,180 @@
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 16px;
+
+  /* BASE */
+  --background: #f8fafc;
+  --foreground: #1e293b; /* Texto principal */
+  --card: #ffffff;
+  --card-foreground: #1e293b;
+  --popover: #ffffff;
+  --popover-foreground: #1e293b;
+  --border: #e2e8f0;
+
+  /* CORES PRINCIPAIS */
+  --primary: #1e3a5f; /* Azul institucional */
+  --primary-foreground: #ffffff;
+
+  --secondary: #3b82f6; /* Azul suave */
+  --secondary-foreground: #ffffff;
+
+  --accent: #c9a227; /* Dourado */
+  --accent-foreground: #ffffff;
+
+  /* ESTADOS */
+  --destructive: #dc2626; /* Erro */
+  --destructive-foreground: #ffffff;
+  --success: #16a34a; /* Sucesso */
+  --warning: #f59e0b; /* Alerta */
+
+  /* TEXTO AUXILIAR */
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b; /* Texto secundário */
+  --light-text: #94a3b8; /* Texto leve */
+
+  /* INPUTS */
+  --input: transparent;
+  --input-background: #ffffff;
+  --switch-background: #cbd5e1;
+
+  /* OUTROS */
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: #3b82f6; /* Foco usando o Azul Suave */
+
+  /* CHARTS */
+  --chart-1: #1e3a5f;
+  --chart-2: #3b82f6;
+  --chart-3: #c9a227;
+  --chart-4: #16a34a;
+  --chart-5: #f59e0b;
+
+  --radius: 0.625rem;
+
+  /* SIDEBAR (Estilo Institucional - Fundo Escuro no Tema Claro) */
+  --sidebar: #1e3a5f; /* Fundo em Azul Institucional */
+  --sidebar-foreground: #f8fafc; /* Quase branco para leitura */
+  --sidebar-primary: #c9a227; /* Dourado para itens ativos */
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #3b82f6; /* Azul suave para hover */
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #1e3a5f; /* Mesclado com o fundo */
+  --sidebar-ring: #c9a227; /* Foco dourado na sidebar */
+}
+
+.dark {
+  /* No modo escuro, invertemos a base usando tons de cinza escuro/azulado */
+  --background: #0f172a;
+  --foreground: #f8fafc;
+
+  --card: #1e293b; /* Mesma cor do texto principal claro, agora como fundo de card */
+  --card-foreground: #f8fafc;
+
+  --popover: #1e293b;
+  --popover-foreground: #f8fafc;
+
+  /* Inversão sutil para melhor contraste no escuro */
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+
+  --secondary: #1e3a5f;
+  --secondary-foreground: #ffffff;
+
+  --accent: #c9a227;
+  --accent-foreground: #ffffff;
+
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --success: #16a34a;
+  --warning: #f59e0b;
+
+  --muted: #334155;
+  --muted-foreground: #94a3b8; /* Texto leve vira secundário no escuro */
+  --light-text: #64748b;
+
+  --border: #334155;
+  --input: #334155;
+  --ring: #3b82f6;
+
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+
+  --chart-1: #3b82f6;
+  --chart-2: #1e3a5f;
+  --chart-3: #c9a227;
+  --chart-4: #16a34a;
+  --chart-5: #f59e0b;
+
+  /* SIDEBAR (Dark Mode) */
+  --sidebar: #0f172a; /* Fundo acompanhando o background escuro */
+  --sidebar-foreground: #f8fafc;
+  --sidebar-primary: #c9a227;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1e3a5f; /* Hover com o Azul institucional */
+  --sidebar-accent-foreground: #f8fafc;
+  --sidebar-border: #334155;
+  --sidebar-ring: #3b82f6;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+
+  --color-border: var(--border);
+
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+
+  --color-switch-background: var(--switch-background);
+
+  --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(
+    --sidebar-primary-foreground
+  );
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(
+    --sidebar-accent-foreground
+  );
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
