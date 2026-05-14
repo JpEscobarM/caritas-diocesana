@@ -106,8 +106,8 @@ Descrição: especialização de item para vestuário.
 | Campo | Tipo sugerido | Chave | Descrição |
 |---|---|---|---|
 | id_item | INT | PK/FK | Identificador do item vestimenta |
-| tamanho | VARCHAR(20) |  | Tamanho da peça |
-| genero | VARCHAR(20) / ENUM |  | `MASCULINO`,`FEMININO` |
+| tamanho | ENUM|  | `PP`,`P`,`M`,`G`,`GG`,`XGG`,`G1`,`G2` |
+| genero |  ENUM |  | `MASCULINO`,`FEMININO` |
 | publico |  ENUM |  | `ADULTO`,`INFANTIL` |
 | preco_sugerido | DECIMAL(10,2) |  | Preço sugerido para bazar |
 
