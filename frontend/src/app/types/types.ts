@@ -20,8 +20,8 @@ export type UserParish = Parish & {
   role: string;
 };
 
+//PARA GUARDAR O USUARIO LOGADO E PERMISSOES
 export type AuthUser = {
-  //PARA GUARDAR O USUARIO E PERMISSOES, RETORNADO AO FAZER LOGIN
   id: number;
   name: string;
   email: string;
@@ -29,6 +29,7 @@ export type AuthUser = {
   parishes?: UserParish[];
 };
 
+//TIPO DE RETORNO DA SESSAO, RECEBE AO REALIZAR LOGIN
 export type AuthSession = {
   token_type: string;
   access_token: string;

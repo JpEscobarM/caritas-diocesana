@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import {
   Heart,
   Package,
@@ -24,6 +24,20 @@ import { clearAuthSession, getAuthSession } from "../lib/auth";
 export default function DiocesePage() {
   const navigate = useNavigate();
   const session = getAuthSession();
+
+  //VERIFICA SESSAO AO ENTRAR NA PAGINA-----
+  if (!session) {
+    clearAuthSession();
+    return <Navigate to="/login" replace />;
+  }
+
+  //retorna um boolean em canAccessDiocese
+  const canAccessDiocese = session.abilities.includes("diocese");
+
+  if (canAccessDiocese === false) {
+    return <Navigate to="/login/diocese" replace />;
+  }
+  //--------------
   const [activeTab, setActiveTab] = useState("geral");
   const [showMissingItems, setShowMissingItems] = useState(false);
   const [showExpiringItems, setShowExpiringItems] = useState(false);
@@ -101,7 +115,7 @@ export default function DiocesePage() {
                     {session?.user?.name ?? "Usuário"}
                   </p>
                   <p className="text-xs text-sidebar-foreground/70">
-                    Administrador
+                    {session?.user?.system_role ?? "Administrador"}
                   </p>
                 </div>
               </div>

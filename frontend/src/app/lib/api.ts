@@ -11,7 +11,7 @@ export const api = axios.create({
 });
 
 //FUNCAO QUE CONFIGURA AXIOS PARA USAR A SESSAO DO LOCALSTORAGE E ENVIAR
-//O ACCESS_TOKEN DO USUARIO EM CADA REQUISICAO
+//O ACCESS_TOKEN DO USUARIO LOGADO EM CADA REQUISICAO
 api.interceptors.request.use((config) => {
   const session = getAuthSession();
 
