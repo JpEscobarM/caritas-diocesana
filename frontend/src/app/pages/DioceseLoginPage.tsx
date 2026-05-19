@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { loginDiocese, setAuthSession } from "../lib/auth";
+import { loginDiocese, setAuthSession } from "../api/auth";
 import { AuthSession } from "../types/types";
 
 export default function DioceseLoginPage() {

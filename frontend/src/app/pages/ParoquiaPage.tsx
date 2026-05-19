@@ -23,7 +23,7 @@ import {
   clearAuthSession,
   getAuthSession,
   getParoquiaLabel,
-} from "../lib/auth";
+} from "../api/auth";
 
 export default function ParoquiaPage() {
   const navigate = useNavigate();
@@ -37,8 +37,6 @@ export default function ParoquiaPage() {
 
   const hasParoquiaAccess = useMemo(() => {
     if (!session) return false;
-
-    if (session.profile === "paroquia") return true;
 
     if (
       Array.isArray(session.abilities) &&
