@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { loginDiocese, AUTH_STORAGE_KEY } from "../lib/auth";
+import { loginDiocese, setAuthSession } from "../lib/auth";
+import { AuthSession } from "../types/types";
 
 export default function DioceseLoginPage() {
   const navigate = useNavigate();
@@ -19,9 +20,11 @@ export default function DioceseLoginPage() {
     setLoading(true);
 
     try {
-      const response = await loginDiocese(email, senha);
+      const emailLimpo = email.trim();
+      const passwordLimpo = senha.trim();
+      const response = await loginDiocese(emailLimpo, passwordLimpo);
 
-      const session = {
+      const session: AuthSession = {
         token_type: response.token_type,
         access_token: response.access_token,
         abilities: response.abilities,
@@ -29,7 +32,7 @@ export default function DioceseLoginPage() {
         parish: response.parish,
       };
 
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session));
+      setAuthSession(session); //SESSAO SENDO GUARDADA NO LOCALSTORAGE
 
       navigate("/diocese");
     } catch (error: any) {

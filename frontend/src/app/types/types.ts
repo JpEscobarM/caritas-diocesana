@@ -1,6 +1,14 @@
 export type Profile = "diocese" | "paroquia";
 
-export type ParishSummary = {
+//SEM USO ATE O MOMENTO
+// export type AuthenticateInput = {
+//   profile: Profile;
+//   usuario: string;
+//   senha: string;
+//   paroquia?: string;
+// };
+
+export type Parish = {
   id: number;
   name: string;
   slug: string;
@@ -8,11 +16,12 @@ export type ParishSummary = {
   active: boolean;
 };
 
-export type UserParish = ParishSummary & {
+export type UserParish = Parish & {
   role: string;
 };
 
 export type AuthUser = {
+  //PARA GUARDAR O USUARIO E PERMISSOES, RETORNADO AO FAZER LOGIN
   id: number;
   name: string;
   email: string;
@@ -20,14 +29,10 @@ export type AuthUser = {
   parishes?: UserParish[];
 };
 
-export type AuthResponse = {
+export type AuthSession = {
   token_type: string;
   access_token: string;
   abilities: string[];
   user: AuthUser;
-  parish: ParishSummary | null;
-};
-
-export type AuthSession = AuthResponse & {
-  profile: Profile;
+  parish: Parish | null;
 };

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getAuthSession } from "./auth";
 
 //CRIA UMA INSTANCIA DO AXIOS PARA OS REQUEST's
 export const api = axios.create({
@@ -9,25 +10,14 @@ export const api = axios.create({
   },
 });
 
-// api.interceptors.request.use((config) => {
-//   const rawSession = localStorage.getItem("caritas.auth.session");
+//FUNCAO QUE CONFIGURA AXIOS PARA USAR A SESSAO DO LOCALSTORAGE E ENVIAR
+//O ACCESS_TOKEN DO USUARIO EM CADA REQUISICAO
+api.interceptors.request.use((config) => {
+  const session = getAuthSession();
 
-//   if (!rawSession) {
-//     return config;
-//   }
+  if (session) {
+    config.headers.Authorization = `${session.token_type} ${session.access_token}`;
+  }
 
-//   try {
-//     const session = JSON.parse(rawSession) as {
-//       token_type?: string;
-//       access_token?: string;
-//     };
-
-//     if (session?.access_token && session?.token_type) {
-//       config.headers.Authorization = `${session.token_type} ${session.access_token}`;
-//     }
-//   } catch {
-//     localStorage.removeItem("caritas.auth.session");
-//   }
-
-//   return config;
-// });
+  return config;
+});
