@@ -31,34 +31,6 @@ export default function ParoquiaPage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showFamilyRegistration, setShowFamilyRegistration] = useState(false);
 
-  const hasParoquiaAccess = useMemo(() => {
-    if (!session) return false;
-
-    if (
-      Array.isArray(session.abilities) &&
-      session.abilities.includes("parish")
-    ) {
-      return true;
-    }
-
-    if (
-      Array.isArray(session.abilities) &&
-      session.abilities.includes("paroquia")
-    ) {
-      return true;
-    }
-
-    return false;
-  }, [session]);
-
-  if (!session) {
-    return <Navigate to="/login/paroquia" replace />;
-  }
-
-  if (!hasParoquiaAccess) {
-    return <Navigate to="/login" replace />;
-  }
-
   const handleLogout = () => {
     clearAuthSession();
     navigate("/login", { replace: true });
@@ -72,9 +44,9 @@ export default function ParoquiaPage() {
     { id: "prestacao", label: "Prestação de Contas", icon: DollarSign },
   ];
 
-  const nomeUsuario = session.user?.name ?? "Usuário";
-  const roleUsuario = session.user?.system_role ?? "Coordenador";
-  const paroquiaSlug = session.parish?.slug ?? null;
+  const nomeUsuario = "Usuário";
+  const roleUsuario = "Coordenador";
+  const paroquiaSlug = null;
   const paroquiaNome = "getParoquiaLabel(paroquiaSlug);";
 
   return (
