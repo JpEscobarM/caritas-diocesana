@@ -1,6 +1,6 @@
 import axios from "axios";
 import { api } from "./api";
-import type { AuthSession, Profile } from "../types/types";
+import type { AuthSession, Parish } from "../types/types";
 
 export const AUTH_STORAGE_KEY = "caritas.auth.session";
 
@@ -41,21 +41,6 @@ export const clearAuthSession = (): void => {
 
 export const isAuthenticated = (): boolean => getAuthSession() !== null;
 
-export const getParoquiaLabel = (slug: string | null): string => {
-  const options: Record<string, string> = {
-    "sagrado-coracao": "Paróquia Sagrado Coração de Jesus",
-    "nossa-senhora": "Paróquia Nossa Senhora Aparecida",
-    "sao-jose": "Paróquia São José",
-    "santo-antonio": "Paróquia Santo Antônio",
-  };
-
-  if (!slug) {
-    return "Paróquia";
-  }
-
-  return options[slug] ?? "Paróquia";
-};
-
 export const getAuthHeaders = (): HeadersInit => {
   const session = getAuthSession();
 
@@ -67,3 +52,9 @@ export const getAuthHeaders = (): HeadersInit => {
     Authorization: `${session.token_type} ${session.access_token}`,
   };
 };
+
+export async function getParoquias(): Promise<Parish[]> {
+  const response = await api.get("/parishes");
+
+  return response.data.data;
+}

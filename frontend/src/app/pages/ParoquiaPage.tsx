@@ -19,11 +19,7 @@ import { FamilyRegistration } from "../components/FamilyRegistration";
 import { HomeVisits } from "../components/HomeVisits";
 import { BenefitsManagement } from "../components/BenefitsManagement";
 import { StockControl } from "../components/StockControl";
-import {
-  clearAuthSession,
-  getAuthSession,
-  getParoquiaLabel,
-} from "../api/auth";
+import { clearAuthSession, getAuthSession } from "../api/auth";
 
 export default function ParoquiaPage() {
   const navigate = useNavigate();
@@ -79,7 +75,7 @@ export default function ParoquiaPage() {
   const nomeUsuario = session.user?.name ?? "Usuário";
   const roleUsuario = session.user?.system_role ?? "Coordenador";
   const paroquiaSlug = session.parish?.slug ?? null;
-  const paroquiaNome = session.parish?.name ?? getParoquiaLabel(paroquiaSlug);
+  const paroquiaNome = "getParoquiaLabel(paroquiaSlug);";
 
   return (
     <div className="size-full flex bg-background">

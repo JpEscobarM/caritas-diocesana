@@ -1,15 +1,27 @@
-// src/app/pages/ParoquiaLoginPage.tsx
 import { Heart } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { getParoquias } from "../api/auth";
+import { Parish } from "../types/types";
 
 export default function ParoquiaLoginPage() {
-  //MOCK
-  const paroquias = [
-    "Paróquia Sagrado Coração de Jesus",
-    "Paróquia Nossa Senhora Aparecida",
-    "Paróquia São José",
-    "Paróquia Santo Antônio",
-  ];
+  const [listaParoquias, setListaParoquias] = useState<Parish[]>([]);
+  const [erro, setErro] = useState("");
+
+  //useEffect É UM RECURSO DO REACT PARA EXECUTAR UMA FUNCAO QUANDO O COMPONENTE É CARREGADO
+  useEffect(() => {
+    const carregarParoquias = async () => {
+      try {
+        const listaParoquias = await getParoquias();
+
+        setListaParoquias(listaParoquias);
+      } catch (error: any) {
+        setErro(error?.response?.data?.message || "Erro ao buscar paroquias");
+      }
+    };
+
+    carregarParoquias();
+  }, []);
 
   const navigate = useNavigate();
 
@@ -62,9 +74,9 @@ export default function ParoquiaLoginPage() {
 
               <select className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[var(--primary)] outline-none transition hover:bg-slate-50 focus:ring-2 focus:ring-blue-200">
                 <option value="">Selecione sua paróquia</option>
-                {paroquias.map((paroquia, index) => (
-                  <option key={index} value={paroquia}>
-                    {paroquia}
+                {listaParoquias.map((paroquia, index) => (
+                  <option key={index} value={paroquia.slug}>
+                    {paroquia.name}
                   </option>
                 ))}
               </select>

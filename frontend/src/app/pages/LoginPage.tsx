@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Heart, Building2, Church } from "lucide-react";
-import { authenticate } from "../lib/auth"; //arquivo .tsx responsavel pela autenticacao
-import type { Profile } from "../types/auth";
 
 export default function LoginPage() {
   const navigate = useNavigate();
