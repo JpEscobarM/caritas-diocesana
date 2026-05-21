@@ -4,6 +4,7 @@ import type { AuthSession, Parish } from "../types/types";
 
 export const AUTH_STORAGE_KEY = "caritas.auth.session";
 
+//LOGIN DA DIOCESE----
 export async function loginDiocese(email: string, password: string) {
   const response = await api.post("/diocese/login", {
     email,
@@ -12,6 +13,7 @@ export async function loginDiocese(email: string, password: string) {
 
   return response.data;
 }
+//---------------------
 
 //SETA UMA NOVA SESSAO DO TIPO AUTHSESSION
 export const setAuthSession = (session: AuthSession): void => {
@@ -53,8 +55,25 @@ export const getAuthHeaders = (): HeadersInit => {
   };
 };
 
+//LOGIN DA PAROQUIA----
 export async function getParoquias(): Promise<Parish[]> {
   const response = await api.get("/parishes");
 
   return response.data.data;
 }
+
+export async function loginParoquia(
+  email: string,
+  password: string,
+  parish_id: number,
+) {
+  const response = await api.post("/parish/login", {
+    email: email,
+    password: password,
+    parish_id: parish_id,
+  });
+
+  return response.data;
+}
+
+//---------------------

@@ -1,12 +1,16 @@
 import { Heart } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getParoquias } from "../api/auth";
-import { Parish } from "../types/types";
+import { getParoquias, loginParoquia, setAuthSession } from "../api/auth";
+import { AuthSession, Parish } from "../types/types";
 
 export default function ParoquiaLoginPage() {
   const [listaParoquias, setListaParoquias] = useState<Parish[]>([]);
   const [erro, setErro] = useState("");
+  const [paroquiaSelecionada, setParoquiaSelecionada] = useState<number>(0);
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [loading, setLoading] = useState(false);
 
   //useEffect É UM RECURSO DO REACT PARA EXECUTAR UMA FUNCAO QUANDO O COMPONENTE É CARREGADO
   useEffect(() => {
@@ -25,13 +29,42 @@ export default function ParoquiaLoginPage() {
 
   const navigate = useNavigate();
 
-  const handleLoginSubmit = (event: React.SyntheticEvent<HTMLFormElement>) => {
-    //TypeScript reclama de parametro sem tipo, por isso o React.SyntheticEvent<HTMLFormElement>
+  //TypeScript reclama de parametro sem tipo, por isso o React.SyntheticEvent<HTMLFormElement>
+  const handleLoginSubmit = async (
+    event: React.SyntheticEvent<HTMLFormElement>,
+  ) => {
     event.preventDefault();
+    setLoading(true);
 
     //FAZER AUTENTICACAO AQUI
+    const emailLimpo = email.trim();
+    const senhaLimpa = senha.trim();
 
-    navigate("/paroquia");
+    try {
+      const response = await loginParoquia(
+        emailLimpo,
+        senhaLimpa,
+        paroquiaSelecionada,
+      );
+
+      const session: AuthSession = {
+        token_type: response.token_type,
+        access_token: response.access_token,
+        abilities: response.abilities,
+        user: response.user,
+        parish: response.parish,
+      };
+
+      setAuthSession(session);
+
+      navigate("/paroquia");
+    } catch (error: any) {
+      setErro(error?.response?.data?.message || "Erro ao fazer login");
+    } finally {
+      setLoading(false);
+    }
+
+    //LOGIN SENDO REALIZADO, GUARDAR SESSAO E VERIFICAR SESSAO EM PAROQUIAPAGE.
   };
 
   return (
@@ -67,15 +100,25 @@ export default function ParoquiaLoginPage() {
           </div>
 
           <form onSubmit={handleLoginSubmit} className="flex flex-col gap-5">
+            {erro && (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                {erro}
+              </div>
+            )}
+
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium text-[var(--primary)]">
                 Paróquia
               </label>
 
-              <select className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[var(--primary)] outline-none transition hover:bg-slate-50 focus:ring-2 focus:ring-blue-200">
-                <option value="">Selecione sua paróquia</option>
-                {listaParoquias.map((paroquia, index) => (
-                  <option key={index} value={paroquia.slug}>
+              <select
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[var(--primary)] outline-none transition hover:bg-slate-50 focus:ring-2 focus:ring-blue-200"
+                value={paroquiaSelecionada}
+                onChange={(e) => setParoquiaSelecionada(Number(e.target.value))}
+              >
+                <option value="0">Selecione sua paróquia</option>
+                {listaParoquias.map((paroquia) => (
+                  <option key={paroquia.id} value={paroquia.id}>
                     {paroquia.name}
                   </option>
                 ))}
@@ -87,9 +130,11 @@ export default function ParoquiaLoginPage() {
                 Usuário
               </label>
               <input
-                type="text"
+                type="email"
                 placeholder="Digite seu usuário"
                 className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[var(--primary)] outline-none transition hover:bg-slate-50 focus:ring-2 focus:ring-blue-200"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
 
@@ -101,14 +146,17 @@ export default function ParoquiaLoginPage() {
                 type="password"
                 placeholder="Digite sua senha"
                 className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[var(--primary)] outline-none transition hover:bg-slate-50 focus:ring-2 focus:ring-blue-200"
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
               />
             </div>
 
             <button
               type="submit"
+              disabled={loading}
               className="mt-2 w-full rounded-xl bg-[var(--primary)] px-4 py-3 text-lg font-medium text-white shadow-md transition duration-150 hover:opacity-95 hover:shadow-lg active:scale-[0.98]"
             >
-              Entrar
+              {loading ? "Entrando..." : "Entrar"}
             </button>
 
             <button
