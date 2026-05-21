@@ -1,25 +1,8 @@
 import { useState } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
-import {
-  Heart,
-  Package,
-  Home,
-  LogOut,
-  Bell,
-  BarChart3,
-  FileText,
-  Settings,
-  ChevronLeft,
-  ChevronRight,
-  TrendingUp,
-  ShoppingBag,
-  Church,
-  AlertTriangle,
-  Calendar,
-  DollarSign,
-} from "lucide-react";
+import { Heart, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import { menuDioceseItems } from "../config/MenuDiocese";
-import { BazarPOS } from "../components/BazarPOS";
+
 import { clearAuthSession, getAuthSession } from "../api/auth";
 import Sidebar from "../components/Sidebar";
 
@@ -37,6 +20,7 @@ export default function DiocesePage() {
   const canAccessDiocese = session.abilities.includes("diocese");
 
   if (canAccessDiocese === false) {
+    clearAuthSession();
     return <Navigate to="/login/diocese" replace />;
   }
   //--------------
@@ -58,6 +42,23 @@ export default function DiocesePage() {
       item, //FILTRA ITENS  DE MENUDIOCESE BASEADO EM USERROLE
     ) => item.allowedRoles.includes(userRole),
   );
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "geral":
+        return <div>Painel Geral</div>;
+      case "paroquias":
+        return <div>Paróquias</div>;
+      case "estoque":
+        return <div>Estoque Diocesano</div>;
+      case "bazar":
+        return <div>Bazar Diocesano</div>;
+      case "relatorios":
+        return <div>Relatórios</div>;
+      default:
+        return <div>Conteúdo não encontrado</div>;
+    }
+  };
 
   return (
     <div className="size-full flex bg-background">
@@ -125,11 +126,7 @@ export default function DiocesePage() {
         </header>
 
         <main className="flex-1 overflow-auto p-6 bg-muted/20">
-          {activeTab === "geral" && <div>Painel Geral</div>}
-          {activeTab === "paroquias" && <div>Paróquias</div>}
-          {activeTab === "estoque" && <div>Estoque Diocesano</div>}
-          {activeTab === "bazar" && <div>Bazar Diocesano</div>}
-          {activeTab === "relatorios" && <div>Relatórios</div>}
+          {renderTabContent()}
         </main>
       </div>
     </div>

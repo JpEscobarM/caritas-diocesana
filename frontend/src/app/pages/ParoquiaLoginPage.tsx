@@ -1,8 +1,8 @@
 import { Heart } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getParoquias, loginParoquia } from "../api/auth";
-import { Parish } from "../types/types";
+import { getParoquias, loginParoquia, setAuthSession } from "../api/auth";
+import { AuthSession, Parish } from "../types/types";
 
 export default function ParoquiaLoginPage() {
   const [listaParoquias, setListaParoquias] = useState<Parish[]>([]);
@@ -47,7 +47,17 @@ export default function ParoquiaLoginPage() {
         paroquiaSelecionada,
       );
 
-      console.log(response);
+      const session: AuthSession = {
+        token_type: response.token_type,
+        access_token: response.access_token,
+        abilities: response.abilities,
+        user: response.user,
+        parish: response.parish,
+      };
+
+      setAuthSession(session);
+
+      navigate("/paroquia");
     } catch (error: any) {
       setErro(error?.response?.data?.message || "Erro ao fazer login");
     } finally {
@@ -55,7 +65,6 @@ export default function ParoquiaLoginPage() {
     }
 
     //LOGIN SENDO REALIZADO, GUARDAR SESSAO E VERIFICAR SESSAO EM PAROQUIAPAGE.
-    //navigate("/paroquia");
   };
 
   return (
