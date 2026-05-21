@@ -70,8 +70,10 @@ export async function loginParoquia(
   const response = await api.post("/parish/login", {
     email: email,
     password: password,
-    parish_id: 1,
+    parish_id: parish_id,
   });
+
+  return response.data;
 }
 
 //---------------------

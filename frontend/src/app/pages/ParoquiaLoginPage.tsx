@@ -41,21 +41,21 @@ export default function ParoquiaLoginPage() {
     const senhaLimpa = senha.trim();
 
     try {
-      console.log(
-        `email ${emailLimpo} senha ${senhaLimpa} id ${paroquiaSelecionada}`,
-      );
       const response = await loginParoquia(
         emailLimpo,
         senhaLimpa,
         paroquiaSelecionada,
       );
+
+      console.log(response);
     } catch (error: any) {
-      setErro(error?.response?.message || "Erro ao fazer login");
+      setErro(error?.response?.data?.message || "Erro ao fazer login");
     } finally {
       setLoading(false);
     }
 
-    navigate("/paroquia");
+    //LOGIN SENDO REALIZADO, GUARDAR SESSAO E VERIFICAR SESSAO EM PAROQUIAPAGE.
+    //navigate("/paroquia");
   };
 
   return (
