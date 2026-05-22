@@ -22,7 +22,7 @@ export const menuDioceseItems = [
   },
   {
     id: "paroquias",
-    label: "Paróquias",
+    label: "Gerenciar paróquias",
     icon: Church,
     allowedRoles: ["diocese_admin"],
   },

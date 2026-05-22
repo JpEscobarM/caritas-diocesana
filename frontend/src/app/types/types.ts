@@ -8,19 +8,54 @@ export type Profile = "diocese" | "paroquia";
 //   paroquia?: string;
 // };
 
+// ---- Tipo de paroquia ----
 export type Parish = {
   id: number;
   name: string;
   slug: string;
-  cnpj: string;
+  cnpj: string | null;
   active: boolean;
 };
+//---------------------------
 
+
+// ---- Tipo para cadastrar nova paroquia ----
+export type CreateParishInput = {
+  name: string;
+  cnpj?: string | null;
+  active?: boolean;
+};
+//--------------------------------------------
+
+
+// ---- Tipo para atualizar paroquia existente ----
+export type UpdateParishInput = {
+  name?: string;
+  cnpj?: string | null;
+  active?: boolean;
+};
+//-------------------------------------------------
+
+
+// ---- Tipo generico de resposta da API ----
+// A API retorna os dados dentro de uma propriedade chamada data
+// O <T> permite reutilizar esse tipo para qualquer retorno da API
+// Exemplo: ApiResponse<Parish[]> ou ApiResponse<Parish>
+export type ApiResponse<T> = {
+  data: T;
+};
+//------------------------------------------------
+
+
+// ---- Tipo de paroquia vinculada ao usuario ----
 export type UserParish = Parish & {
   role: string;
 };
+//------------------------------------------------
 
-//PARA GUARDAR O USUARIO LOGADO E PERMISSOES
+
+// ---- Tipo do usuario autenticado ----
+// Guarda os dados do usuario logado e suas permissoes
 export type AuthUser = {
   id: number;
   name: string;
@@ -28,8 +63,11 @@ export type AuthUser = {
   system_role: string;
   parishes?: UserParish[];
 };
+//---------------------------------------
 
-//TIPO DE RETORNO DA SESSAO, RECEBE AO REALIZAR LOGIN
+
+// ---- Tipo da sessao de autenticacao ----
+// Representa o retorno recebido ao realizar login
 export type AuthSession = {
   token_type: string;
   access_token: string;
@@ -37,3 +75,4 @@ export type AuthSession = {
   user: AuthUser;
   parish: Parish | null;
 };
+//----------------------------------------

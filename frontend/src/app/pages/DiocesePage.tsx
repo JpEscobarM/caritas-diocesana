@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import { Heart, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import { menuDioceseItems } from "../config/MenuDiocese";
+import ParishesManagementByDiocese from "../components/ParishesManagementByDiocese";
 
 import { clearAuthSession, getAuthSession } from "../api/auth";
 import Sidebar from "../components/Sidebar";
@@ -48,7 +49,7 @@ export default function DiocesePage() {
       case "geral":
         return <div>Painel Geral</div>;
       case "paroquias":
-        return <div>Paróquias</div>;
+        return <ParishesManagementByDiocese />;
       case "estoque":
         return <div>Estoque Diocesano</div>;
       case "bazar":

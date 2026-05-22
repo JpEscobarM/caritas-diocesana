@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import {
   Heart,
   Building2,
@@ -37,6 +37,9 @@ export default function App() {
   return (
     <>
       <Routes>
+        {/* Redireciona o '/' para a tela de seleção de login */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
+
         <Route path="/login" element={<LoginPage />} />
         <Route path="/login/diocese" element={<DioceseLoginPage />} />
         <Route path="/login/paroquia" element={<ParoquiaLoginPage />} />
