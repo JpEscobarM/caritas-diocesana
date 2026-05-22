@@ -1,4 +1,4 @@
-import { Heart } from "lucide-react";
+import BrandLogo from "../components/BrandLogo";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getParoquias, loginParoquia, setAuthSession } from "../api/auth";
@@ -71,9 +71,11 @@ export default function ParoquiaLoginPage() {
     <div className="min-h-screen bg-[var(--background)] flex items-center justify-center px-4">
       <div className="flex w-full max-w-xl flex-col items-center gap-6">
         <div className="flex flex-col items-center justify-center gap-3 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--primary)] shadow-lg">
-            <Heart className="h-8 w-8 fill-white text-white" />
-          </div>
+          <BrandLogo
+            variant="vertical"
+            alt="Cáritas Paroquial"
+            className="h-32 w-auto object-contain"
+          />
 
           <h1 className="text-4xl font-medium text-[var(--primary)]">
             Sistema Cáritas

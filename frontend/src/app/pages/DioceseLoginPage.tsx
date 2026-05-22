@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Heart } from "lucide-react";
+import BrandLogo from "../components/BrandLogo";
 import { useNavigate } from "react-router-dom";
 import { loginDiocese, setAuthSession } from "../api/auth";
 import { AuthSession } from "../types/types";
@@ -46,9 +46,11 @@ export default function DioceseLoginPage() {
     <div className="min-h-screen bg-[var(--background)] flex items-center justify-center px-4">
       <div className="flex w-full max-w-xl flex-col items-center gap-6">
         <div className="flex flex-col items-center justify-center gap-3 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--primary)] shadow-lg">
-            <Heart className="h-8 w-8 fill-white text-white" />
-          </div>
+          <BrandLogo
+            variant="vertical"
+            alt="Cáritas Diocesana"
+            className="h-32 w-auto object-contain"
+          />
 
           <h1 className="text-4xl font-medium text-[var(--primary)]">
             Sistema Cáritas

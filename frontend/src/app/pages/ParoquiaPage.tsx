@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { Heart, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
+import { LogOut, ChevronLeft, ChevronRight } from "lucide-react";
+import BrandLogo from "../components/BrandLogo";
 
 import { clearAuthSession, getAuthSession } from "../api/auth";
 import Sidebar from "../components/Sidebar";
@@ -65,18 +66,30 @@ export default function ParoquiaPage() {
     <div className="size-full flex bg-background">
       <aside
         className={`bg-sidebar text-sidebar-foreground transition-all duration-300 flex flex-col ${
-          sidebarCollapsed ? "w-16" : "w-64"
+          sidebarCollapsed ? "w-20" : "w-64"
         }`}
       >
         <div className="p-4 border-b border-sidebar-border">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 bg-sidebar-primary-foreground rounded-lg flex-shrink-0">
-              <Heart className="w-6 h-6 text-sidebar-primary fill-sidebar-primary" />
-            </div>
-            {!sidebarCollapsed && (
-              <div>
-                <h1 className="text-sm font-medium">Cáritas Paroquial</h1>
-                <p className="text-xs text-sidebar-foreground/70">
+            {sidebarCollapsed ? (
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white p-2">
+                <BrandLogo
+                  variant="symbol"
+                  alt="Símbolo da Cáritas"
+                  className="h-full w-full object-contain"
+                />
+              </div>
+            ) : (
+              <div className="flex min-w-0 flex-col gap-2">
+                <div className="rounded-lg bg-white p-2">
+                  <BrandLogo
+                    variant="horizontal"
+                    alt="Cáritas Paroquial"
+                    className="h-10 w-auto object-contain"
+                  />
+                </div>
+
+                <p className="truncate text-xs text-sidebar-foreground/80">
                   {session.user.name}
                 </p>
               </div>
