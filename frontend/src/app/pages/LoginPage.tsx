@@ -1,78 +1,65 @@
-import { useState } from "react";
+import { Building2, Church, Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Building2, Church } from "lucide-react";
 import BrandLogo from "../components/BrandLogo";
 
 export default function LoginPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[var(--background)] flex items-center justify-center px-4">
-      <div className="flex w-full max-w-xl flex-col items-center gap-6">
-        <div className="flex flex-col items-center justify-center gap-3 text-center">
-          <BrandLogo
-            variant="vertical"
-            alt="Cáritas Diocesana"
-            className="h-32 w-auto object-contain"
-          />
-
-          <h1 className="text-4xl font-medium text-[var(--primary)]">
-            Sistema Cáritas
-          </h1>
-
-          <h3 className="text-lg font-light text-[var(--light-text)]">
-            Gestão integrada de Assistência Social
-          </h3>
-        </div>
-
-        <div className="w-full rounded-2xl border border-slate-200 bg-[var(--card)] p-8 shadow-xl">
-          <h2 className="mb-8 text-center text-2xl font-medium text-[var(--primary)]">
-            Selecione seu perfil de acesso
-          </h2>
-
-          <div className="flex flex-col gap-4">
-            <button
-              onClick={() => navigate("/login/diocese")}
-              className="group flex w-full items-center gap-4 rounded-2xl border border-slate-200 bg-white px-6 py-5 text-left transition hover:border-[var(--primary)] hover:bg-slate-50 transition duration-150 active:scale-95"
-            >
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-slate-100 transition group-hover:bg-[var(--primary)]">
-                <Building2 className="h-7 w-7 text-[var(--primary)] transition group-hover:text-white" />
-              </div>
-
-              <div>
-                <span className="block text-xl font-medium text-[var(--primary)]">
-                  Cáritas Diocesana
-                </span>
-                <span className="block text-sm text-[var(--light-text)]">
-                  Acesso administrativo diocesano
-                </span>
-              </div>
-            </button>
-
-            <button
-              onClick={() => navigate("/login/paroquia")}
-              className="group flex w-full items-center gap-4 rounded-2xl border border-slate-200 bg-white px-6 py-5 text-left transition hover:border-[var(--primary)] hover:bg-slate-50 transition duration-150 active:scale-95"
-            >
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-slate-100 transition group-hover:bg-[var(--primary)]">
-                <Church className="h-7 w-7 text-[var(--primary)] transition group-hover:text-white" />
-              </div>
-
-              <div>
-                <span className="block text-xl font-medium text-[var(--primary)]">
-                  Cáritas Paroquial
-                </span>
-                <span className="block text-sm text-[var(--light-text)]">
-                  Acesso paroquial
-                </span>
-              </div>
-            </button>
+    <main className="min-h-screen bg-background px-5 py-8 text-foreground">
+      <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-5xl flex-col items-center justify-center">
+        <section
+          aria-labelledby="login-title"
+          className="w-full overflow-hidden rounded-3xl border border-border bg-card caritas-card-shadow"
+        >
+          <div className="bg-primary px-6 py-5 text-primary-foreground">
+            <div className="mx-auto flex max-w-3xl items-center justify-center rounded-2xl bg-white px-6 py-4">
+              <BrandLogo variant="horizontal" className="h-20 w-auto max-w-full" />
+            </div>
           </div>
-        </div>
 
-        <p className="text-sm text-[var(--light-text)]">
-          Sistema de Gestão Integrada - Cáritas Diocesana
-        </p>
+          <div className="px-6 py-8 sm:px-10 sm:py-10">
+            <div className="mx-auto max-w-3xl text-center">
+              <h1 id="login-title" className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                Sistema Cáritas
+              </h1>
+              <p className="mt-4 text-lg text-muted-foreground">
+                Escolha o tipo de acesso para entrar no sistema. Use a opção que corresponde à sua equipe.
+              </p>
+            </div>
+
+            <div className="mx-auto mt-10 grid max-w-3xl gap-5 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => navigate("/login/diocese")}
+                className="group flex min-h-40 flex-col items-center justify-center gap-4 rounded-2xl border-2 border-border bg-card p-7 text-center transition-colors hover:border-primary hover:bg-accent focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-ring"
+              >
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                  <Building2 className="h-8 w-8" aria-hidden="true" />
+                </div>
+                <span className="text-xl font-bold text-foreground">Cáritas Diocesana</span>
+                <span className="text-base text-muted-foreground">
+                  Acesso da equipe da Cáritas Diocesana.
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => navigate("/login/paroquia")}
+                className="group flex min-h-40 flex-col items-center justify-center gap-4 rounded-2xl border-2 border-border bg-card p-7 text-center transition-colors hover:border-primary hover:bg-accent focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-ring"
+              >
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
+                  <Church className="h-8 w-8" aria-hidden="true" />
+                </div>
+                <span className="text-xl font-bold text-foreground">Cáritas Paroquial</span>
+                <span className="text-base text-muted-foreground">
+                  Acesso da equipe das paróquias.
+                </span>
+              </button>
+            </div>
+          </div>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import BrandLogo from "../components/BrandLogo";
+import EmDesenvolvimento from "../components/EmDesenvolvimento";
 
 import { clearAuthSession, getAuthSession } from "../api/auth";
 import Sidebar from "../components/Sidebar";
@@ -9,89 +10,129 @@ import { menuParoquiaItems } from "../config/MenuParoquia";
 
 export default function ParoquiaPage() {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("geral");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const session = getAuthSession();
 
-  //VERIFICA SESSAO AO ENTRAR NA PAGINA-----
   if (!session) {
     clearAuthSession();
     return <Navigate to="/login" replace />;
   }
 
-  //retorna um boolean em canAcessThisParish
   const canAccessThisParish = session.abilities.includes(
     `parish:${session.parish?.id}`,
   );
 
-  if (canAccessThisParish === false) {
+  if (!canAccessThisParish) {
     clearAuthSession();
     return <Navigate to="/login/paroquia" replace />;
   }
-  //--------------
-
-  const [activeTab, setActiveTab] = useState("geral");
-
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [showFamilyRegistration, setShowFamilyRegistration] = useState(false);
 
   const handleLogout = () => {
     clearAuthSession();
     navigate("/login", { replace: true });
   };
 
-  const userRole = session?.user.system_role;
+  const userRole = session.user.system_role;
 
   const visibleMenuItems = menuParoquiaItems.filter((item) =>
     item.allowedRoles.includes(userRole),
   );
 
+  const activeMenuLabel =
+    visibleMenuItems.find((item) => item.id === activeTab)?.label ?? "Painel Geral";
+
   const renderTabContent = () => {
     switch (activeTab) {
       case "geral":
-        return <div>Painel Geral</div>;
+        return (
+          <EmDesenvolvimento
+            title="Painel geral da paróquia"
+            description="Em breve, esta tela reunirá as informações mais importantes da paróquia em uma visão simples e direta."
+          />
+        );
       case "nucleos":
-        return <div>Núcleos Familiares</div>;
+        return (
+          <EmDesenvolvimento
+            title="Núcleos familiares"
+            description="Esta área será usada para cadastrar, consultar e atualizar famílias acompanhadas pela Cáritas."
+          />
+        );
       case "estoque":
-        return <div>Estoque Paroquial</div>;
+        return (
+          <EmDesenvolvimento
+            title="Estoque paroquial"
+            description="A gestão de itens da paróquia será apresentada aqui, com ações claras para entrada, saída e consulta."
+          />
+        );
       case "visitas":
-        return <div>Visitas Domiciliares</div>;
+        return (
+          <EmDesenvolvimento
+            title="Visitas domiciliares"
+            description="As visitas serão organizadas para facilitar o registro e o acompanhamento das famílias atendidas."
+          />
+        );
       case "prestacao":
-        return <div>Prestação de Contass</div>;
+        return (
+          <EmDesenvolvimento
+            title="Prestação de contas"
+            description="Esta seção apresentará informações financeiras e registros com linguagem simples e objetiva."
+          />
+        );
       default:
-        return <div>Conteúdo não encontrado</div>;
+        return (
+          <EmDesenvolvimento
+            title="Conteúdo não encontrado"
+            description="Volte ao menu principal e escolha uma das opções disponíveis."
+          />
+        );
     }
   };
 
   return (
-    <div className="size-full flex bg-background">
-      <aside
-        className={`bg-sidebar text-sidebar-foreground transition-all duration-300 flex flex-col ${
-          sidebarCollapsed ? "w-20" : "w-64"
-        }`}
+    <div className="flex min-h-screen w-full bg-background text-foreground">
+      <a
+        href="#conteudo-principal"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-card focus:px-4 focus:py-3 focus:text-foreground focus:shadow-lg focus:outline-3 focus:outline-ring"
       >
-        <div className="p-4 border-b border-sidebar-border">
+        Pular para o conteúdo principal
+      </a>
+
+      <aside
+        className={`flex flex-col bg-sidebar text-sidebar-foreground transition-[width] duration-200 ${
+          sidebarCollapsed ? "w-20" : "w-72"
+        }`}
+        aria-label="Navegação da Cáritas Paroquial"
+      >
+        <div className="border-b border-sidebar-border p-4">
           <div className="flex items-center gap-3">
             {sidebarCollapsed ? (
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white p-2">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white p-2">
                 <BrandLogo
                   variant="symbol"
-                  alt="Símbolo da Cáritas"
-                  className="h-full w-full object-contain"
+                  alt="Símbolo da Cáritas Brasileira"
+                  className="h-full w-full"
                 />
               </div>
             ) : (
-              <div className="flex min-w-0 flex-col gap-2">
-                <div className="rounded-lg bg-white p-2">
+              <div className="flex min-w-0 flex-col gap-3">
+                <div className="rounded-xl bg-white p-3">
                   <BrandLogo
                     variant="horizontal"
-                    alt="Cáritas Paroquial"
-                    className="h-10 w-auto object-contain"
+                    alt="Cáritas Brasileira"
+                    className="h-12 w-auto"
                   />
                 </div>
 
-                <p className="truncate text-xs text-sidebar-foreground/80">
-                  {session.user.name}
-                </p>
+                <div className="min-w-0">
+                  <p className="truncate text-base font-semibold text-sidebar-foreground">
+                    {session.user.name}
+                  </p>
+                  <p className="truncate text-sm text-sidebar-foreground/80">
+                    {session.parish?.name ?? "Acesso paroquial"}
+                  </p>
+                </div>
               </div>
             )}
           </div>
@@ -104,41 +145,49 @@ export default function ParoquiaPage() {
           collapsed={sidebarCollapsed}
         />
 
-        <div className="p-4 border-t border-sidebar-border">
+        <div className="border-t border-sidebar-border p-4">
           <button
+            type="button"
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-sidebar-accent/50 transition-colors rounded-lg"
+            aria-label={sidebarCollapsed ? "Sair do sistema" : undefined}
+            className={`flex min-h-12 w-full items-center gap-3 rounded-xl px-4 py-3 font-semibold text-sidebar-foreground transition-colors hover:bg-sidebar-foreground/10 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-sidebar-ring ${
+              sidebarCollapsed ? "justify-center px-3" : "justify-start"
+            }`}
           >
-            <LogOut className="w-5 h-5 flex-shrink-0" />
-            {!sidebarCollapsed && <span className="text-sm">Sair</span>}
+            <LogOut className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
+            {!sidebarCollapsed && <span className="text-base">Sair</span>}
           </button>
         </div>
       </aside>
 
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="bg-card border-b border-border px-6 py-4 flex items-center justify-between">
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="flex items-center justify-between border-b border-border bg-card px-6 py-4">
           <div className="flex items-center gap-4">
             <button
+              type="button"
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="p-2 hover:bg-muted rounded-lg transition-colors"
+              aria-label={sidebarCollapsed ? "Abrir menu lateral" : "Fechar menu lateral"}
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring"
             >
               {sidebarCollapsed ? (
-                <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                <ChevronRight className="h-5 w-5" aria-hidden="true" />
               ) : (
-                <ChevronLeft className="w-5 h-5 text-muted-foreground" />
+                <ChevronLeft className="h-5 w-5" aria-hidden="true" />
               )}
             </button>
 
             <div>
-              <h2 className="text-2xl text-foreground font-medium">
-                {visibleMenuItems.find((item) => item.id === activeTab)
-                  ?.label ?? "Painel Geral"}
-              </h2>
+              <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                Cáritas Paroquial
+              </p>
+              <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
+                {activeMenuLabel}
+              </h1>
             </div>
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto p-6 bg-muted/20">
+        <main id="conteudo-principal" className="flex-1 overflow-auto bg-muted/30 p-6">
           {renderTabContent()}
         </main>
       </div>

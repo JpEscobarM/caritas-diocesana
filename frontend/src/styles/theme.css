@@ -1,157 +1,167 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --font-size: 16px;
+  --font-size: 17px;
+  --font-family-sans: "Raleway", Arial, Helvetica, sans-serif;
 
-  /* BASE */
-  --background: #f8fafc;
-  --foreground: #1e293b; /* Texto principal */
+  /* Identidade oficial Cáritas Brasileira */
+  --caritas-red: #e61e19;
+  --caritas-black: #000000;
+  --caritas-white: #ffffff;
+
+  /* Variações acessíveis para interface digital */
+  --caritas-red-50: #fff1f0;
+  --caritas-red-100: #ffe1df;
+  --caritas-red-200: #ffc7c3;
+  --caritas-red-700: #c8161d;
+  --caritas-red-800: #a11616;
+  --caritas-red-900: #7f1010;
+
+  /* Base */
+  --background: #fff8f7;
+  --foreground: #1f1f1f;
   --card: #ffffff;
-  --card-foreground: #1e293b;
+  --card-foreground: #1f1f1f;
   --popover: #ffffff;
-  --popover-foreground: #1e293b;
-  --border: #e2e8f0;
+  --popover-foreground: #1f1f1f;
+  --border: #ddd3d1;
 
-  /* CORES PRINCIPAIS */
-  --primary: #1e3a5f; /* Azul institucional */
+  /* Ações principais */
+  --primary: var(--caritas-red);
+  --primary-hover: var(--caritas-red-700);
   --primary-foreground: #ffffff;
 
-  --secondary: #3b82f6; /* Azul suave */
+  /* Ações secundárias institucionais */
+  --secondary: #1f1f1f;
+  --secondary-hover: #000000;
   --secondary-foreground: #ffffff;
 
-  --accent: #c9a227; /* Dourado */
-  --accent-foreground: #ffffff;
+  /* Fundos de destaque suave */
+  --accent: var(--caritas-red-50);
+  --accent-foreground: var(--caritas-red-800);
 
-  /* ESTADOS */
-  --destructive: #dc2626; /* Erro */
+  /* Estados de sistema */
+  --destructive: #b42318;
+  --destructive-hover: #911b13;
   --destructive-foreground: #ffffff;
-  --success: #16a34a; /* Sucesso */
-  --warning: #f59e0b; /* Alerta */
+  --success: #2f6b3f;
+  --success-foreground: #ffffff;
+  --success-soft: #eef8f0;
+  --warning: #9a5b00;
+  --warning-foreground: #ffffff;
+  --warning-soft: #fff5dd;
+  --info: #245f73;
+  --info-foreground: #ffffff;
+  --info-soft: #eaf7fa;
 
-  /* TEXTO AUXILIAR */
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b; /* Texto secundário */
-  --light-text: #94a3b8; /* Texto leve */
+  /* Texto auxiliar */
+  --muted: #f5eeee;
+  --muted-foreground: #5f5555;
+  --light-text: #5f5555;
 
-  /* INPUTS */
-  --input: transparent;
+  /* Controles */
+  --input: #ddd3d1;
   --input-background: #ffffff;
-  --switch-background: #cbd5e1;
+  --switch-background: #c9bfbd;
+  --ring: var(--caritas-red-700);
+  --focus-outline: #111111;
 
-  /* OUTROS */
-  --font-weight-medium: 500;
+  /* Pesos e dimensões */
   --font-weight-normal: 400;
-  --ring: #3b82f6; /* Foco usando o Azul Suave */
+  --font-weight-medium: 600;
+  --font-weight-bold: 700;
+  --radius: 0.875rem;
+  --shadow-card: 0 14px 35px rgba(0, 0, 0, 0.08);
 
-  /* CHARTS */
-  --chart-1: #1e3a5f;
-  --chart-2: #3b82f6;
-  --chart-3: #c9a227;
-  --chart-4: #16a34a;
-  --chart-5: #f59e0b;
+  /* Charts e indicadores */
+  --chart-1: var(--caritas-red);
+  --chart-2: #1f1f1f;
+  --chart-3: #2f6b3f;
+  --chart-4: #9a5b00;
+  --chart-5: #245f73;
 
-  --radius: 0.625rem;
-
-  /* SIDEBAR (Estilo Institucional - Fundo Escuro no Tema Claro) */
-  --sidebar: #1e3a5f; /* Fundo em Azul Institucional */
-  --sidebar-foreground: #f8fafc; /* Quase branco para leitura */
-  --sidebar-primary: #c9a227; /* Dourado para itens ativos */
+  /* Sidebar institucional */
+  --sidebar: #111111;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: var(--caritas-red);
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #3b82f6; /* Azul suave para hover */
+  --sidebar-accent: var(--caritas-red);
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #1e3a5f; /* Mesclado com o fundo */
-  --sidebar-ring: #c9a227; /* Foco dourado na sidebar */
+  --sidebar-border: #3a3a3a;
+  --sidebar-ring: #ffffff;
 }
 
 .dark {
-  /* No modo escuro, invertemos a base usando tons de cinza escuro/azulado */
-  --background: #0f172a;
-  --foreground: #f8fafc;
-
-  --card: #1e293b; /* Mesma cor do texto principal claro, agora como fundo de card */
-  --card-foreground: #f8fafc;
-
-  --popover: #1e293b;
-  --popover-foreground: #f8fafc;
-
-  /* Inversão sutil para melhor contraste no escuro */
-  --primary: #3b82f6;
-  --primary-foreground: #ffffff;
-
-  --secondary: #1e3a5f;
-  --secondary-foreground: #ffffff;
-
-  --accent: #c9a227;
-  --accent-foreground: #ffffff;
-
-  --destructive: #dc2626;
-  --destructive-foreground: #ffffff;
-  --success: #16a34a;
-  --warning: #f59e0b;
-
-  --muted: #334155;
-  --muted-foreground: #94a3b8; /* Texto leve vira secundário no escuro */
-  --light-text: #64748b;
-
-  --border: #334155;
-  --input: #334155;
-  --ring: #3b82f6;
-
-  --font-weight-medium: 500;
-  --font-weight-normal: 400;
-
-  --chart-1: #3b82f6;
-  --chart-2: #1e3a5f;
-  --chart-3: #c9a227;
-  --chart-4: #16a34a;
-  --chart-5: #f59e0b;
-
-  /* SIDEBAR (Dark Mode) */
-  --sidebar: #0f172a; /* Fundo acompanhando o background escuro */
-  --sidebar-foreground: #f8fafc;
-  --sidebar-primary: #c9a227;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #1e3a5f; /* Hover com o Azul institucional */
-  --sidebar-accent-foreground: #f8fafc;
-  --sidebar-border: #334155;
-  --sidebar-ring: #3b82f6;
+  --background: #121212;
+  --foreground: #ffffff;
+  --card: #1f1f1f;
+  --card-foreground: #ffffff;
+  --popover: #1f1f1f;
+  --popover-foreground: #ffffff;
+  --border: #4a4a4a;
+  --primary: #ff4a43;
+  --primary-hover: #ff615b;
+  --primary-foreground: #000000;
+  --secondary: #ffffff;
+  --secondary-hover: #f4f4f4;
+  --secondary-foreground: #000000;
+  --accent: #3a1513;
+  --accent-foreground: #ffdeda;
+  --destructive: #ff6b61;
+  --destructive-hover: #ff8279;
+  --destructive-foreground: #000000;
+  --success: #7fc98d;
+  --success-foreground: #000000;
+  --success-soft: #17351e;
+  --warning: #ffd166;
+  --warning-foreground: #000000;
+  --warning-soft: #3b2a05;
+  --info: #75c7dc;
+  --info-foreground: #000000;
+  --info-soft: #10313a;
+  --muted: #2d2d2d;
+  --muted-foreground: #d3d3d3;
+  --light-text: #d3d3d3;
+  --input: #4a4a4a;
+  --input-background: #191919;
+  --switch-background: #4a4a4a;
+  --ring: #ff4a43;
+  --focus-outline: #ffffff;
+  --sidebar: #000000;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #ff4a43;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: #b42318;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #3a3a3a;
+  --sidebar-ring: #ffffff;
 }
 
 @theme inline {
+  --font-sans: var(--font-family-sans);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
-
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
-
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
-
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
-
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
-
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
-
   --color-success: var(--success);
   --color-warning: var(--warning);
-
   --color-border: var(--border);
-
   --color-input: var(--input);
   --color-input-background: var(--input-background);
-
   --color-switch-background: var(--switch-background);
-
   --color-ring: var(--ring);
 
   --color-chart-1: var(--chart-1);
@@ -160,21 +170,178 @@
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 4px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) + 6px);
+  --radius-2xl: calc(var(--radius) + 12px);
 
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(
-    --sidebar-primary-foreground
-  );
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
   --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(
-    --sidebar-accent-foreground
-  );
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Mapeamento de classes Tailwind legadas para a nova identidade. */
+  --color-blue-50: var(--caritas-red-50);
+  --color-blue-100: var(--caritas-red-100);
+  --color-blue-200: var(--caritas-red-200);
+  --color-blue-500: var(--primary);
+  --color-blue-600: var(--primary);
+  --color-blue-700: var(--primary-hover);
+  --color-blue-800: var(--caritas-red-800);
+  --color-blue-900: var(--caritas-red-900);
+
+  --color-slate-50: #fff8f7;
+  --color-slate-100: #f5eeee;
+  --color-slate-200: #ddd3d1;
+  --color-slate-300: #c9bfbd;
+  --color-slate-400: #7a6f6d;
+  --color-slate-500: #5f5555;
+  --color-slate-600: #4f4644;
+  --color-slate-700: #312b2a;
+  --color-slate-800: #1f1f1f;
+  --color-slate-900: #111111;
+
+  --color-gray-50: #fff8f7;
+  --color-gray-100: #f5eeee;
+  --color-gray-200: #ddd3d1;
+  --color-gray-300: #c9bfbd;
+  --color-gray-400: #7a6f6d;
+  --color-gray-500: #5f5555;
+  --color-gray-600: #4f4644;
+  --color-gray-700: #312b2a;
+  --color-gray-800: #1f1f1f;
+  --color-gray-900: #111111;
+
+  --color-red-50: #fff1f0;
+  --color-red-100: #ffe1df;
+  --color-red-200: #ffc7c3;
+  --color-red-600: var(--primary);
+  --color-red-700: var(--primary-hover);
+  --color-red-800: var(--caritas-red-800);
+  --color-red-900: var(--caritas-red-900);
+
+  --color-green-50: var(--success-soft);
+  --color-green-100: var(--success-soft);
+  --color-green-200: #c8e6cf;
+  --color-green-600: var(--success);
+  --color-green-700: #285c36;
+  --color-green-800: #214b2c;
+  --color-green-900: #17351e;
+
+  --color-orange-100: var(--warning-soft);
+  --color-orange-600: var(--warning);
+  --color-orange-800: #6d4100;
+  --color-yellow-100: var(--warning-soft);
+  --color-yellow-600: var(--warning);
+  --color-yellow-800: #6d4100;
+
+  --color-purple-50: #f5eef8;
+  --color-purple-100: #eadcf0;
+  --color-purple-200: #d2b4de;
+  --color-purple-600: #6e2c91;
+  --color-purple-800: #512069;
+  --color-purple-900: #3e1850;
+}
+
+@layer base {
+  html {
+    font-size: var(--font-size);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    min-width: 320px;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-family-sans);
+    line-height: 1.6;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  p {
+    line-height: 1.65;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  button,
+  [role="button"],
+  a,
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--focus-outline);
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .caritas-card-shadow {
+    box-shadow: var(--shadow-card);
+  }
+
+  .caritas-error-message {
+    border: 1px solid color-mix(in srgb, var(--destructive) 32%, white);
+    background: #fff1f0;
+    color: var(--destructive);
+  }
+
+  .caritas-help-text {
+    color: var(--muted-foreground);
+    font-size: 0.95rem;
+    line-height: 1.55;
+  }
+
+  [data-sonner-toast] {
+    border-radius: var(--radius) !important;
+    font-family: var(--font-family-sans) !important;
+    font-size: 1rem !important;
+    line-height: 1.5 !important;
+  }
 }

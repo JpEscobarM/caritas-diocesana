@@ -1,4 +1,4 @@
-import { Check } from 'lucide-react';
+import { Check } from "lucide-react";
 
 interface WizardProps {
   steps: string[];
@@ -9,48 +9,53 @@ interface WizardProps {
 export function Wizard({ steps, currentStep, children }: WizardProps) {
   return (
     <div className="w-full">
-      {/* Step Indicators */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          {steps.map((step, index) => (
-            <div key={index} className="flex items-center flex-1">
-              <div className="flex flex-col items-center">
-                <div
-                  className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all ${
-                    index < currentStep
-                      ? 'bg-green-600 border-green-600 text-white'
-                      : index === currentStep
-                      ? 'bg-blue-600 border-blue-600 text-white'
-                      : 'bg-white border-gray-300 text-gray-400'
-                  }`}
-                >
-                  {index < currentStep ? (
-                    <Check className="w-5 h-5" />
-                  ) : (
-                    <span className="text-sm">{index + 1}</span>
-                  )}
-                </div>
-                <span
-                  className={`mt-2 text-xs text-center ${
-                    index <= currentStep ? 'text-gray-900' : 'text-gray-400'
-                  }`}
-                >
-                  {step}
-                </span>
-              </div>
-              {index < steps.length - 1 && (
-                <div
-                  className={`h-1 flex-1 mx-2 ${
-                    index < currentStep ? 'bg-green-600' : 'bg-gray-200'
-                  }`}
-                />
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
+      <nav className="mb-8" aria-label="Etapas do formulário">
+        <ol className="flex items-start justify-between gap-2">
+          {steps.map((step, index) => {
+            const completed = index < currentStep;
+            const current = index === currentStep;
 
-      {/* Content */}
+            return (
+              <li key={step} className="flex flex-1 items-start">
+                <div className="flex flex-col items-center text-center">
+                  <div
+                    className={`flex h-12 w-12 items-center justify-center rounded-full border-2 font-bold transition-colors ${
+                      completed
+                        ? "border-success bg-success text-success-foreground"
+                        : current
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border bg-card text-muted-foreground"
+                    }`}
+                    aria-current={current ? "step" : undefined}
+                  >
+                    {completed ? (
+                      <Check className="h-6 w-6" aria-hidden="true" />
+                    ) : (
+                      <span>{index + 1}</span>
+                    )}
+                  </div>
+                  <span
+                    className={`mt-2 max-w-28 text-sm font-semibold leading-snug ${
+                      index <= currentStep ? "text-foreground" : "text-muted-foreground"
+                    }`}
+                  >
+                    {step}
+                  </span>
+                </div>
+                {index < steps.length - 1 && (
+                  <div
+                    className={`mx-2 mt-6 h-1 flex-1 rounded-full ${
+                      completed ? "bg-success" : "bg-border"
+                    }`}
+                    aria-hidden="true"
+                  />
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      </nav>
+
       <div>{children}</div>
     </div>
   );

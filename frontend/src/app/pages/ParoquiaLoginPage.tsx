@@ -1,8 +1,9 @@
 import BrandLogo from "../components/BrandLogo";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { AlertCircle, ArrowLeft, Church } from "lucide-react";
 import { getParoquias, loginParoquia, setAuthSession } from "../api/auth";
-import { AuthSession, Parish } from "../types/types";
+import type { AuthSession, Parish } from "../types/types";
 
 export default function ParoquiaLoginPage() {
   const [listaParoquias, setListaParoquias] = useState<Parish[]>([]);
@@ -11,32 +12,42 @@ export default function ParoquiaLoginPage() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingParoquias, setLoadingParoquias] = useState(true);
 
-  //useEffect É UM RECURSO DO REACT PARA EXECUTAR UMA FUNCAO QUANDO O COMPONENTE É CARREGADO
+  const navigate = useNavigate();
+
   useEffect(() => {
     const carregarParoquias = async () => {
+      setLoadingParoquias(true);
       try {
         const listaParoquias = await getParoquias();
-
         setListaParoquias(listaParoquias);
       } catch (error: any) {
-        setErro(error?.response?.data?.message || "Erro ao buscar paroquias");
+        setErro(
+          error?.response?.data?.message ||
+            "Não foi possível carregar as paróquias. Tente atualizar a página.",
+        );
+      } finally {
+        setLoadingParoquias(false);
       }
     };
 
     carregarParoquias();
   }, []);
 
-  const navigate = useNavigate();
-
-  //TypeScript reclama de parametro sem tipo, por isso o React.SyntheticEvent<HTMLFormElement>
   const handleLoginSubmit = async (
     event: React.SyntheticEvent<HTMLFormElement>,
   ) => {
     event.preventDefault();
+    setErro("");
+
+    if (!paroquiaSelecionada) {
+      setErro("Selecione a sua paróquia antes de entrar.");
+      return;
+    }
+
     setLoading(true);
 
-    //FAZER AUTENTICACAO AQUI
     const emailLimpo = email.trim();
     const senhaLimpa = senha.trim();
 
@@ -56,69 +67,99 @@ export default function ParoquiaLoginPage() {
       };
 
       setAuthSession(session);
-
       navigate("/paroquia");
     } catch (error: any) {
-      setErro(error?.response?.data?.message || "Erro ao fazer login");
+      setErro(
+        error?.response?.data?.message ||
+          "Não foi possível entrar. Confira a paróquia, o email, a senha e tente novamente.",
+      );
     } finally {
       setLoading(false);
     }
-
-    //LOGIN SENDO REALIZADO, GUARDAR SESSAO E VERIFICAR SESSAO EM PAROQUIAPAGE.
   };
 
   return (
-    <div className="min-h-screen bg-[var(--background)] flex items-center justify-center px-4">
-      <div className="flex w-full max-w-xl flex-col items-center gap-6">
-        <div className="flex flex-col items-center justify-center gap-3 text-center">
-          <BrandLogo
-            variant="vertical"
-            alt="Cáritas Paroquial"
-            className="h-32 w-auto object-contain"
-          />
+    <main className="min-h-screen bg-background px-5 py-8 text-foreground">
+      <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-xl flex-col items-center justify-center gap-6">
+        <div className="flex flex-col items-center justify-center gap-4 text-center">
+          <div className="rounded-2xl bg-white px-6 py-4 shadow-sm ring-1 ring-border">
+            <BrandLogo
+              variant="vertical"
+              alt="Cáritas Brasileira"
+              className="h-32 w-auto"
+            />
+          </div>
 
-          <h1 className="text-4xl font-medium text-[var(--primary)]">
-            Sistema Cáritas
-          </h1>
-
-          <h3 className="text-lg font-light text-[var(--light-text)]">
-            Gestão Integrada de Assistência Social
-          </h3>
+          <div>
+            <h1 className="text-3xl font-bold text-foreground sm:text-4xl">
+              Sistema Cáritas
+            </h1>
+            <p className="mt-2 text-lg text-muted-foreground">
+              Gestão integrada de assistência social
+            </p>
+          </div>
         </div>
 
-        <div className="w-full rounded-2xl border border-slate-200 bg-[var(--card)] p-8 shadow-xl">
-          <div className="mb-8 flex items-center justify-between">
-            <h2 className="text-2xl font-medium text-[var(--primary)]">
-              Cáritas Paroquial
-            </h2>
+        <section
+          aria-labelledby="paroquia-login-title"
+          className="w-full rounded-3xl border border-border bg-card p-6 caritas-card-shadow sm:p-8"
+        >
+          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
+                <Church className="h-6 w-6" aria-hidden="true" />
+              </div>
+              <div>
+                <h2 id="paroquia-login-title" className="text-2xl font-bold text-foreground">
+                  Acesso da Paróquia
+                </h2>
+                <p className="mt-1 text-base text-muted-foreground">
+                  Selecione sua paróquia e entre com seus dados.
+                </p>
+              </div>
+            </div>
 
             <button
               type="button"
               onClick={() => navigate("/login")}
-              className="text-sm text-[var(--light-text)] transition hover:text-[var(--primary)]"
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 py-2 text-base font-semibold text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring"
             >
+              <ArrowLeft className="h-5 w-5" aria-hidden="true" />
               Voltar
             </button>
           </div>
 
-          <form onSubmit={handleLoginSubmit} className="flex flex-col gap-5">
+          <form onSubmit={handleLoginSubmit} className="flex flex-col gap-5" noValidate>
             {erro && (
-              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-                {erro}
+              <div
+                id="login-error"
+                role="alert"
+                aria-live="assertive"
+                className="caritas-error-message flex items-start gap-3 rounded-xl px-4 py-3 text-base"
+              >
+                <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0" aria-hidden="true" />
+                <span>{erro}</span>
               </div>
             )}
 
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-[var(--primary)]">
+              <label htmlFor="paroquia" className="text-base font-semibold text-foreground">
                 Paróquia
               </label>
-
               <select
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[var(--primary)] outline-none transition hover:bg-slate-50 focus:ring-2 focus:ring-blue-200"
+                id="paroquia"
+                name="paroquia"
+                required
+                className="min-h-12 w-full rounded-lg border-2 border-input bg-input-background px-4 py-3 text-base text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:opacity-80"
                 value={paroquiaSelecionada}
                 onChange={(e) => setParoquiaSelecionada(Number(e.target.value))}
+                disabled={loadingParoquias}
+                aria-describedby="paroquia-ajuda"
+                aria-invalid={Boolean(erro) && !paroquiaSelecionada}
               >
-                <option value="0">Selecione sua paróquia</option>
+                <option value="0">
+                  {loadingParoquias ? "Carregando paróquias..." : "Selecione sua paróquia"}
+                </option>
                 {listaParoquias.map((paroquia) => (
                   <option key={paroquia.id} value={paroquia.id}>
                     {paroquia.name}
@@ -128,26 +169,36 @@ export default function ParoquiaLoginPage() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-[var(--primary)]">
-                Usuário
+              <label htmlFor="email" className="text-base font-semibold text-foreground">
+                Email
               </label>
               <input
+                id="email"
+                name="email"
                 type="email"
-                placeholder="Digite seu usuário"
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[var(--primary)] outline-none transition hover:bg-slate-50 focus:ring-2 focus:ring-blue-200"
+                autoComplete="email"
+                required
+                placeholder="exemplo@caritas.org.br"
+                className="min-h-12 w-full rounded-lg border-2 border-input bg-input-background px-4 py-3 text-base text-foreground outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                aria-invalid={Boolean(erro)}
+                aria-describedby={erro ? "login-error" : undefined}
               />
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-[var(--primary)]">
+              <label htmlFor="senha" className="text-base font-semibold text-foreground">
                 Senha
               </label>
               <input
+                id="senha"
+                name="password"
                 type="password"
+                autoComplete="current-password"
+                required
                 placeholder="Digite sua senha"
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[var(--primary)] outline-none transition hover:bg-slate-50 focus:ring-2 focus:ring-blue-200"
+                className="min-h-12 w-full rounded-lg border-2 border-input bg-input-background px-4 py-3 text-base text-foreground outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring"
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
               />
@@ -155,25 +206,22 @@ export default function ParoquiaLoginPage() {
 
             <button
               type="submit"
-              disabled={loading}
-              className="mt-2 w-full rounded-xl bg-[var(--primary)] px-4 py-3 text-lg font-medium text-white shadow-md transition duration-150 hover:opacity-95 hover:shadow-lg active:scale-[0.98]"
+              disabled={loading || loadingParoquias}
+              className="mt-2 inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-primary px-6 py-3 text-lg font-bold text-primary-foreground shadow-sm transition-colors hover:bg-[var(--primary-hover)] focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {loading ? "Entrando..." : "Entrar"}
+              {loading ? "Entrando..." : "Entrar no sistema"}
             </button>
 
-            <button
-              type="button"
-              className="text-sm text-[var(--light-text)] transition hover:text-[var(--primary)]"
-            >
-              Esqueceu sua senha?
-            </button>
+            <p className="text-center text-base text-muted-foreground">
+              Esqueceu a senha? Procure a pessoa responsável pelo sistema na sua paróquia.
+            </p>
           </form>
-        </div>
+        </section>
 
-        <p className="text-sm text-[var(--light-text)]">
+        <p className="text-center text-base text-muted-foreground">
           Sistema de Gestão Integrada - Cáritas Diocesana
         </p>
       </div>
-    </div>
+    </main>
   );
 }
