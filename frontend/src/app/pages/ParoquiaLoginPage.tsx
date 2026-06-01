@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertCircle, ArrowLeft, Church } from "lucide-react";
 import { getParoquias, loginParoquia, setAuthSession } from "../api/auth";
+import { toast, Toaster } from "sonner";
 import type { AuthSession, Parish } from "../types/types";
 
 export default function ParoquiaLoginPage() {
@@ -67,6 +68,7 @@ export default function ParoquiaLoginPage() {
       };
 
       setAuthSession(session);
+      toast.success("Login realizado com sucesso");
       navigate("/paroquia");
     } catch (error: any) {
       setErro(
@@ -110,7 +112,10 @@ export default function ParoquiaLoginPage() {
                 <Church className="h-6 w-6" aria-hidden="true" />
               </div>
               <div>
-                <h2 id="paroquia-login-title" className="text-2xl font-bold text-foreground">
+                <h2
+                  id="paroquia-login-title"
+                  className="text-2xl font-bold text-foreground"
+                >
                   Acesso da Paróquia
                 </h2>
                 <p className="mt-1 text-base text-muted-foreground">
@@ -129,7 +134,11 @@ export default function ParoquiaLoginPage() {
             </button>
           </div>
 
-          <form onSubmit={handleLoginSubmit} className="flex flex-col gap-5" noValidate>
+          <form
+            onSubmit={handleLoginSubmit}
+            className="flex flex-col gap-5"
+            noValidate
+          >
             {erro && (
               <div
                 id="login-error"
@@ -137,13 +146,19 @@ export default function ParoquiaLoginPage() {
                 aria-live="assertive"
                 className="caritas-error-message flex items-start gap-3 rounded-xl px-4 py-3 text-base"
               >
-                <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0" aria-hidden="true" />
+                <AlertCircle
+                  className="mt-0.5 h-5 w-5 flex-shrink-0"
+                  aria-hidden="true"
+                />
                 <span>{erro}</span>
               </div>
             )}
 
             <div className="flex flex-col gap-2">
-              <label htmlFor="paroquia" className="text-base font-semibold text-foreground">
+              <label
+                htmlFor="paroquia"
+                className="text-base font-semibold text-foreground"
+              >
                 Paróquia
               </label>
               <select
@@ -158,7 +173,9 @@ export default function ParoquiaLoginPage() {
                 aria-invalid={Boolean(erro) && !paroquiaSelecionada}
               >
                 <option value="0">
-                  {loadingParoquias ? "Carregando paróquias..." : "Selecione sua paróquia"}
+                  {loadingParoquias
+                    ? "Carregando paróquias..."
+                    : "Selecione sua paróquia"}
                 </option>
                 {listaParoquias.map((paroquia) => (
                   <option key={paroquia.id} value={paroquia.id}>
@@ -169,7 +186,10 @@ export default function ParoquiaLoginPage() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <label htmlFor="email" className="text-base font-semibold text-foreground">
+              <label
+                htmlFor="email"
+                className="text-base font-semibold text-foreground"
+              >
                 Email
               </label>
               <input
@@ -188,7 +208,10 @@ export default function ParoquiaLoginPage() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <label htmlFor="senha" className="text-base font-semibold text-foreground">
+              <label
+                htmlFor="senha"
+                className="text-base font-semibold text-foreground"
+              >
                 Senha
               </label>
               <input
@@ -213,7 +236,8 @@ export default function ParoquiaLoginPage() {
             </button>
 
             <p className="text-center text-base text-muted-foreground">
-              Esqueceu a senha? Procure a pessoa responsável pelo sistema na sua paróquia.
+              Esqueceu a senha? Procure a pessoa responsável pelo sistema na sua
+              paróquia.
             </p>
           </form>
         </section>
