@@ -3,7 +3,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import BrandLogo from "../components/BrandLogo";
 import EmDesenvolvimento from "../components/EmDesenvolvimento";
-
+import NucleoFamiliar from "../components/NucleosFamiliares/NucleoFamiliar";
 import { clearAuthSession, getAuthSession } from "../api/auth";
 import Sidebar from "../components/Sidebar";
 import { menuParoquiaItems } from "../config/MenuParoquia";
@@ -41,7 +41,8 @@ export default function ParoquiaPage() {
   );
 
   const activeMenuLabel =
-    visibleMenuItems.find((item) => item.id === activeTab)?.label ?? "Painel Geral";
+    visibleMenuItems.find((item) => item.id === activeTab)?.label ??
+    "Painel Geral";
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -53,12 +54,8 @@ export default function ParoquiaPage() {
           />
         );
       case "nucleos":
-        return (
-          <EmDesenvolvimento
-            title="Núcleos familiares"
-            description="Esta área será usada para cadastrar, consultar e atualizar famílias acompanhadas pela Cáritas."
-          />
-        );
+        return <NucleoFamiliar />;
+
       case "estoque":
         return (
           <EmDesenvolvimento
@@ -166,7 +163,9 @@ export default function ParoquiaPage() {
             <button
               type="button"
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              aria-label={sidebarCollapsed ? "Abrir menu lateral" : "Fechar menu lateral"}
+              aria-label={
+                sidebarCollapsed ? "Abrir menu lateral" : "Fechar menu lateral"
+              }
               className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring"
             >
               {sidebarCollapsed ? (
@@ -187,7 +186,10 @@ export default function ParoquiaPage() {
           </div>
         </header>
 
-        <main id="conteudo-principal" className="flex-1 overflow-auto bg-muted/30 p-6">
+        <main
+          id="conteudo-principal"
+          className="flex-1 overflow-auto bg-muted/30 p-6"
+        >
           {renderTabContent()}
         </main>
       </div>

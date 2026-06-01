@@ -3,6 +3,7 @@ import BrandLogo from "../components/BrandLogo";
 import { useNavigate } from "react-router-dom";
 import { AlertCircle, ArrowLeft, Building2 } from "lucide-react";
 import { loginDiocese, setAuthSession } from "../api/auth";
+import { toast, Toaster } from "sonner";
 import type { AuthSession } from "../types/types";
 
 export default function DioceseLoginPage() {
@@ -34,6 +35,7 @@ export default function DioceseLoginPage() {
       };
 
       setAuthSession(session);
+      toast.success("Login realizado com sucesso");
       navigate("/diocese");
     } catch (error: any) {
       setErro(
@@ -77,7 +79,10 @@ export default function DioceseLoginPage() {
                 <Building2 className="h-6 w-6" aria-hidden="true" />
               </div>
               <div>
-                <h2 id="diocese-login-title" className="text-2xl font-bold text-foreground">
+                <h2
+                  id="diocese-login-title"
+                  className="text-2xl font-bold text-foreground"
+                >
                   Acesso da Diocese
                 </h2>
                 <p className="mt-1 text-base text-muted-foreground">
@@ -96,7 +101,11 @@ export default function DioceseLoginPage() {
             </button>
           </div>
 
-          <form onSubmit={handleLoginSubmit} className="flex flex-col gap-5" noValidate>
+          <form
+            onSubmit={handleLoginSubmit}
+            className="flex flex-col gap-5"
+            noValidate
+          >
             {erro && (
               <div
                 id="login-error"
@@ -104,13 +113,19 @@ export default function DioceseLoginPage() {
                 aria-live="assertive"
                 className="caritas-error-message flex items-start gap-3 rounded-xl px-4 py-3 text-base"
               >
-                <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0" aria-hidden="true" />
+                <AlertCircle
+                  className="mt-0.5 h-5 w-5 flex-shrink-0"
+                  aria-hidden="true"
+                />
                 <span>{erro}</span>
               </div>
             )}
 
             <div className="flex flex-col gap-2">
-              <label htmlFor="email" className="text-base font-semibold text-foreground">
+              <label
+                htmlFor="email"
+                className="text-base font-semibold text-foreground"
+              >
                 Email
               </label>
               <input
@@ -129,7 +144,10 @@ export default function DioceseLoginPage() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <label htmlFor="senha" className="text-base font-semibold text-foreground">
+              <label
+                htmlFor="senha"
+                className="text-base font-semibold text-foreground"
+              >
                 Senha
               </label>
               <input
