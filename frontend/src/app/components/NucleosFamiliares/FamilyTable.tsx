@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import type { Family } from "../../types/types";
 import {
   Table,
@@ -56,6 +56,7 @@ export default function FamilyTable({
 }: FamilyTableProps) {
   const [expandedFamilyId, setExpandedFamilyId] = useState<number | null>(null);
 
+  //Função de filtragem de buscas no search
   const filteredFamilies = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
@@ -134,7 +135,7 @@ export default function FamilyTable({
             );
 
             return (
-              <>
+              <Fragment key={family.id}>
                 <TableRow
                   key={family.id}
                   className="border-slate-100 transition-colors hover:bg-slate-50/70"
@@ -182,9 +183,15 @@ export default function FamilyTable({
                       <button
                         type="button"
                         onClick={() => onEditFamily?.(family)}
-                        className="cursor-pointer rounded-lg border border-[var(--primary)]/20 bg-[var(--primary)] px-3 py-2 text-sm font-medium text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-md active:translate-y-0 active:scale-[0.98]"
+                        className="cursor-pointer rounded-lg border border-[var(--primary)]/20 bg-amber-600 px-3 py-2 text-sm font-medium text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-md active:translate-y-0 active:scale-[0.98]"
                       >
                         Editar
+                      </button>
+                      <button
+                        type="button"
+                        className="cursor-pointer rounded-lg border border-[var(--primary)]/20 bg-[var(--primary)] px-3 py-2 text-sm font-medium text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-md active:translate-y-0 active:scale-[0.98]"
+                      >
+                        Desativar
                       </button>
                     </div>
                   </TableCell>
@@ -319,7 +326,7 @@ export default function FamilyTable({
                     </TableCell>
                   </TableRow>
                 )}
-              </>
+              </Fragment>
             );
           })}
         </TableBody>

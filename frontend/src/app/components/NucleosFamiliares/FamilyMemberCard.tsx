@@ -2,7 +2,7 @@ import { Trash2 } from "lucide-react";
 import type { AssistedFamilyMember } from "../../types/types";
 
 type EditableMember = AssistedFamilyMember & {
-  registration_date: Date;
+  registration_date: string;
 };
 
 type FamilyMemberFormCardProps = {
@@ -142,15 +142,9 @@ export default function FamilyMemberFormCard({
           </label>
           <input
             type="date"
-            value={
-              new Date(member.registration_date).toISOString().split("T")[0]
-            }
+            value={member.registration_date}
             onChange={(event) =>
-              onChange(
-                member.id,
-                "registration_date",
-                new Date(event.target.value),
-              )
+              onChange(member.id, "registration_date", event.target.value)
             }
             className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 outline-none focus:border-[var(--primary)]"
           />

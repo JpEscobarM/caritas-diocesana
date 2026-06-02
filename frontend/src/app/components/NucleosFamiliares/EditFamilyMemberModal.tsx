@@ -228,7 +228,7 @@ export function EditFamilyMemberModal({
                 value={formData.personal_income}
                 onChange={handleChange("personal_income")}
                 className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 outline-none focus:border-[var(--primary)]"
-                placeholder="0,00"
+                placeholder="R$ 0,00"
               />
             </div>
 

@@ -1,6 +1,7 @@
 // src/app/components/NucleosFamiliares/CreateFamilyMemberModal.tsx
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+
 import type { AssistedFamilyMember } from "../../types/types";
 
 type CreateFamilyMemberModalProps = {
@@ -9,6 +10,7 @@ type CreateFamilyMemberModalProps = {
   parishId: number;
   onClose: () => void;
   onSave: (newMember: AssistedFamilyMember) => void;
+  forceResponsible?: boolean;
 };
 
 type CreateFamilyMemberFormState = {
@@ -31,12 +33,31 @@ const initialCreateFormState: CreateFamilyMemberFormState = {
   is_responsible: false,
 };
 
+function parseMoney(value: string): number {
+  return Number(
+    value
+      .replace("R$", "")
+      .replace(/\s/g, "")
+      .replace(/\./g, "")
+      .replace(",", ".") || 0,
+  );
+}
+
+function buildMemberId(): number {
+  return Date.now() + Math.floor(Math.random() * 1000);
+}
+
+function getTodayDateString(): string {
+  return new Date().toISOString().split("T")[0];
+}
+
 export function CreateFamilyMemberModal({
   open,
   familyId,
   parishId,
   onClose,
   onSave,
+  forceResponsible = false,
 }: CreateFamilyMemberModalProps) {
   const [formData, setFormData] = useState<CreateFamilyMemberFormState>(
     initialCreateFormState,
@@ -47,8 +68,12 @@ export function CreateFamilyMemberModal({
       return;
     }
 
-    setFormData(initialCreateFormState);
-  }, [open]);
+    setFormData({
+      ...initialCreateFormState,
+      relationship: forceResponsible ? "Responsável" : "",
+      is_responsible: forceResponsible,
+    });
+  }, [open, forceResponsible]);
 
   useEffect(() => {
     if (!open) {
@@ -62,18 +87,15 @@ export function CreateFamilyMemberModal({
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, [open, onClose]);
 
   if (!open) {
     return null;
   }
-
-  const handleBackdropClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (event.target === event.currentTarget) {
-      onClose();
-    }
-  };
 
   const handleChange =
     (field: keyof CreateFamilyMemberFormState) =>
@@ -99,16 +121,17 @@ export function CreateFamilyMemberModal({
 
     const trimmedName = formData.name.trim();
     const trimmedMotherName = formData.mother_name.trim();
-    const trimmedRelationship = formData.is_responsible
-      ? "Responsável"
-      : formData.relationship.trim();
+    const trimmedRelationship =
+      forceResponsible || formData.is_responsible
+        ? "Responsável"
+        : formData.relationship.trim() || "Não definido";
 
     if (!trimmedName) {
       return;
     }
 
     const newMember: AssistedFamilyMember = {
-      id: Date.now(),
+      id: buildMemberId(),
       parish_id: parishId,
       family_id: familyId,
       name: trimmedName,
@@ -116,9 +139,9 @@ export function CreateFamilyMemberModal({
       relationship: trimmedRelationship,
       age: Number(formData.age.replace(/\D/g, "") || 0),
       registration_status: formData.registration_status,
-      registration_date: new Date(),
-      personal_income: Number(formData.personal_income.replace(",", ".") || 0),
-      is_responsible: formData.is_responsible,
+      registration_date: getTodayDateString(),
+      personal_income: parseMoney(formData.personal_income),
+      is_responsible: forceResponsible || formData.is_responsible,
     };
 
     onSave(newMember);
@@ -126,10 +149,7 @@ export function CreateFamilyMemberModal({
   };
 
   return (
-    <div
-      onClick={handleBackdropClick}
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4"
-    >
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4">
       <div className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white">
         <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
           <div>
@@ -185,12 +205,12 @@ export function CreateFamilyMemberModal({
               <input
                 type="text"
                 value={
-                  formData.is_responsible
+                  forceResponsible || formData.is_responsible
                     ? "Responsável"
                     : formData.relationship
                 }
                 onChange={handleChange("relationship")}
-                disabled={formData.is_responsible}
+                disabled={forceResponsible || formData.is_responsible}
                 className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 outline-none focus:border-[var(--primary)] disabled:bg-slate-100 disabled:text-slate-500"
                 placeholder="Ex.: Filho, Cônjuge"
               />
@@ -247,14 +267,16 @@ export function CreateFamilyMemberModal({
               </p>
             </div>
 
-            <label className="flex items-center gap-2 text-sm text-slate-700 md:col-span-2">
-              <input
-                type="checkbox"
-                checked={formData.is_responsible}
-                onChange={handleChange("is_responsible")}
-              />
-              Definir como responsável pela família
-            </label>
+            {!forceResponsible && (
+              <label className="flex items-center gap-2 text-sm text-slate-700 md:col-span-2">
+                <input
+                  type="checkbox"
+                  checked={formData.is_responsible}
+                  onChange={handleChange("is_responsible")}
+                />
+                Definir como responsável pela família
+              </label>
+            )}
           </div>
 
           <div className="flex items-center justify-end gap-3 border-t border-slate-200 pt-4">
