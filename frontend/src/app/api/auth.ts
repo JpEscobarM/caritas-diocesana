@@ -77,3 +77,18 @@ export async function loginParoquia(
 }
 
 //---------------------
+
+export function getSessionParish(): Parish | null {
+  const authItem = localStorage.getItem(AUTH_STORAGE_KEY);
+
+  if (!authItem) {
+    return null;
+  }
+
+  try {
+    const session = JSON.parse(authItem);
+    return session.parish ? session.parish : null;
+  } catch {
+    return null;
+  }
+}

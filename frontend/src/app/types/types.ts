@@ -74,7 +74,7 @@ export type AssistedFamilyMember = {
   relationship: string;
   age: number;
   registration_status: string;
-  registration_date: Date;
+  registration_date: string;
   personal_income: number;
   is_responsible: boolean;
 };
