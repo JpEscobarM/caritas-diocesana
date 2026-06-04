@@ -1,9 +1,11 @@
 // src/app/api/families.ts
+
 import { api } from "./api";
 import type { Family, AssistedFamilyMember } from "../types/types";
 import type {
   CreateFamilyRequest,
   CreateFamilyResponsibleRequest,
+  UpdateAssistedFamilyMemberRequest,
 } from "../types/nucleoFamiliarTypes";
 
 type FamiliesResponse = {
@@ -13,8 +15,8 @@ type FamiliesResponse = {
 type AssistedFamilyMemberResponse =
   | AssistedFamilyMember
   | {
-      data: AssistedFamilyMember;
-    };
+    data: AssistedFamilyMember;
+  };
 
 export async function getFamiliesFromParish(
   parishName: string,
@@ -30,40 +32,58 @@ export async function getFamiliesFromParish(
 }
 
 export async function createFamily(payload: CreateFamilyRequest) {
-  const apiResponse = await api.post("/families", payload);
-  return apiResponse.data;
+  const response = await api.post("/families", payload);
+  return response.data;
 }
 
 export async function getInactiveFamilies(all = false): Promise<Family[]> {
-  const apiResponse = await api.get<FamiliesResponse>("/inactive-families", {
+  const response = await api.get<FamiliesResponse>("/inactive-families", {
     params: {
       all,
     },
   });
 
-  return apiResponse.data.data ?? [];
+  return response.data.data ?? [];
 }
 
 export async function inactivateFamily(familyId: number) {
-  const apiResponse = await api.patch(`/families/${familyId}/inactivate`);
-  return apiResponse.data;
+  const response = await api.patch(`/families/${familyId}/inactivate`);
+  return response.data;
 }
 
 export async function activateFamily(familyId: number) {
-  const apiResponse = await api.patch(`/families/${familyId}/activate`);
-  return apiResponse.data;
+  const response = await api.patch(`/families/${familyId}/activate`);
+  return response.data;
 }
 
 export async function createAssistedFamilyMember(
   familyId: number,
   payload: CreateFamilyResponsibleRequest,
 ): Promise<AssistedFamilyMember> {
-  const apiResponse = await api.post<AssistedFamilyMemberResponse>(
+  const response = await api.post<AssistedFamilyMemberResponse>(
     `/families/${familyId}/assisted-family-members`,
     payload,
   );
 
-  const responseData = apiResponse.data;
+  const responseData = response.data;
+
+  if ("data" in responseData) {
+    return responseData.data;
+  }
+
+  return responseData;
+}
+
+export async function updateAssistedFamilyMember(
+  assistedFamilyMemberId: number,
+  payload: UpdateAssistedFamilyMemberRequest,
+): Promise<AssistedFamilyMember> {
+  const response = await api.patch<AssistedFamilyMemberResponse>(
+    `/assisted-family-members/${assistedFamilyMemberId}`,
+    payload,
+  );
+
+  const responseData = response.data;
 
   if ("data" in responseData) {
     return responseData.data;

@@ -28,3 +28,12 @@ export type CreateFamilyRequest = {
     observations: string | null;
     responsible: CreateFamilyResponsibleRequest;
 };
+
+export type UpdateAssistedFamilyMemberRequest = {
+    cpf: string;
+    birth_date: string;
+    relationship: string;
+    age: number;
+    registration_status: string;
+    personal_income: number;
+};
