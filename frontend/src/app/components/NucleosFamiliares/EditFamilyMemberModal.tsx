@@ -14,27 +14,21 @@ type EditFamilyMemberModalProps = {
 };
 
 type EditFamilyMemberFormState = {
-  name: string;
-  mother_name: string;
   cpf: string;
   birth_date: string;
   relationship: string;
   age: string;
   registration_status: string;
   personal_income: string;
-  is_responsible: boolean;
 };
 
 const initialEditFormState: EditFamilyMemberFormState = {
-  name: "",
-  mother_name: "",
   cpf: "",
   birth_date: "",
   relationship: "",
   age: "",
   registration_status: "ATIVO",
   personal_income: "",
-  is_responsible: false,
 };
 
 export function EditFamilyMemberModal({
@@ -53,15 +47,12 @@ export function EditFamilyMemberModal({
     }
 
     setFormData({
-      name: member.name ?? "",
-      mother_name: member.mother_name ?? "",
       cpf: member.cpf ?? "",
       birth_date: member.birth_date ?? "",
       relationship: member.relationship ?? "",
       age: String(member.age ?? ""),
       registration_status: member.registration_status ?? "ATIVO",
       personal_income: String(member.personal_income ?? ""),
-      is_responsible: member.is_responsible ?? false,
     });
   }, [open, member]);
 
@@ -97,15 +88,9 @@ export function EditFamilyMemberModal({
           HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
         >,
       ) => {
-        const value =
-          event.target instanceof HTMLInputElement &&
-            event.target.type === "checkbox"
-            ? event.target.checked
-            : event.target.value;
-
         setFormData((current) => ({
           ...current,
-          [field]: value,
+          [field]: event.target.value,
         }));
       };
 
@@ -115,7 +100,7 @@ export function EditFamilyMemberModal({
     try {
       setIsSubmitting(true);
 
-      const updatedMemberFromApi = await updateAssistedFamilyMember(member.id, {
+      const updatedMember = await updateAssistedFamilyMember(member.id, {
         cpf: formData.cpf.trim(),
         birth_date: formData.birth_date,
         relationship: formData.relationship.trim(),
@@ -124,14 +109,7 @@ export function EditFamilyMemberModal({
         personal_income: Number(formData.personal_income.replace(",", ".") || 0),
       });
 
-      onSave({
-        ...member,
-        ...updatedMemberFromApi,
-        name: formData.name.trim(),
-        mother_name: formData.mother_name.trim(),
-        is_responsible: member.is_responsible,
-      });
-
+      onSave(updatedMember);
       toast.success("Membro atualizado com sucesso.");
       onClose();
     } catch (error: any) {
@@ -155,7 +133,7 @@ export function EditFamilyMemberModal({
               Editar membro
             </h2>
             <p className="mt-1 text-sm text-slate-500">
-              Atualize os dados do membro assistido.
+              Atualize apenas os dados que a API permite alterar.
             </p>
           </div>
 
@@ -171,31 +149,6 @@ export function EditFamilyMemberModal({
 
         <form onSubmit={handleSubmit} className="space-y-6 px-6 py-6">
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium text-slate-700">Nome</label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={handleChange("name")}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 outline-none focus:border-[var(--primary)]"
-                placeholder="Nome do membro"
-                required
-              />
-            </div>
-
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium text-slate-700">
-                Nome da mãe
-              </label>
-              <input
-                type="text"
-                value={formData.mother_name}
-                onChange={handleChange("mother_name")}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 outline-none focus:border-[var(--primary)]"
-                placeholder="Nome da mãe"
-              />
-            </div>
-
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">CPF</label>
               <input
@@ -276,6 +229,16 @@ export function EditFamilyMemberModal({
                 className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 outline-none focus:border-[var(--primary)]"
                 placeholder="R$ 0,00"
               />
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 md:col-span-2">
+              <p className="text-sm font-medium text-slate-700">Nome</p>
+              <p className="mt-1 text-sm text-slate-600">{member.name}</p>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 md:col-span-2">
+              <p className="text-sm font-medium text-slate-700">Nome da mãe</p>
+              <p className="mt-1 text-sm text-slate-600">{member.mother_name}</p>
             </div>
 
             <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 md:col-span-2">
