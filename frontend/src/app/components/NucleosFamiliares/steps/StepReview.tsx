@@ -1,19 +1,15 @@
-import type { AssistedFamilyMember } from "../../../types/types";
+import type { CreateFamilyResponsibleRequest } from "../../../types/nucleoFamiliarTypes";
 import type { FamilyFormState } from "../CreateFamilyModal";
 
 type StepReviewProps = {
-  responsible: AssistedFamilyMember | null;
+  responsible: CreateFamilyResponsibleRequest | null;
   familyForm: FamilyFormState;
-  members: AssistedFamilyMember[];
-  totalIncome: number;
   formatCurrency: (value: number) => string;
 };
 
 export default function StepReview({
   responsible,
   familyForm,
-  members,
-  totalIncome,
   formatCurrency,
 }: StepReviewProps) {
   return (
@@ -36,29 +32,70 @@ export default function StepReview({
         </div>
 
         <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <p className="text-xs font-medium uppercase text-slate-500">
-            Total de membros
-          </p>
+          <p className="text-xs font-medium uppercase text-slate-500">CPF</p>
           <p className="mt-1 text-sm text-slate-900">
-            {(responsible ? 1 : 0) + members.length}
+            {responsible?.cpf || "Não informado"}
           </p>
         </div>
 
         <div className="rounded-xl border border-slate-200 bg-white p-4">
           <p className="text-xs font-medium uppercase text-slate-500">
-            Núcleo familiar
+            Data de nascimento
           </p>
           <p className="mt-1 text-sm text-slate-900">
-            {familyForm.name || "Não informado"}
+            {responsible?.birth_date || "Não informado"}
           </p>
         </div>
 
         <div className="rounded-xl border border-slate-200 bg-white p-4">
           <p className="text-xs font-medium uppercase text-slate-500">
-            Renda total
+            Nome da mãe
           </p>
           <p className="mt-1 text-sm text-slate-900">
-            {formatCurrency(totalIncome)}
+            {responsible?.mother_name || "Não informado"}
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <p className="text-xs font-medium uppercase text-slate-500">
+            Vínculo
+          </p>
+          <p className="mt-1 text-sm text-slate-900">
+            {responsible?.relationship || "Não informado"}
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <p className="text-xs font-medium uppercase text-slate-500">Idade</p>
+          <p className="mt-1 text-sm text-slate-900">
+            {responsible ? `${responsible.age} anos` : "Não informado"}
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <p className="text-xs font-medium uppercase text-slate-500">
+            Status cadastral
+          </p>
+          <p className="mt-1 text-sm text-slate-900">
+            {responsible?.registration_status || "Não informado"}
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <p className="text-xs font-medium uppercase text-slate-500">
+            Data de cadastro
+          </p>
+          <p className="mt-1 text-sm text-slate-900">
+            {responsible?.registration_date || "Não informado"}
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-white p-4 md:col-span-2">
+          <p className="text-xs font-medium uppercase text-slate-500">
+            Renda pessoal
+          </p>
+          <p className="mt-1 text-sm text-slate-900">
+            {formatCurrency(responsible?.personal_income ?? 0)}
           </p>
         </div>
 

@@ -1,13 +1,16 @@
 // src/app/components/NucleosFamiliares/CreateFamilyModal.tsx
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, X } from "lucide-react";
+import { toast } from "sonner";
 
-import type { AssistedFamilyMember, Family, Parish } from "../../types/types";
+import type { Parish } from "../../types/types";
+import type {
+  CreateFamilyRequest,
+  CreateFamilyResponsibleRequest,
+} from "../../types/nucleoFamiliarTypes";
+
 import { CreateFamilyMemberModal } from "./CreateFamilyMemberModal";
-import StepFamilyInfo from "./steps/StepFamilyInfo";
-import StepMembers from "./steps/StepMembers";
 import StepResponsible from "./steps/StepResponsible";
-import StepReview from "./steps/StepReview";
 import StepSearch from "./steps/StepSearch";
 import StepHeader from "./steps/StepHeader";
 
@@ -15,26 +18,16 @@ type CreateFamilyModalProps = {
   open: boolean;
   parish: Parish;
   onClose: () => void;
-  onSave: (newFamily: Family) => void;
+  onSave?: (newFamily: CreateFamilyRequest) => void;
 };
 
-export type WizardStep = 1 | 2 | 3 | 4 | 5;
+export type WizardStep = 1 | 2 | 3 | 4;
 
 export type SearchFormState = {
   query: string;
 };
 
-export type MemberFormState = {
-  name: string;
-  mother_name: string;
-  relationship: string;
-  age: string;
-  registration_status: string;
-  personal_income: string;
-};
-
 export type FamilyFormState = {
-  name: string;
   address: string;
   observations: string;
 };
@@ -43,40 +36,16 @@ const initialSearchFormState: SearchFormState = {
   query: "",
 };
 
-const initialMemberFormState: MemberFormState = {
-  name: "",
-  mother_name: "",
-  relationship: "",
-  age: "",
-  registration_status: "ATIVO",
-  personal_income: "",
-};
-
 const initialFamilyFormState: FamilyFormState = {
-  name: "",
   address: "",
   observations: "",
 };
-
-function parseMoney(value: string): number {
-  return Number(
-    value
-      .replace("R$", "")
-      .replace(/\s/g, "")
-      .replace(/\./g, "")
-      .replace(",", ".") || 0,
-  );
-}
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
   }).format(value);
-}
-
-function buildId(): number {
-  return Date.now() + Math.floor(Math.random() * 1000);
 }
 
 export default function CreateFamilyModal({
@@ -86,20 +55,15 @@ export default function CreateFamilyModal({
   onSave,
 }: CreateFamilyModalProps) {
   const [currentStep, setCurrentStep] = useState<WizardStep>(1);
-
+  const [requiredSearch, setRequiredSearch] = useState(false);
   const [searchForm, setSearchForm] = useState<SearchFormState>(
     initialSearchFormState,
   );
   const [familyForm, setFamilyForm] = useState<FamilyFormState>(
     initialFamilyFormState,
   );
-  const [memberForm, setMemberForm] = useState<MemberFormState>(
-    initialMemberFormState,
-  );
-  const [responsible, setResponsible] = useState<AssistedFamilyMember | null>(
-    null,
-  );
-  const [members, setMembers] = useState<AssistedFamilyMember[]>([]);
+  const [responsible, setResponsible] =
+    useState<CreateFamilyResponsibleRequest | null>(null);
   const [responsibleModalOpen, setResponsibleModalOpen] = useState(false);
 
   useEffect(() => {
@@ -110,10 +74,9 @@ export default function CreateFamilyModal({
     setCurrentStep(1);
     setSearchForm(initialSearchFormState);
     setFamilyForm(initialFamilyFormState);
-    setMemberForm(initialMemberFormState);
     setResponsible(null);
-    setMembers([]);
     setResponsibleModalOpen(false);
+    setRequiredSearch(false);
   }, [open]);
 
   useEffect(() => {
@@ -135,14 +98,8 @@ export default function CreateFamilyModal({
   }, [open, onClose]);
 
   const totalIncome = useMemo(() => {
-    const responsibleIncome = responsible?.personal_income ?? 0;
-    const membersIncome = members.reduce(
-      (total, member) => total + member.personal_income,
-      0,
-    );
-
-    return responsibleIncome + membersIncome;
-  }, [members, responsible]);
+    return responsible?.personal_income ?? 0;
+  }, [responsible]);
 
   if (!open) {
     return null;
@@ -150,88 +107,49 @@ export default function CreateFamilyModal({
 
   const handleSearchChange =
     (field: keyof SearchFormState) =>
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setSearchForm((current) => ({
-        ...current,
-        [field]: event.target.value,
-      }));
-    };
-
-  const handleMemberChange =
-    (field: keyof MemberFormState) =>
-    (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      setMemberForm((current) => ({
-        ...current,
-        [field]: event.target.value,
-      }));
-    };
+      (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchForm((current) => ({
+          ...current,
+          [field]: event.target.value,
+        }));
+      };
 
   const handleFamilyChange =
     (field: keyof FamilyFormState) =>
-    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setFamilyForm((current) => ({
-        ...current,
-        [field]: event.target.value,
-      }));
-    };
+      (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setFamilyForm((current) => ({
+          ...current,
+          [field]: event.target.value,
+        }));
+      };
 
   const handleSearch = () => {
-    console.log("Buscar cadastro existente:", searchForm.query);
-  };
-
-  const handleSaveResponsible = (newResponsible: AssistedFamilyMember) => {
-    setResponsible({
-      ...newResponsible,
-      parish_id: parish.id,
-      family_id: 0,
-      relationship: "Responsável",
-      is_responsible: true,
-    });
-
-    setResponsibleModalOpen(false);
-    setCurrentStep(3);
-  };
-
-  const handleAddMember = () => {
-    const trimmedName = memberForm.name.trim();
-
-    if (!trimmedName) {
+    if (!searchForm.query.trim()) {
+      toast.error("Digite um nome ou CPF antes de verificar.");
       return;
     }
 
-    const newMember: AssistedFamilyMember = {
-      id: buildId(),
-      parish_id: parish.id,
-      family_id: 0,
-      name: trimmedName,
-      mother_name: memberForm.mother_name.trim(),
-      relationship: memberForm.relationship.trim() || "Não definido",
-      age: Number(memberForm.age.replace(/\D/g, "") || 0),
-      registration_status: memberForm.registration_status,
-      registration_date: new Date().toISOString().split("T")[0],
-      personal_income: parseMoney(memberForm.personal_income),
-      is_responsible: false,
-    };
-
-    setMembers((current) => [...current, newMember]);
-    setMemberForm(initialMemberFormState);
+    console.log("Buscar cadastro existente:", searchForm.query);
+    setRequiredSearch(true);
   };
 
-  const handleRemoveMember = (memberId: number) => {
-    setMembers((current) => current.filter((member) => member.id !== memberId));
+  const handleSaveResponsible = (
+    newResponsible: CreateFamilyResponsibleRequest,
+  ) => {
+    setResponsible(newResponsible);
+    setResponsibleModalOpen(false);
+    setCurrentStep(3);
   };
 
   const canGoNext = () => {
     switch (currentStep) {
       case 1:
-        return true;
+        return requiredSearch;
       case 2:
         return !!responsible;
       case 3:
         return true;
       case 4:
-        return familyForm.name.trim().length > 0;
-      case 5:
         return true;
       default:
         return false;
@@ -243,7 +161,7 @@ export default function CreateFamilyModal({
       return;
     }
 
-    setCurrentStep((current) => Math.min(current + 1, 5) as WizardStep);
+    setCurrentStep((current) => Math.min(current + 1, 4) as WizardStep);
   };
 
   const handlePrevious = () => {
@@ -252,35 +170,21 @@ export default function CreateFamilyModal({
 
   const handleSubmit = () => {
     if (!responsible) {
+      toast.error("Cadastre o responsável antes de salvar.");
       return;
     }
 
-    const familyId = buildId();
-
-    const normalizedResponsible: AssistedFamilyMember = {
-      ...responsible,
-      family_id: familyId,
-      relationship: "Responsável",
-      is_responsible: true,
-    };
-
-    const normalizedMembers = members.map((member) => ({
-      ...member,
-      family_id: familyId,
-    }));
-
-    const newFamily: Family = {
-      id: familyId,
+    const payload: CreateFamilyRequest = {
       parish_id: parish.id,
-      name: familyForm.name.trim(),
       address: familyForm.address.trim() || null,
       observations: familyForm.observations.trim() || null,
-      parish,
-      responsible: normalizedResponsible,
-      assisted_family_members: [normalizedResponsible, ...normalizedMembers],
+      responsible: {
+        ...responsible,
+        relationship: "Responsável",
+      },
     };
 
-    onSave(newFamily);
+    onSave?.(payload);
     onClose();
   };
 
@@ -313,7 +217,6 @@ export default function CreateFamilyModal({
                 query={searchForm.query}
                 onChangeQuery={handleSearchChange("query")}
                 onSearch={handleSearch}
-                onNewRegistration={() => setCurrentStep(2)}
               />
             )}
 
@@ -326,27 +229,122 @@ export default function CreateFamilyModal({
             )}
 
             {currentStep === 3 && (
-              <StepMembers
-                form={memberForm}
-                members={members}
-                onChange={handleMemberChange}
-                onAddMember={handleAddMember}
-                onRemoveMember={handleRemoveMember}
-              />
+              <div className="mx-auto max-w-4xl space-y-6">
+                <div>
+                  <h3 className="text-2xl font-medium text-slate-900">
+                    Informações complementares
+                  </h3>
+                  <p className="mt-1 text-slate-500">
+                    Preencha os dados iniciais da família.
+                  </p>
+                </div>
+
+                <div className="grid gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">
+                      Endereço
+                    </label>
+                    <input
+                      type="text"
+                      value={familyForm.address}
+                      onChange={handleFamilyChange("address")}
+                      className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-600"
+                      placeholder="Digite o endereço"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">
+                      Observações
+                    </label>
+                    <textarea
+                      value={familyForm.observations}
+                      onChange={handleFamilyChange("observations")}
+                      rows={4}
+                      className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-600"
+                      placeholder="Digite observações relevantes"
+                    />
+                  </div>
+                </div>
+              </div>
             )}
 
             {currentStep === 4 && (
-              <StepFamilyInfo form={familyForm} onChange={handleFamilyChange} />
-            )}
+              <div className="mx-auto max-w-4xl space-y-6">
+                <div>
+                  <h3 className="text-2xl font-medium text-slate-900">
+                    Revisão
+                  </h3>
+                  <p className="mt-1 text-slate-500">
+                    Confira os dados antes de concluir o cadastro.
+                  </p>
+                </div>
 
-            {currentStep === 5 && (
-              <StepReview
-                responsible={responsible}
-                familyForm={familyForm}
-                members={members}
-                totalIncome={totalIncome}
-                formatCurrency={formatCurrency}
-              />
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="rounded-xl border border-slate-200 bg-white p-4">
+                    <p className="text-xs font-medium uppercase text-slate-500">
+                      Responsável
+                    </p>
+                    <p className="mt-1 text-sm text-slate-900">
+                      {responsible?.name || "Não informado"}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-slate-200 bg-white p-4">
+                    <p className="text-xs font-medium uppercase text-slate-500">
+                      CPF
+                    </p>
+                    <p className="mt-1 text-sm text-slate-900">
+                      {responsible?.cpf || "Não informado"}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-slate-200 bg-white p-4">
+                    <p className="text-xs font-medium uppercase text-slate-500">
+                      Data de nascimento
+                    </p>
+                    <p className="mt-1 text-sm text-slate-900">
+                      {responsible?.birth_date || "Não informado"}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-slate-200 bg-white p-4">
+                    <p className="text-xs font-medium uppercase text-slate-500">
+                      Renda pessoal
+                    </p>
+                    <p className="mt-1 text-sm text-slate-900">
+                      {formatCurrency(responsible?.personal_income ?? 0)}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-slate-200 bg-white p-4 md:col-span-2">
+                    <p className="text-xs font-medium uppercase text-slate-500">
+                      Endereço
+                    </p>
+                    <p className="mt-1 text-sm text-slate-900">
+                      {familyForm.address || "Não informado"}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-slate-200 bg-white p-4 md:col-span-2">
+                    <p className="text-xs font-medium uppercase text-slate-500">
+                      Observações
+                    </p>
+                    <p className="mt-1 whitespace-pre-wrap text-sm text-slate-900">
+                      {familyForm.observations || "Sem observações"}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-slate-200 bg-white p-4 md:col-span-2">
+                    <p className="text-xs font-medium uppercase text-slate-500">
+                      Total de renda considerada
+                    </p>
+                    <p className="mt-1 text-sm text-slate-900">
+                      {formatCurrency(totalIncome)}
+                    </p>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
 
@@ -360,7 +358,7 @@ export default function CreateFamilyModal({
               {currentStep === 1 ? "Cancelar" : "Voltar"}
             </button>
 
-            {currentStep < 5 ? (
+            {currentStep < 4 ? (
               <button
                 type="button"
                 onClick={handleNext}

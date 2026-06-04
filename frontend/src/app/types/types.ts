@@ -70,6 +70,8 @@ export type AssistedFamilyMember = {
   parish_id: number;
   family_id: number;
   name: string;
+  cpf: string;
+  birth_date: string;
   mother_name: string;
   relationship: string;
   age: number;
@@ -88,6 +90,7 @@ export type Family = {
   name: string;
   address: string | null;
   observations: string | null;
+  is_active: boolean;
   parish: Parish;
   responsible: AssistedFamilyMember;
   assisted_family_members: AssistedFamilyMember[];

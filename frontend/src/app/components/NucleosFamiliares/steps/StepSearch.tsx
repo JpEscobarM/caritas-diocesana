@@ -4,14 +4,14 @@ type StepSearchProps = {
   query: string;
   onChangeQuery: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onSearch: () => void;
-  onNewRegistration: () => void;
+
 };
 
 export default function StepSearch({
   query,
   onChangeQuery,
   onSearch,
-  onNewRegistration,
+
 }: StepSearchProps) {
   return (
     <div className="mx-auto flex max-w-4xl flex-col items-center gap-8">
@@ -36,19 +36,13 @@ export default function StepSearch({
         <button
           type="button"
           onClick={onSearch}
-          className="rounded-xl bg-blue-600 px-6 py-4 text-white"
+          className="cursor-pointer rounded-xl bg-blue-600 px-6 py-4 text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5  hover:shadow-md active:translate-y-0 active:scale-[0.98]"
         >
           <Search className="h-5 w-5" />
         </button>
       </div>
 
-      <button
-        type="button"
-        onClick={onNewRegistration}
-        className="rounded-xl bg-emerald-600 px-8 py-4 text-lg font-medium text-white"
-      >
-        + Novo Cadastro Familiar
-      </button>
+
     </div>
   );
 }

@@ -1,7 +1,11 @@
+// src/app/components/NucleosFamiliares/EditFamilyModal.tsx
 import { useEffect, useMemo, useState } from "react";
 import { Pencil, Plus, Trash2, X } from "lucide-react";
+import { toast } from "sonner";
 
+import { createAssistedFamilyMember } from "../../api/families";
 import type { AssistedFamilyMember, Family } from "../../types/types";
+import type { CreateFamilyResponsibleRequest } from "../../types/nucleoFamiliarTypes";
 import { CreateFamilyMemberModal } from "./CreateFamilyMemberModal";
 import { EditFamilyMemberModal } from "./EditFamilyMemberModal";
 
@@ -9,7 +13,7 @@ type EditFamilyModalProps = {
   open: boolean;
   family: Family | null;
   onClose: () => void;
-  onSave?: (updatedFamily: Family) => void;
+  onSave?: () => void;
 };
 
 type EditableMember = AssistedFamilyMember;
@@ -50,6 +54,7 @@ export default function EditFamilyModal({
   const [createMemberModalOpen, setCreateMemberModalOpen] = useState(false);
   const [memberBeingEdited, setMemberBeingEdited] =
     useState<EditableMember | null>(null);
+  const [isCreatingMember, setIsCreatingMember] = useState(false);
 
   useEffect(() => {
     if (!open || !family) {
@@ -96,31 +101,12 @@ export default function EditFamilyModal({
 
   const handleFamilyFieldChange =
     (field: "name" | "address" | "observations") =>
-    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setFormData((current) => ({
-        ...current,
-        [field]: event.target.value,
-      }));
-    };
-
-  const handleResponsibleChange = (memberId: number) => {
-    setFormData((current) => ({
-      ...current,
-      responsibleId: memberId,
-      assisted_family_members: current.assisted_family_members.map(
-        (member) => ({
-          ...member,
-          is_responsible: member.id === memberId,
-          relationship:
-            member.id === memberId
-              ? "Responsável"
-              : member.relationship === "Responsável"
-                ? "Não definido"
-                : member.relationship,
-        }),
-      ),
-    }));
-  };
+      (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setFormData((current) => ({
+          ...current,
+          [field]: event.target.value,
+        }));
+      };
 
   const handleRemoveMember = (memberId: number) => {
     setFormData((current) => {
@@ -150,63 +136,31 @@ export default function EditFamilyModal({
     });
   };
 
-  const handleCreateMember = (newMember: AssistedFamilyMember) => {
-    const editableMember: EditableMember = {
-      ...newMember,
-      registration_date: newMember.registration_date,
-    };
+  const handleCreateMember = async (
+    payload: CreateFamilyResponsibleRequest,
+  ) => {
+    try {
+      setIsCreatingMember(true);
 
-    setFormData((current) => {
-      const nextResponsibleId = editableMember.is_responsible
-        ? editableMember.id
-        : current.responsibleId;
+      const createdMember = await createAssistedFamilyMember(
+        family.id,
+        payload,
+      );
 
-      const updatedMembers = [
-        ...current.assisted_family_members,
-        editableMember,
-      ].map((member) => ({
-        ...member,
-        is_responsible: member.id === nextResponsibleId,
-        relationship:
-          member.id === nextResponsibleId
-            ? "Responsável"
-            : member.relationship === "Responsável"
-              ? "Não definido"
-              : member.relationship,
-      }));
-
-      return {
-        ...current,
-        responsibleId: nextResponsibleId,
-        assisted_family_members: updatedMembers,
+      const editableMember: EditableMember = {
+        ...createdMember,
+        registration_date: createdMember.registration_date,
       };
-    });
 
-    setCreateMemberModalOpen(false);
-  };
-
-  const handleEditMember = (updatedMember: AssistedFamilyMember) => {
-    setFormData((current) => {
-      const nextResponsibleId = updatedMember.is_responsible
-        ? updatedMember.id
-        : current.responsibleId === updatedMember.id
-          ? 0
+      setFormData((current) => {
+        const nextResponsibleId = editableMember.is_responsible
+          ? editableMember.id
           : current.responsibleId;
 
-      const updatedMembers = current.assisted_family_members.map((member) => {
-        if (member.id === updatedMember.id) {
-          return {
-            ...updatedMember,
-            registration_date: updatedMember.registration_date,
-            is_responsible: updatedMember.id === nextResponsibleId,
-            relationship:
-              updatedMember.id === nextResponsibleId
-                ? "Responsável"
-                : updatedMember.relationship || "Não definido",
-          };
-        }
-
-        return {
+        const updatedMembers = [
+          ...current.assisted_family_members,
+          editableMember,
+        ].map((member) => ({
           ...member,
           is_responsible: member.id === nextResponsibleId,
           relationship:
@@ -215,12 +169,42 @@ export default function EditFamilyModal({
               : member.relationship === "Responsável"
                 ? "Não definido"
                 : member.relationship,
+        }));
+
+        return {
+          ...current,
+          responsibleId: nextResponsibleId,
+          assisted_family_members: updatedMembers,
         };
+      });
+
+      toast.success("Membro adicionado com sucesso.");
+      setCreateMemberModalOpen(false);
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message || "Erro ao adicionar membro.",
+      );
+    } finally {
+      setIsCreatingMember(false);
+    }
+  };
+
+  const handleEditMember = (updatedMember: AssistedFamilyMember) => {
+    setFormData((current) => {
+      const updatedMembers = current.assisted_family_members.map((member) => {
+        if (member.id === updatedMember.id) {
+          return {
+            ...member,
+            ...updatedMember,
+            registration_date: updatedMember.registration_date,
+          };
+        }
+
+        return member;
       });
 
       return {
         ...current,
-        responsibleId: nextResponsibleId,
         assisted_family_members: updatedMembers,
       };
     });
@@ -230,36 +214,7 @@ export default function EditFamilyModal({
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
-    const updatedMembers: AssistedFamilyMember[] =
-      formData.assisted_family_members.map((member) => ({
-        ...member,
-        name: member.name.trim(),
-        mother_name: member.mother_name.trim(),
-        relationship: member.is_responsible
-          ? "Responsável"
-          : member.relationship.trim(),
-        registration_date: member.registration_date,
-      }));
-
-    const responsible =
-      updatedMembers.find((member) => member.id === formData.responsibleId) ??
-      updatedMembers[0];
-
-    if (!responsible) {
-      return;
-    }
-
-    const updatedFamily: Family = {
-      ...family,
-      name: formData.name.trim(),
-      address: formData.address.trim() || null,
-      observations: formData.observations.trim() || null,
-      responsible,
-      assisted_family_members: updatedMembers,
-    };
-
-    onSave?.(updatedFamily);
+    onSave?.();
   };
 
   return (
@@ -406,10 +361,11 @@ export default function EditFamilyModal({
                   <button
                     type="button"
                     onClick={() => setCreateMemberModalOpen(true)}
-                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700"
+                    disabled={isCreatingMember}
+                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <Plus className="h-4 w-4" />
-                    Adicionar membro
+                    {isCreatingMember ? "Adicionando..." : "Adicionar membro"}
                   </button>
                 </div>
 
@@ -451,16 +407,6 @@ export default function EditFamilyModal({
                           </div>
 
                           <div className="flex flex-wrap justify-end gap-2">
-                            <button
-                              type="button"
-                              onClick={() => handleResponsibleChange(member.id)}
-                              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700"
-                            >
-                              {member.is_responsible
-                                ? "Responsável atual"
-                                : "Definir responsável"}
-                            </button>
-
                             <button
                               type="button"
                               onClick={() => setMemberBeingEdited(member)}

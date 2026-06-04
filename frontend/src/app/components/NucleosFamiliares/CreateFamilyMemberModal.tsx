@@ -2,35 +2,37 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 
-import type { AssistedFamilyMember } from "../../types/types";
+import type { CreateFamilyResponsibleRequest } from "../../types/nucleoFamiliarTypes";
 
 type CreateFamilyMemberModalProps = {
   open: boolean;
   familyId: number;
   parishId: number;
   onClose: () => void;
-  onSave: (newMember: AssistedFamilyMember) => void;
+  onSave: (newMember: CreateFamilyResponsibleRequest) => void;
   forceResponsible?: boolean;
 };
 
 type CreateFamilyMemberFormState = {
   name: string;
+  cpf: string;
+  birth_date: string;
   mother_name: string;
   relationship: string;
   age: string;
   registration_status: string;
   personal_income: string;
-  is_responsible: boolean;
 };
 
 const initialCreateFormState: CreateFamilyMemberFormState = {
   name: "",
+  cpf: "",
+  birth_date: "",
   mother_name: "",
   relationship: "",
   age: "",
   registration_status: "ATIVO",
   personal_income: "",
-  is_responsible: false,
 };
 
 function parseMoney(value: string): number {
@@ -41,10 +43,6 @@ function parseMoney(value: string): number {
       .replace(/\./g, "")
       .replace(",", ".") || 0,
   );
-}
-
-function buildMemberId(): number {
-  return Date.now() + Math.floor(Math.random() * 1000);
 }
 
 function getTodayDateString(): string {
@@ -71,7 +69,6 @@ export function CreateFamilyMemberModal({
     setFormData({
       ...initialCreateFormState,
       relationship: forceResponsible ? "Responsável" : "",
-      is_responsible: forceResponsible,
     });
   }, [open, forceResponsible]);
 
@@ -104,15 +101,9 @@ export function CreateFamilyMemberModal({
         HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
       >,
     ) => {
-      const value =
-        event.target instanceof HTMLInputElement &&
-        event.target.type === "checkbox"
-          ? event.target.checked
-          : event.target.value;
-
       setFormData((current) => ({
         ...current,
-        [field]: value,
+        [field]: event.target.value,
       }));
     };
 
@@ -120,28 +111,31 @@ export function CreateFamilyMemberModal({
     event.preventDefault();
 
     const trimmedName = formData.name.trim();
+    const trimmedCpf = formData.cpf.trim();
     const trimmedMotherName = formData.mother_name.trim();
-    const trimmedRelationship =
-      forceResponsible || formData.is_responsible
-        ? "Responsável"
-        : formData.relationship.trim() || "Não definido";
+    const trimmedBirthDate = formData.birth_date.trim();
+    const trimmedRelationship = forceResponsible
+      ? "Responsável"
+      : formData.relationship.trim() || "Não definido";
 
     if (!trimmedName) {
       return;
     }
 
-    const newMember: AssistedFamilyMember = {
-      id: buildMemberId(),
-      parish_id: parishId,
-      family_id: familyId,
+    if (!trimmedBirthDate) {
+      return;
+    }
+
+    const newMember: CreateFamilyResponsibleRequest = {
       name: trimmedName,
+      cpf: trimmedCpf,
+      birth_date: trimmedBirthDate,
       mother_name: trimmedMotherName,
       relationship: trimmedRelationship,
       age: Number(formData.age.replace(/\D/g, "") || 0),
       registration_status: formData.registration_status,
       registration_date: getTodayDateString(),
       personal_income: parseMoney(formData.personal_income),
-      is_responsible: forceResponsible || formData.is_responsible,
     };
 
     onSave(newMember);
@@ -149,17 +143,10 @@ export function CreateFamilyMemberModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4">
-      <div className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white">
-        <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
-          <div>
-            <h2 className="text-2xl font-semibold text-[var(--primary)]">
-              Adicionar membro
-            </h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Preencha os dados do novo membro assistido.
-            </p>
-          </div>
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4 py-4">
+      <div className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <div className="flex items-start justify-between border-b border-slate-200 px-5 py-4">
+          <div></div>
 
           <button
             type="button"
@@ -171,115 +158,135 @@ export function CreateFamilyMemberModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6 px-6 py-6">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium text-slate-700">Nome</label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={handleChange("name")}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 outline-none focus:border-[var(--primary)]"
-                placeholder="Nome do membro"
-                required
-              />
-            </div>
-
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium text-slate-700">
-                Nome da mãe
-              </label>
-              <input
-                type="text"
-                value={formData.mother_name}
-                onChange={handleChange("mother_name")}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 outline-none focus:border-[var(--primary)]"
-                placeholder="Nome da mãe"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">
-                Vínculo
-              </label>
-              <input
-                type="text"
-                value={
-                  forceResponsible || formData.is_responsible
-                    ? "Responsável"
-                    : formData.relationship
-                }
-                onChange={handleChange("relationship")}
-                disabled={forceResponsible || formData.is_responsible}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 outline-none focus:border-[var(--primary)] disabled:bg-slate-100 disabled:text-slate-500"
-                placeholder="Ex.: Filho, Cônjuge"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">
-                Idade
-              </label>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={formData.age}
-                onChange={handleChange("age")}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 outline-none focus:border-[var(--primary)]"
-                placeholder="Digite a idade"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">
-                Status cadastral
-              </label>
-              <select
-                value={formData.registration_status}
-                onChange={handleChange("registration_status")}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 outline-none focus:border-[var(--primary)]"
-              >
-                <option value="ATIVO">ATIVO</option>
-                <option value="INATIVO">INATIVO</option>
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">
-                Renda pessoal
-              </label>
-              <input
-                type="text"
-                inputMode="decimal"
-                value={formData.personal_income}
-                onChange={handleChange("personal_income")}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 outline-none focus:border-[var(--primary)]"
-                placeholder="0,00"
-              />
-            </div>
-
-            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 md:col-span-2">
-              <p className="text-sm font-medium text-slate-700">
-                Data de cadastro
-              </p>
-              <p className="mt-1 text-sm text-slate-600">
-                Será definida automaticamente ao salvar.
-              </p>
-            </div>
-
-            {!forceResponsible && (
-              <label className="flex items-center gap-2 text-sm text-slate-700 md:col-span-2">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-1 flex-col overflow-hidden"
+        >
+          <div className="flex-1 overflow-y-auto px-5 py-4">
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-sm font-medium text-slate-700">
+                  Nome
+                </label>
                 <input
-                  type="checkbox"
-                  checked={formData.is_responsible}
-                  onChange={handleChange("is_responsible")}
+                  type="text"
+                  value={formData.name}
+                  onChange={handleChange("name")}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-800 outline-none focus:border-[var(--primary)]"
+                  placeholder="Nome do responsável"
+                  required
                 />
-                Definir como responsável pela família
-              </label>
-            )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700">
+                  CPF <span className="text-slate-400">(opcional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.cpf}
+                  onChange={handleChange("cpf")}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-800 outline-none focus:border-[var(--primary)]"
+                  placeholder="000.000.000-00"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700">
+                  Data de nascimento
+                </label>
+                <input
+                  type="date"
+                  value={formData.birth_date}
+                  onChange={handleChange("birth_date")}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-800 outline-none focus:border-[var(--primary)]"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-sm font-medium text-slate-700">
+                  Nome da mãe
+                </label>
+                <input
+                  type="text"
+                  value={formData.mother_name}
+                  onChange={handleChange("mother_name")}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-800 outline-none focus:border-[var(--primary)]"
+                  placeholder="Nome da mãe"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700">
+                  Vínculo
+                </label>
+                <input
+                  type="text"
+                  value={
+                    forceResponsible ? "Responsável" : formData.relationship
+                  }
+                  onChange={handleChange("relationship")}
+                  disabled={forceResponsible}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-800 outline-none focus:border-[var(--primary)] disabled:bg-slate-100 disabled:text-slate-500"
+                  placeholder="Ex.: Mãe, Pai, Avó"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700">
+                  Idade
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={formData.age}
+                  onChange={handleChange("age")}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-800 outline-none focus:border-[var(--primary)]"
+                  placeholder="Digite a idade"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700">
+                  Status cadastral
+                </label>
+                <select
+                  value={formData.registration_status}
+                  onChange={handleChange("registration_status")}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-800 outline-none focus:border-[var(--primary)]"
+                >
+                  <option value="ATIVO">ATIVO</option>
+                  <option value="INATIVO">INATIVO</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700">
+                  Renda pessoal
+                </label>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={formData.personal_income}
+                  onChange={handleChange("personal_income")}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-800 outline-none focus:border-[var(--primary)]"
+                  placeholder="0,00"
+                />
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 md:col-span-2">
+                <p className="text-sm font-medium text-slate-700">
+                  Data de cadastro
+                </p>
+                <p className="mt-1 text-sm text-slate-600">
+                  Será definida automaticamente ao salvar.
+                </p>
+              </div>
+            </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 border-t border-slate-200 pt-4">
+          <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-5 py-4">
             <button
               type="button"
               onClick={onClose}
