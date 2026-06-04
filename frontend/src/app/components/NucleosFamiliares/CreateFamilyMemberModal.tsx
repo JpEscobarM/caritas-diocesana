@@ -96,16 +96,16 @@ export function CreateFamilyMemberModal({
 
   const handleChange =
     (field: keyof CreateFamilyMemberFormState) =>
-      (
-        event: React.ChangeEvent<
-          HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-        >,
-      ) => {
-        setFormData((current) => ({
-          ...current,
-          [field]: event.target.value,
-        }));
-      };
+    (
+      event: React.ChangeEvent<
+        HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+      >,
+    ) => {
+      setFormData((current) => ({
+        ...current,
+        [field]: event.target.value,
+      }));
+    };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -146,14 +146,7 @@ export function CreateFamilyMemberModal({
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4 py-4">
       <div className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white">
         <div className="flex items-start justify-between border-b border-slate-200 px-5 py-4">
-          <div>
-            <h2 className="text-xl font-semibold text-[var(--primary)]">
-              Cadastrar responsável
-            </h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Preencha os dados do responsável familiar.
-            </p>
-          </div>
+          <div></div>
 
           <button
             type="button"
@@ -165,7 +158,10 @@ export function CreateFamilyMemberModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-1 flex-col overflow-hidden"
+        >
           <div className="flex-1 overflow-y-auto px-5 py-4">
             <div className="grid gap-3 md:grid-cols-2">
               <div className="space-y-2 md:col-span-2">
@@ -227,7 +223,9 @@ export function CreateFamilyMemberModal({
                 </label>
                 <input
                   type="text"
-                  value={forceResponsible ? "Responsável" : formData.relationship}
+                  value={
+                    forceResponsible ? "Responsável" : formData.relationship
+                  }
                   onChange={handleChange("relationship")}
                   disabled={forceResponsible}
                   className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-800 outline-none focus:border-[var(--primary)] disabled:bg-slate-100 disabled:text-slate-500"

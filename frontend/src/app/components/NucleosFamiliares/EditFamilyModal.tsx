@@ -1,7 +1,11 @@
+// src/app/components/NucleosFamiliares/EditFamilyModal.tsx
 import { useEffect, useMemo, useState } from "react";
 import { Pencil, Plus, Trash2, X } from "lucide-react";
+import { toast } from "sonner";
 
+import { createAssistedFamilyMember } from "../../api/families";
 import type { AssistedFamilyMember, Family } from "../../types/types";
+import type { CreateFamilyResponsibleRequest } from "../../types/nucleoFamiliarTypes";
 import { CreateFamilyMemberModal } from "./CreateFamilyMemberModal";
 import { EditFamilyMemberModal } from "./EditFamilyMemberModal";
 
@@ -9,7 +13,7 @@ type EditFamilyModalProps = {
   open: boolean;
   family: Family | null;
   onClose: () => void;
-  onSave?: (updatedFamily: Family) => void;
+  onSave?: () => void;
 };
 
 type EditableMember = AssistedFamilyMember;
@@ -50,6 +54,7 @@ export default function EditFamilyModal({
   const [createMemberModalOpen, setCreateMemberModalOpen] = useState(false);
   const [memberBeingEdited, setMemberBeingEdited] =
     useState<EditableMember | null>(null);
+  const [isCreatingMember, setIsCreatingMember] = useState(false);
 
   useEffect(() => {
     if (!open || !family) {
@@ -150,39 +155,73 @@ export default function EditFamilyModal({
     });
   };
 
-  const handleCreateMember = (newMember: AssistedFamilyMember) => {
-    const editableMember: EditableMember = {
-      ...newMember,
-      registration_date: newMember.registration_date,
-    };
+  const handleCreateMember = async (
+    payload: CreateFamilyResponsibleRequest,
+  ) => {
+    try {
+      setIsCreatingMember(true);
 
-    setFormData((current) => {
-      const nextResponsibleId = editableMember.is_responsible
-        ? editableMember.id
-        : current.responsibleId;
+      const createdMember = await createAssistedFamilyMember(
+        family.id,
+        payload,
+      );
 
-      const updatedMembers = [
-        ...current.assisted_family_members,
-        editableMember,
-      ].map((member) => ({
-        ...member,
-        is_responsible: member.id === nextResponsibleId,
-        relationship:
-          member.id === nextResponsibleId
-            ? "Responsável"
-            : member.relationship === "Responsável"
-              ? "Não definido"
-              : member.relationship,
-      }));
-
-      return {
-        ...current,
-        responsibleId: nextResponsibleId,
-        assisted_family_members: updatedMembers,
+      const editableMember: EditableMember = {
+        ...createdMember,
+        registration_date: createdMember.registration_date,
       };
-    });
 
-    setCreateMemberModalOpen(false);
+      setFormData((current) => {
+        const nextResponsibleId = editableMember.is_responsible
+          ? editableMember.id
+          : current.responsibleId;
+
+        const updatedMembers = [
+          ...current.assisted_family_members,
+          editableMember,
+        ].map((member) => ({
+          ...member,
+          is_responsible: member.id === nextResponsibleId,
+          relationship:
+            member.id === nextResponsibleId
+              ? "Responsável"
+              : member.relationship === "Responsável"
+                ? "Não definido"
+                : member.relationship,
+        }));
+
+        return {
+          ...current,
+          responsibleId: nextResponsibleId,
+          assisted_family_members: updatedMembers,
+        };
+      });
+
+      toast.success("Membro adicionado com sucesso.");
+      setCreateMemberModalOpen(false);
+
+      const updatedFamily: Family = {
+        ...family,
+        name: formData.name.trim(),
+        address: formData.address.trim() || null,
+        observations: formData.observations.trim() || null,
+        responsible: editableMember.is_responsible
+          ? editableMember
+          : (formData.assisted_family_members.find(
+              (member) => member.id === formData.responsibleId,
+            ) ?? family.responsible),
+        assisted_family_members: [
+          ...formData.assisted_family_members,
+          editableMember,
+        ],
+      };
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message || "Erro ao adicionar membro.",
+      );
+    } finally {
+      setIsCreatingMember(false);
+    }
   };
 
   const handleEditMember = (updatedMember: AssistedFamilyMember) => {
@@ -230,36 +269,7 @@ export default function EditFamilyModal({
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
-    const updatedMembers: AssistedFamilyMember[] =
-      formData.assisted_family_members.map((member) => ({
-        ...member,
-        name: member.name.trim(),
-        mother_name: member.mother_name.trim(),
-        relationship: member.is_responsible
-          ? "Responsável"
-          : member.relationship.trim(),
-        registration_date: member.registration_date,
-      }));
-
-    const responsible =
-      updatedMembers.find((member) => member.id === formData.responsibleId) ??
-      updatedMembers[0];
-
-    if (!responsible) {
-      return;
-    }
-
-    const updatedFamily: Family = {
-      ...family,
-      name: formData.name.trim(),
-      address: formData.address.trim() || null,
-      observations: formData.observations.trim() || null,
-      responsible,
-      assisted_family_members: updatedMembers,
-    };
-
-    onSave?.(updatedFamily);
+    onSave?.();
   };
 
   return (
@@ -406,10 +416,11 @@ export default function EditFamilyModal({
                   <button
                     type="button"
                     onClick={() => setCreateMemberModalOpen(true)}
-                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700"
+                    disabled={isCreatingMember}
+                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <Plus className="h-4 w-4" />
-                    Adicionar membro
+                    {isCreatingMember ? "Adicionando..." : "Adicionar membro"}
                   </button>
                 </div>
 

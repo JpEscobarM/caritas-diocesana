@@ -61,7 +61,7 @@ export default function NucleoFamiliar() {
     } catch (error: any) {
       toast.error(
         error?.response?.data?.message ||
-        "Ocorreu um erro inesperado ao buscar famílias.",
+          "Ocorreu um erro inesperado ao buscar famílias.",
       );
     } finally {
       setLoadingFamilies(false);
@@ -82,19 +82,18 @@ export default function NucleoFamiliar() {
     } catch (error: any) {
       toast.error(
         error?.response?.data?.message ||
-        "Erro ao buscar famílias desativadas.",
+          "Erro ao buscar famílias desativadas.",
       );
     } finally {
       setLoadingFamilies(false);
     }
   };
 
-
   useEffect(() => {
     void carregarFamiliasAtivas();
   }, []);
 
-  const handleSaveFamily = async (_updatedFamily: CreateFamilyRequest) => {
+  const handleSaveFamily = async () => {
     handleCloseEditModal();
 
     if (showingInactiveFamilies) {
@@ -177,8 +176,9 @@ export default function NucleoFamiliar() {
             className="group flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 font-medium text-[var(--primary)] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md active:translate-y-0 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
           >
             <RefreshCcw
-              className={`transition-transform duration-200 ${loadingFamilies ? "animate-spin" : "group-hover:rotate-90"
-                }`}
+              className={`transition-transform duration-200 ${
+                loadingFamilies ? "animate-spin" : "group-hover:rotate-90"
+              }`}
             />
             {loadingFamilies ? "Atualizando..." : "Atualizar lista"}
           </button>
@@ -206,10 +206,9 @@ export default function NucleoFamiliar() {
                 ? carregarFamiliasAtivas
                 : handleLoadInactiveFamilies
             }
-            className={`group flex cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2 font-medium text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-md active:translate-y-0 active:scale-[0.98] ${showingInactiveFamilies
-              ? "bg-emerald-600"
-              : "bg-[var(--primary)]"
-              }`}
+            className={`group flex cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2 font-medium text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-md active:translate-y-0 active:scale-[0.98] ${
+              showingInactiveFamilies ? "bg-emerald-600" : "bg-[var(--primary)]"
+            }`}
           >
             {showingInactiveFamilies
               ? "Voltar para famílias ativas"
@@ -219,7 +218,9 @@ export default function NucleoFamiliar() {
       </div>
 
       <div className="flex flex-col gap-3">
-        <h3 className="text-lg font-semibold text-foreground">Buscar família</h3>
+        <h3 className="text-lg font-semibold text-foreground">
+          Buscar família
+        </h3>
 
         <div className="flex items-center gap-3 rounded-xl bg-slate-100 px-4 py-3">
           <Search className="h-5 w-5 text-slate-500" />
@@ -256,6 +257,7 @@ export default function NucleoFamiliar() {
         open={modalEdicaoAberto}
         family={familiaSelecionada}
         onClose={handleCloseEditModal}
+        onSave={handleSaveFamily}
       />
 
       {currentParish && (
