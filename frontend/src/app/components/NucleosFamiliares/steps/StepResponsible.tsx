@@ -1,7 +1,8 @@
+import { CreateFamilyResponsibleRequest } from "../../../types/nucleoFamiliarTypes";
 import type { AssistedFamilyMember } from "../../../types/types";
 
 type StepResponsibleProps = {
-  responsible: AssistedFamilyMember | null;
+  responsible: CreateFamilyResponsibleRequest | null;
   onOpenCreateModal: () => void;
   onNextStep: () => void;
 };

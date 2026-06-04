@@ -1,127 +1,15 @@
-import { useState, useEffect } from "react";
-import { RefreshCcw, HousePlus, Search } from "lucide-react";
-import { getFamiliesFromParish } from "../../api/families";
-import { getSessionParish } from "../../api/auth";
+// src/app/components/NucleosFamiliares/NucleoFamiliar.tsx
+import { useEffect, useState } from "react";
+import { HousePlus, RefreshCcw, Search } from "lucide-react";
 import { toast } from "sonner";
-import type { AssistedFamilyMember, Family, Parish } from "../../types/types";
-import FamilyTable from "./FamilyTable";
-import EditFamilyModal from "./EditFamilyModal";
+
+import { getSessionParish } from "../../api/auth";
+import { createFamily, getFamiliesFromParish } from "../../api/families";
+import type { CreateFamilyRequest } from "../../types/nucleoFamiliarTypes";
+import type { Family } from "../../types/types";
 import CreateFamilyModal from "./CreateFamilyModal";
-
-const mockParish: Parish = {
-  id: 1,
-  name: "Paróquia São João Escobar",
-  slug: "paroquia-sao-joao-escobar",
-  cnpj: "05.097.806/0001-63",
-  active: true,
-};
-
-const mockAssistedFamilyMembers: AssistedFamilyMember[] = [
-  {
-    id: 1,
-    parish_id: 1,
-    family_id: 1,
-    name: "Maria da Silva",
-    mother_name: "Ana da Silva",
-    relationship: "Responsável",
-    age: 42,
-    registration_status: "ATIVO",
-    registration_date: "2025-01-10",
-    personal_income: 1800,
-    is_responsible: true,
-  },
-  {
-    id: 2,
-    parish_id: 1,
-    family_id: 1,
-    name: "João da Silva",
-    mother_name: "Maria da Silva",
-    relationship: "Filho",
-    age: 16,
-    registration_status: "ATIVO",
-    registration_date: "2025-01-10",
-    personal_income: 0,
-    is_responsible: false,
-  },
-  {
-    id: 3,
-    parish_id: 1,
-    family_id: 2,
-    name: "Carlos Oliveira",
-    mother_name: "Tereza Oliveira",
-    relationship: "Responsável",
-    age: 51,
-    registration_status: "ATIVO",
-    registration_date: "2025-02-03",
-    personal_income: 2200,
-    is_responsible: true,
-  },
-  {
-    id: 4,
-    parish_id: 1,
-    family_id: 2,
-    name: "Luciana Oliveira",
-    mother_name: "Tereza Oliveira",
-    relationship: "Cônjuge",
-    age: 47,
-    registration_status: "ATIVO",
-    registration_date: "2025-02-03",
-    personal_income: 900,
-    is_responsible: false,
-  },
-  {
-    id: 5,
-    parish_id: 1,
-    family_id: 3,
-    name: "Fernanda Santos",
-    mother_name: "Cláudia Santos",
-    relationship: "Responsável",
-    age: 34,
-    registration_status: "INATIVO",
-    registration_date: "2024-11-21",
-    personal_income: 1500,
-    is_responsible: true,
-  },
-];
-
-const initialMockFamilies: Family[] = [
-  {
-    id: 1,
-    parish_id: 1,
-    name: "Família Silva",
-    address: "Rua das Flores, 123 - Centro",
-    observations: "Família acompanhada pelo núcleo social.",
-    parish: mockParish,
-    responsible: mockAssistedFamilyMembers[0],
-    assisted_family_members: mockAssistedFamilyMembers.filter(
-      (member) => member.family_id === 1,
-    ),
-  },
-  {
-    id: 2,
-    parish_id: 1,
-    name: "Família Oliveira",
-    address: "Av. Principal, 456 - Jardim",
-    observations: null,
-    parish: mockParish,
-    responsible: mockAssistedFamilyMembers[2],
-    assisted_family_members: mockAssistedFamilyMembers.filter(
-      (member) => member.family_id === 2,
-    ),
-  },
-  {
-    id: 3,
-    parish_id: 1,
-    name: "Família Santos",
-    address: "Rua do Comércio, 789 - Vila Nova",
-    observations: "Cadastro desatualizado, revisar documentação.",
-    parish: mockParish,
-    responsible: mockAssistedFamilyMembers[4],
-    assisted_family_members: mockAssistedFamilyMembers.filter(
-      (member) => member.family_id === 3,
-    ),
-  },
-];
+import EditFamilyModal from "./EditFamilyModal";
+import FamilyTable from "./FamilyTable";
 
 export default function NucleoFamiliar() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -130,11 +18,10 @@ export default function NucleoFamiliar() {
   );
   const [modalEdicaoAberto, setModalEdicaoAberto] = useState(false);
   const [modalCadastroAberto, setModalCadastroAberto] = useState(false);
-  const [familias, setFamilias] = useState<Family[]>(initialMockFamilies);
+  const [familias, setFamilias] = useState<Family[]>([]);
   const [loadingFamilies, setLoadingFamilies] = useState(false);
 
-  const currentParish = getSessionParish() ?? mockParish;
-  const families = familias;
+  const currentParish = getSessionParish();
 
   const handleEditFamily = (family: Family) => {
     setFamiliaSelecionada(family);
@@ -147,28 +34,24 @@ export default function NucleoFamiliar() {
   };
 
   const carregarFamilias = async () => {
-    setLoadingFamilies(true);
-
     if (!currentParish) {
-      toast.error(
-        "Ocorreu um erro de sessão, tente realizar o login novamente",
-      );
-      setLoadingFamilies(false);
+      toast.error("Ocorreu um erro de sessão. Faça login novamente.");
       return;
     }
 
     try {
+      setLoadingFamilies(true);
+
       const familiesResponse = await getFamiliesFromParish(currentParish.name);
+      setFamilias(familiesResponse);
 
       if (familiesResponse.length === 0) {
-        toast.error("Não foi possível listar as famílias da sua paróquia");
+        toast.error("Nenhuma família cadastrada foi encontrada para sua paróquia.");
       }
-
-      setFamilias(familiesResponse);
     } catch (error: any) {
       toast.error(
         error?.response?.data?.message ||
-          "Ocorreu um erro inesperado ao buscar famílias",
+        "Ocorreu um erro inesperado ao buscar famílias.",
       );
     } finally {
       setLoadingFamilies(false);
@@ -176,22 +59,31 @@ export default function NucleoFamiliar() {
   };
 
   useEffect(() => {
-    carregarFamilias();
+    void carregarFamilias();
   }, []);
 
-  const handleSaveFamily = (updatedFamily: Family) => {
-    setFamilias((currentFamilies) =>
-      currentFamilies.map((family) =>
-        family.id === updatedFamily.id ? updatedFamily : family,
-      ),
-    );
-
+  const handleSaveFamily = async (_updatedFamily: CreateFamilyRequest) => {
     handleCloseEditModal();
+    await carregarFamilias();
   };
 
-  const handleCreateFamily = (newFamily: Family) => {
-    setFamilias((currentFamilies) => [newFamily, ...currentFamilies]);
-    setModalCadastroAberto(false);
+  const handleCreateFamily = async (payload: CreateFamilyRequest) => {
+    try {
+      console.log("Payload para criar família:", payload);
+
+      const response = await createFamily(payload);
+
+      toast.success("Família cadastrada com sucesso.");
+
+      console.log(response.data);
+
+      setModalCadastroAberto(false);
+      await carregarFamilias();
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message || "Erro ao cadastrar família.",
+      );
+    }
   };
 
   return (
@@ -202,42 +94,51 @@ export default function NucleoFamiliar() {
             Famílias cadastradas
           </h2>
           <p className="mt-2 text-slate-600">
-            Cadastre, edite e desative famílias vinculadas à sua Paróquia.
+            Cadastre, edite e desative famílias vinculadas à sua paróquia.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <button
+            type="button"
             onClick={carregarFamilias}
             disabled={loadingFamilies}
-            className="group flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 font-medium text-[var(--primary)] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md active:translate-y-0 active:scale-[0.98]"
+            className="group flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 font-medium text-[var(--primary)] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md active:translate-y-0 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
           >
             <RefreshCcw
-              className={`transition-transform duration-200 ${
-                loadingFamilies ? "animate-spin" : "group-hover:rotate-90"
-              }`}
+              className={`transition-transform duration-200 ${loadingFamilies ? "animate-spin" : "group-hover:rotate-90"
+                }`}
             />
             {loadingFamilies ? "Atualizando..." : "Atualizar lista"}
           </button>
 
           <button
-            onClick={() => setModalCadastroAberto(true)}
+            type="button"
+            onClick={() => {
+              if (!currentParish) {
+                toast.error("Ocorreu um erro de sessão. Faça login novamente.");
+                return;
+              }
+
+              setModalCadastroAberto(true);
+            }}
             className="group flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[var(--chart-3)] px-4 py-2 font-medium text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-md active:translate-y-0 active:scale-[0.98]"
           >
             <HousePlus className="h-5 w-5" />
             Cadastrar família
           </button>
 
-          <button className="group flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-2 font-medium text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-md active:translate-y-0 active:scale-[0.98]">
+          <button
+            type="button"
+            className="group flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-2 font-medium text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-md active:translate-y-0 active:scale-[0.98]"
+          >
             Famílias desativadas
           </button>
         </div>
       </div>
 
       <div className="flex flex-col gap-3">
-        <h3 className="text-lg font-semibold text-foreground">
-          Buscar família
-        </h3>
+        <h3 className="text-lg font-semibold text-foreground">Buscar família</h3>
 
         <div className="flex items-center gap-3 rounded-xl bg-slate-100 px-4 py-3">
           <Search className="h-5 w-5 text-slate-500" />
@@ -252,7 +153,7 @@ export default function NucleoFamiliar() {
       </div>
 
       <FamilyTable
-        families={families}
+        families={familias}
         searchTerm={searchTerm}
         onEditFamily={handleEditFamily}
       />
@@ -261,15 +162,16 @@ export default function NucleoFamiliar() {
         open={modalEdicaoAberto}
         family={familiaSelecionada}
         onClose={handleCloseEditModal}
-        onSave={handleSaveFamily}
       />
 
-      <CreateFamilyModal
-        open={modalCadastroAberto}
-        parish={currentParish}
-        onClose={() => setModalCadastroAberto(false)}
-        onSave={handleCreateFamily}
-      />
+      {currentParish && (
+        <CreateFamilyModal
+          open={modalCadastroAberto}
+          parish={currentParish}
+          onClose={() => setModalCadastroAberto(false)}
+          onSave={handleCreateFamily}
+        />
+      )}
     </div>
   );
 }
