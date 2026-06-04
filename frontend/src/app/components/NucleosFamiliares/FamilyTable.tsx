@@ -1,3 +1,4 @@
+// src/app/components/NucleosFamiliares/FamilyTable.tsx
 import { Fragment, useMemo, useState } from "react";
 import type { Family } from "../../types/types";
 import {
@@ -14,21 +15,24 @@ type FamilyTableProps = {
   families: Family[];
   searchTerm?: string;
   onEditFamily?: (family: Family) => void;
+  onToggleFamilyStatus?: (family: Family) => void;
+  toggleFamilyStatusLabel?: string;
+  caption?: string;
 };
 
 function getStatusLabel(status: string) {
-  switch (status) {
+  switch (status.toUpperCase()) {
     case "ATIVO":
-      return "Ativa";
+      return "Ativo";
     case "INATIVO":
-      return "Inativa";
+      return "Inativo";
     default:
       return status;
   }
 }
 
 function getStatusClassName(status: string) {
-  switch (status) {
+  switch (status.toUpperCase()) {
     case "ATIVO":
       return "bg-[var(--primary)]/10 text-[var(--primary)]";
     case "INATIVO":
@@ -53,10 +57,12 @@ export default function FamilyTable({
   families,
   searchTerm = "",
   onEditFamily,
+  onToggleFamilyStatus,
+  toggleFamilyStatusLabel = "Desativar",
+  caption = "Lista de famílias cadastradas na Cáritas Paroquial.",
 }: FamilyTableProps) {
   const [expandedFamilyId, setExpandedFamilyId] = useState<number | null>(null);
 
-  //Função de filtragem de buscas no search
   const filteredFamilies = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
@@ -95,7 +101,7 @@ export default function FamilyTable({
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <Table>
         <TableCaption className="py-4 text-sm text-slate-500">
-          Lista de famílias cadastradas na Cáritas Paroquial.
+          {caption}
         </TableCaption>
 
         <TableHeader className="bg-slate-50">
@@ -136,10 +142,7 @@ export default function FamilyTable({
 
             return (
               <Fragment key={family.id}>
-                <TableRow
-                  key={family.id}
-                  className="border-slate-100 transition-colors hover:bg-slate-50/70"
-                >
+                <TableRow className="border-slate-100 transition-colors hover:bg-slate-50/70">
                   <TableCell className="px-4 py-4 font-medium text-slate-900">
                     {family.name}
                   </TableCell>
@@ -187,11 +190,14 @@ export default function FamilyTable({
                       >
                         Editar
                       </button>
+
                       <button
                         type="button"
-                        className="cursor-pointer rounded-lg border border-[var(--primary)]/20 bg-[var(--primary)] px-3 py-2 text-sm font-medium text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-md active:translate-y-0 active:scale-[0.98]"
+                        onClick={() => onToggleFamilyStatus?.(family)}
+                        disabled={!onToggleFamilyStatus}
+                        className="cursor-pointer rounded-lg border border-[var(--primary)]/20 bg-[var(--primary)] px-3 py-2 text-sm font-medium text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-md active:translate-y-0 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
                       >
-                        Desativar
+                        {toggleFamilyStatusLabel}
                       </button>
                     </div>
                   </TableCell>
@@ -250,9 +256,7 @@ export default function FamilyTable({
                                 Cadastro do responsável
                               </p>
                               <p className="mt-1 text-sm text-slate-800">
-                                {formatDate(
-                                  family.responsible.registration_date,
-                                )}
+                                {formatDate(family.responsible.registration_date)}
                               </p>
                             </div>
                           </div>

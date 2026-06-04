@@ -4,7 +4,13 @@ import { HousePlus, RefreshCcw, Search } from "lucide-react";
 import { toast } from "sonner";
 
 import { getSessionParish } from "../../api/auth";
-import { createFamily, getFamiliesFromParish } from "../../api/families";
+import {
+  activateFamily,
+  createFamily,
+  getFamiliesFromParish,
+  getInactiveFamilies,
+  inactivateFamily,
+} from "../../api/families";
 import type { CreateFamilyRequest } from "../../types/nucleoFamiliarTypes";
 import type { Family } from "../../types/types";
 import CreateFamilyModal from "./CreateFamilyModal";
@@ -20,6 +26,7 @@ export default function NucleoFamiliar() {
   const [modalCadastroAberto, setModalCadastroAberto] = useState(false);
   const [familias, setFamilias] = useState<Family[]>([]);
   const [loadingFamilies, setLoadingFamilies] = useState(false);
+  const [showingInactiveFamilies, setShowingInactiveFamilies] = useState(false);
 
   const currentParish = getSessionParish();
 
@@ -33,7 +40,7 @@ export default function NucleoFamiliar() {
     setFamiliaSelecionada(null);
   };
 
-  const carregarFamilias = async () => {
+  const carregarFamiliasAtivas = async () => {
     if (!currentParish) {
       toast.error("Ocorreu um erro de sessão. Faça login novamente.");
       return;
@@ -44,9 +51,12 @@ export default function NucleoFamiliar() {
 
       const familiesResponse = await getFamiliesFromParish(currentParish.name);
       setFamilias(familiesResponse);
+      setShowingInactiveFamilies(false);
 
       if (familiesResponse.length === 0) {
-        toast.error("Nenhuma família cadastrada foi encontrada para sua paróquia.");
+        toast.error(
+          "Nenhuma família cadastrada foi encontrada para sua paróquia.",
+        );
       }
     } catch (error: any) {
       toast.error(
@@ -58,30 +68,83 @@ export default function NucleoFamiliar() {
     }
   };
 
+  const handleLoadInactiveFamilies = async () => {
+    try {
+      setLoadingFamilies(true);
+
+      const inactiveFamilies = await getInactiveFamilies(false);
+      setFamilias(inactiveFamilies);
+      setShowingInactiveFamilies(true);
+
+      if (inactiveFamilies.length === 0) {
+        toast.error("Nenhuma família desativada foi encontrada.");
+      }
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message ||
+        "Erro ao buscar famílias desativadas.",
+      );
+    } finally {
+      setLoadingFamilies(false);
+    }
+  };
+
+
   useEffect(() => {
-    void carregarFamilias();
+    void carregarFamiliasAtivas();
   }, []);
 
   const handleSaveFamily = async (_updatedFamily: CreateFamilyRequest) => {
     handleCloseEditModal();
-    await carregarFamilias();
+
+    if (showingInactiveFamilies) {
+      await handleLoadInactiveFamilies();
+      return;
+    }
+
+    await carregarFamiliasAtivas();
   };
 
   const handleCreateFamily = async (payload: CreateFamilyRequest) => {
     try {
-      console.log("Payload para criar família:", payload);
-
-      const response = await createFamily(payload);
+      await createFamily(payload);
 
       toast.success("Família cadastrada com sucesso.");
-
-      console.log(response.data);
-
       setModalCadastroAberto(false);
-      await carregarFamilias();
+      await carregarFamiliasAtivas();
     } catch (error: any) {
       toast.error(
         error?.response?.data?.message || "Erro ao cadastrar família.",
+      );
+    }
+  };
+
+  const handleDeactivateFamily = async (family: Family) => {
+    try {
+      await inactivateFamily(family.id);
+      toast.success("Família desativada com sucesso.");
+
+      if (showingInactiveFamilies) {
+        await handleLoadInactiveFamilies();
+        return;
+      }
+
+      await carregarFamiliasAtivas();
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message || "Erro ao desativar família.",
+      );
+    }
+  };
+
+  const handleReactivateFamily = async (family: Family) => {
+    try {
+      await activateFamily(family.id);
+      toast.success("Família reativada com sucesso.");
+      await handleLoadInactiveFamilies();
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message || "Erro ao reativar família.",
       );
     }
   };
@@ -91,17 +154,25 @@ export default function NucleoFamiliar() {
       <div className="flex items-start justify-between gap-6">
         <div>
           <h2 className="text-3xl font-semibold text-[var(--primary)]">
-            Famílias cadastradas
+            {showingInactiveFamilies
+              ? "Famílias desativadas"
+              : "Famílias cadastradas"}
           </h2>
           <p className="mt-2 text-slate-600">
-            Cadastre, edite e desative famílias vinculadas à sua paróquia.
+            {showingInactiveFamilies
+              ? "Visualize famílias desativadas vinculadas à sua paróquia."
+              : "Cadastre, edite e desative famílias vinculadas à sua paróquia."}
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={carregarFamilias}
+            onClick={
+              showingInactiveFamilies
+                ? handleLoadInactiveFamilies
+                : carregarFamiliasAtivas
+            }
             disabled={loadingFamilies}
             className="group flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 font-medium text-[var(--primary)] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md active:translate-y-0 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
           >
@@ -130,9 +201,19 @@ export default function NucleoFamiliar() {
 
           <button
             type="button"
-            className="group flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-2 font-medium text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-md active:translate-y-0 active:scale-[0.98]"
+            onClick={
+              showingInactiveFamilies
+                ? carregarFamiliasAtivas
+                : handleLoadInactiveFamilies
+            }
+            className={`group flex cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2 font-medium text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-md active:translate-y-0 active:scale-[0.98] ${showingInactiveFamilies
+              ? "bg-emerald-600"
+              : "bg-[var(--primary)]"
+              }`}
           >
-            Famílias desativadas
+            {showingInactiveFamilies
+              ? "Voltar para famílias ativas"
+              : "Famílias desativadas"}
           </button>
         </div>
       </div>
@@ -156,6 +237,19 @@ export default function NucleoFamiliar() {
         families={familias}
         searchTerm={searchTerm}
         onEditFamily={handleEditFamily}
+        onToggleFamilyStatus={
+          showingInactiveFamilies
+            ? handleReactivateFamily
+            : handleDeactivateFamily
+        }
+        toggleFamilyStatusLabel={
+          showingInactiveFamilies ? "Reativar" : "Desativar"
+        }
+        caption={
+          showingInactiveFamilies
+            ? "Lista de famílias desativadas na Cáritas Paroquial."
+            : "Lista de famílias cadastradas na Cáritas Paroquial."
+        }
       />
 
       <EditFamilyModal
