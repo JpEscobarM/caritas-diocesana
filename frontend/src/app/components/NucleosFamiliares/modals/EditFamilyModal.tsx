@@ -74,6 +74,7 @@ export default function EditFamilyModal({
   }, [open, family]);
 
   useEffect(() => {
+
     if (!open) {
       return;
     }
@@ -90,7 +91,7 @@ export default function EditFamilyModal({
 
   const totalFamilyIncome = useMemo(() => {
     return formData.assisted_family_members.reduce(
-      (total, member) => total + member.personal_income,
+      (total, member) => total + (Number(member.personal_income) || 0),
       0,
     );
   }, [formData.assisted_family_members]);
