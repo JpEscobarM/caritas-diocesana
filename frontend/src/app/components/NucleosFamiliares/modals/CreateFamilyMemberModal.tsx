@@ -1,13 +1,11 @@
 // src/app/components/NucleosFamiliares/CreateFamilyMemberModal.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, ChangeEvent } from "react";
 import { X } from "lucide-react";
 
-import type { CreateFamilyResponsibleRequest } from "../../types/nucleoFamiliarTypes";
+import type { CreateFamilyResponsibleRequest } from "../../../types/nucleoFamiliarTypes";
 
 type CreateFamilyMemberModalProps = {
   open: boolean;
-  familyId: number;
-  parishId: number;
   onClose: () => void;
   onSave: (newMember: CreateFamilyResponsibleRequest) => void;
   forceResponsible?: boolean;
@@ -32,18 +30,10 @@ const initialCreateFormState: CreateFamilyMemberFormState = {
   relationship: "",
   age: "",
   registration_status: "ATIVO",
-  personal_income: "",
+  personal_income: "0",
 };
 
-function parseMoney(value: string): number {
-  return Number(
-    value
-      .replace("R$", "")
-      .replace(/\s/g, "")
-      .replace(/\./g, "")
-      .replace(",", ".") || 0,
-  );
-}
+
 
 function getTodayDateString(): string {
   return new Date().toISOString().split("T")[0];
@@ -51,8 +41,7 @@ function getTodayDateString(): string {
 
 export function CreateFamilyMemberModal({
   open,
-  familyId,
-  parishId,
+
   onClose,
   onSave,
   forceResponsible = false,
@@ -94,8 +83,7 @@ export function CreateFamilyMemberModal({
     return null;
   }
 
-  const handleChange =
-    (field: keyof CreateFamilyMemberFormState) =>
+  const handleChange = (field: keyof CreateFamilyMemberFormState) =>
     (
       event: React.ChangeEvent<
         HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -106,6 +94,42 @@ export function CreateFamilyMemberModal({
         [field]: event.target.value,
       }));
     };
+
+
+
+  function normalizeIncome(value: string): number {
+    let normalized = value;
+
+    // mantém apenas números, vírgula e ponto
+    normalized = normalized.replace(/[^\d.,]/g, "");
+
+    // converte vírgulas para ponto
+    normalized = normalized.replace(/,/g, ".");
+
+    const lastDot = normalized.lastIndexOf(".");
+
+    if (lastDot !== -1) {
+      const integerPart = normalized
+        .slice(0, lastDot)
+        .replace(/\./g, "");
+
+      const decimalPart = normalized.slice(lastDot + 1);
+
+      normalized = `${integerPart}.${decimalPart}`;
+    }
+
+    return Number(normalized || 0);
+  }
+  const handlePersonalIncome = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    let value = event.target.value;
+
+    setFormData((prev) => ({
+      ...prev,
+      personal_income: value,
+    }));
+  };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -135,7 +159,7 @@ export function CreateFamilyMemberModal({
       age: Number(formData.age.replace(/\D/g, "") || 0),
       registration_status: formData.registration_status,
       registration_date: getTodayDateString(),
-      personal_income: parseMoney(formData.personal_income),
+      personal_income: normalizeIncome(formData.personal_income),
     };
 
     onSave(newMember);
@@ -269,7 +293,7 @@ export function CreateFamilyMemberModal({
                   type="text"
                   inputMode="decimal"
                   value={formData.personal_income}
-                  onChange={handleChange("personal_income")}
+                  onChange={handlePersonalIncome}
                   className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-800 outline-none focus:border-[var(--primary)]"
                   placeholder="0,00"
                 />

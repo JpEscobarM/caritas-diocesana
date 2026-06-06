@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { toast } from "sonner";
 
-import { updateAssistedFamilyMember } from "../../api/families";
-import type { AssistedFamilyMember } from "../../types/types";
+import { updateAssistedFamilyMember } from "../../../api/families";
+import type { AssistedFamilyMember } from "../../../types/types";
 
 type EditFamilyMemberModalProps = {
   open: boolean;

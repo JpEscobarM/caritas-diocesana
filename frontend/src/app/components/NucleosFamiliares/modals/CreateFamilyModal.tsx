@@ -3,16 +3,16 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, X } from "lucide-react";
 import { toast } from "sonner";
 
-import type { Parish } from "../../types/types";
+import type { Parish } from "../../../types/types";
 import type {
   CreateFamilyRequest,
   CreateFamilyResponsibleRequest,
-} from "../../types/nucleoFamiliarTypes";
+} from "../../../types/nucleoFamiliarTypes";
 
 import { CreateFamilyMemberModal } from "./CreateFamilyMemberModal";
-import StepResponsible from "./steps/StepResponsible";
-import StepSearch from "./steps/StepSearch";
-import StepHeader from "./steps/StepHeader";
+import StepResponsible from "../steps/StepResponsible";
+import StepSearch from "../steps/StepSearch";
+import StepHeader from "../steps/StepHeader";
 
 type CreateFamilyModalProps = {
   open: boolean;
@@ -383,8 +383,6 @@ export default function CreateFamilyModal({
 
       <CreateFamilyMemberModal
         open={responsibleModalOpen}
-        familyId={0}
-        parishId={parish.id}
         onClose={() => setResponsibleModalOpen(false)}
         onSave={handleSaveResponsible}
         forceResponsible
