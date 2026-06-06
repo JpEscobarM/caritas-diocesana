@@ -3,9 +3,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
-import { createAssistedFamilyMember } from "../../api/families";
-import type { AssistedFamilyMember, Family } from "../../types/types";
-import type { CreateFamilyResponsibleRequest } from "../../types/nucleoFamiliarTypes";
+import { createAssistedFamilyMember } from "../../../api/families";
+import type { AssistedFamilyMember, Family } from "../../../types/types";
+import type { CreateFamilyResponsibleRequest } from "../../../types/nucleoFamiliarTypes";
 import { CreateFamilyMemberModal } from "./CreateFamilyMemberModal";
 import { EditFamilyMemberModal } from "./EditFamilyMemberModal";
 
@@ -455,8 +455,6 @@ export default function EditFamilyModal({
 
       <CreateFamilyMemberModal
         open={createMemberModalOpen}
-        familyId={family.id}
-        parishId={family.parish_id}
         onClose={() => setCreateMemberModalOpen(false)}
         onSave={handleCreateMember}
       />
