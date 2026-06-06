@@ -1,17 +1,18 @@
 import { Search } from "lucide-react";
+import { AssistedFamilyMember } from "../../../types/types";
 
 type StepSearchProps = {
   query: string;
   onChangeQuery: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onSearch: () => void;
-
+  foundedMember: AssistedFamilyMember | null;
 };
 
 export default function StepSearch({
   query,
   onChangeQuery,
   onSearch,
-
+  foundedMember,
 }: StepSearchProps) {
   return (
     <div className="mx-auto flex max-w-4xl flex-col items-center gap-8">
@@ -41,7 +42,32 @@ export default function StepSearch({
           <Search className="h-5 w-5" />
         </button>
       </div>
+      {
+        foundedMember !== null && (
+          <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <h2 className="text-lg font-semibold text-slate-800">
+              {foundedMember.name}
+            </h2>
 
+            <div className="mt-2 space-y-1 text-sm text-slate-600">
+              <p>
+                <span className="font-medium">CPF:</span>{" "}
+                {foundedMember.cpf}
+              </p>
+
+              <p>
+                <span className="font-medium">Idade:</span>{" "}
+                {foundedMember.age}
+              </p>
+
+              <p>
+                <span className="font-medium">Parentesco:</span>{" "}
+                {foundedMember.relationship}
+              </p>
+            </div>
+          </div>
+        )
+      }
 
     </div>
   );

@@ -1,5 +1,5 @@
 import type { CreateFamilyResponsibleRequest } from "../../../types/nucleoFamiliarTypes";
-import type { FamilyFormState } from "../CreateFamilyModal";
+import type { FamilyFormState } from "../modals/CreateFamilyModal";
 
 type StepReviewProps = {
   responsible: CreateFamilyResponsibleRequest | null;

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, X } from "lucide-react";
 import { toast } from "sonner";
 
-import type { Parish } from "../../../types/types";
+import type { Parish, AssistedFamilyMember } from "../../../types/types";
 import type {
   CreateFamilyRequest,
   CreateFamilyResponsibleRequest,
@@ -13,6 +13,7 @@ import { CreateFamilyMemberModal } from "./CreateFamilyMemberModal";
 import StepResponsible from "../steps/StepResponsible";
 import StepSearch from "../steps/StepSearch";
 import StepHeader from "../steps/StepHeader";
+import { searchByCpf } from "../../../api/families"
 
 type CreateFamilyModalProps = {
   open: boolean;
@@ -59,6 +60,8 @@ export default function CreateFamilyModal({
   const [searchForm, setSearchForm] = useState<SearchFormState>(
     initialSearchFormState,
   );
+  const [foundMember, setFoundMember] =
+    useState<AssistedFamilyMember | null>(null);
   const [familyForm, setFamilyForm] = useState<FamilyFormState>(
     initialFamilyFormState,
   );
@@ -75,6 +78,7 @@ export default function CreateFamilyModal({
     setSearchForm(initialSearchFormState);
     setFamilyForm(initialFamilyFormState);
     setResponsible(null);
+    setFoundMember(null);
     setResponsibleModalOpen(false);
     setRequiredSearch(false);
   }, [open]);
@@ -123,14 +127,45 @@ export default function CreateFamilyModal({
         }));
       };
 
-  const handleSearch = () => {
+  const isCpf = (query: string) => {
+    if (!query.trim()) {
+      return false;
+    }
+    const firstChar = query[0];
+    return firstChar >= "0" && firstChar <= "9";
+  }
+
+  const handleSearch = async () => {
     if (!searchForm.query.trim()) {
       toast.error("Digite um nome ou CPF antes de verificar.");
       return;
     }
+    if (isCpf(searchForm.query)) {
+      try {
+        const searchResponse = await searchByCpf(searchForm.query);
+        toast.success("CPF já cadastrado no sistema");
+        setFoundMember(searchResponse);
+      } catch (error: any) {
+        if (error.response.status === 422) {
+          toast.error("O cpf buscado é inválido, verifique e tente novamente");
+          setFoundMember(null);
+          setRequiredSearch(false);
+        }
+        else if (error.response.status === 404) {
+          toast.success("Pesquisa realizada, o cpf não está cadastrado no sistema");
+          setFoundMember(null);
+          setRequiredSearch(true);
+        }
+      }
 
-    console.log("Buscar cadastro existente:", searchForm.query);
-    setRequiredSearch(true);
+
+    }
+    else { // Aqui tratar outros metodos de pesquisa caso seja disponibilizado posteriormente
+      toast.error("Busca por nome ainda nao implementada, digite um cpf");
+      setRequiredSearch(true);
+    }
+
+
   };
 
   const handleSaveResponsible = (
@@ -217,6 +252,7 @@ export default function CreateFamilyModal({
                 query={searchForm.query}
                 onChangeQuery={handleSearchChange("query")}
                 onSearch={handleSearch}
+                foundedMember={foundMember}
               />
             )}
 
