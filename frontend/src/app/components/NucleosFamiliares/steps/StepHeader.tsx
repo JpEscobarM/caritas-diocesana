@@ -1,4 +1,4 @@
-import type { WizardStep } from "../CreateFamilyModal";
+import type { WizardStep } from "../modals/CreateFamilyModal";
 
 type StepHeaderProps = {
   currentStep: WizardStep;
@@ -22,10 +22,10 @@ export default function StepHeader({ currentStep }: StepHeaderProps) {
           <div key={step} className="flex flex-col items-center gap-2">
             <div
               className={`flex h-10 w-10 items-center justify-center rounded-full border text-sm font-medium ${isActive
-                  ? "border-blue-600 bg-blue-600 text-white"
-                  : isCompleted
-                    ? "border-blue-600 bg-white text-blue-600"
-                    : "border-slate-300 bg-white text-slate-500"
+                ? "border-blue-600 bg-blue-600 text-white"
+                : isCompleted
+                  ? "border-blue-600 bg-white text-blue-600"
+                  : "border-slate-300 bg-white text-slate-500"
                 }`}
             >
               {step}

@@ -243,7 +243,14 @@ export default function FamilyTable({
                                   {family.responsible.age} anos
                                 </p>
                               </div>
-
+                              <div className="rounded-xl border border-slate-200 bg-white p-4">
+                                <p className="text-xs font-medium uppercase text-slate-500">
+                                  CPF do responsável
+                                </p>
+                                <p className="mt-1 text-sm text-slate-800">
+                                  {family.responsible.cpf}
+                                </p>
+                              </div>
                               <div className="rounded-xl border border-slate-200 bg-white p-4">
                                 <p className="text-xs font-medium uppercase text-slate-500">
                                   Renda total da família

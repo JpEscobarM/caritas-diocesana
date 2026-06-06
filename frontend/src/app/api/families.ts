@@ -91,3 +91,18 @@ export async function updateAssistedFamilyMember(
 
   return responseData;
 }
+
+export async function searchByCpf(
+  cpfRequest: string,
+): Promise<AssistedFamilyMember> {
+  const response = await api.get(
+    "/assisted-family-members/search-by-cpf",
+    {
+      params: {
+        cpf: cpfRequest,
+      },
+    },
+  );
+
+  return response.data.data;
+}
