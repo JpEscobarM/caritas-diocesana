@@ -106,3 +106,43 @@ export async function searchByCpf(
 
   return response.data.data;
 }
+
+type CollectionResponse<T> =
+  | T[]
+  | {
+      data?: T[] | { data?: T[] };
+    };
+
+function extractCollection<T>(responseData: CollectionResponse<T>): T[] {
+  if (Array.isArray(responseData)) {
+    return responseData;
+  }
+
+  if (Array.isArray(responseData.data)) {
+    return responseData.data;
+  }
+
+  if (
+    responseData.data &&
+    !Array.isArray(responseData.data) &&
+    Array.isArray(responseData.data.data)
+  ) {
+    return responseData.data.data;
+  }
+
+  return [];
+}
+
+export async function listFamilies(
+  all = false,
+  limit?: number,
+): Promise<Family[]> {
+  const response = await api.get<CollectionResponse<Family>>("/families", {
+    params: {
+      all,
+      ...(limit ? { limit } : {}),
+    },
+  });
+
+  return extractCollection<Family>(response.data);
+}

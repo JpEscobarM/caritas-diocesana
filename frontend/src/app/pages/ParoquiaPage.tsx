@@ -8,6 +8,7 @@ import { clearAuthSession, getAuthSession } from "../api/auth";
 import Sidebar from "../components/Sidebar";
 import { menuParoquiaItems } from "../config/MenuParoquia";
 import VisitaDomiciliar from "../components/VisitaDomiciliar";
+import PainelGeralParoquia from "../components/PainelParoquia/PainelGeralParoquia";
 
 export default function ParoquiaPage() {
   const navigate = useNavigate();
@@ -48,12 +49,7 @@ export default function ParoquiaPage() {
   const renderTabContent = () => {
     switch (activeTab) {
       case "geral":
-        return (
-          <EmDesenvolvimento
-            title="Painel geral da paróquia"
-            description="Em breve, esta tela reunirá as informações mais importantes da paróquia em uma visão simples e direta."
-          />
-        );
+        return <PainelGeralParoquia onNavigate={setActiveTab} />;
       case "nucleos":
         return <NucleoFamiliar />;
 
