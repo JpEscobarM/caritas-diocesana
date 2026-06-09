@@ -33,6 +33,7 @@ import type {
   RescheduleHomeVisitRequest,
   VisitReportRequest,
   VisitScope,
+  VisitViewMode,
 } from "./types";
 import {
   getApiErrorMessage,
@@ -40,8 +41,10 @@ import {
   normalizeStatus,
   sortHomeVisitsForDisplay,
 } from "./utils";
+import VisitCalendarView from "./VisitCalendarView";
 import VisitReportModal from "./VisitReportModal";
 import VisitTable from "./VisitTable";
+import VisitViewToggle from "./VisitViewToggle";
 
 type SummaryCardProps = {
   title: string;
@@ -56,6 +59,8 @@ type ScopeOption = {
   description: string;
   icon: ReactNode;
 };
+
+const VISIT_VIEW_STORAGE_KEY = "caritas.homeVisits.viewMode";
 
 function SummaryCard({ title, value, description, icon }: SummaryCardProps) {
   return (
@@ -92,6 +97,18 @@ export default function VisitaDomiciliar() {
     "all",
   );
   const [visitScope, setVisitScope] = useState<VisitScope>("mine");
+  const [visitViewMode, setVisitViewMode] = useState<VisitViewMode>(() => {
+    if (typeof window === "undefined") {
+      return "list";
+    }
+
+    try {
+      const storedViewMode = window.localStorage.getItem(VISIT_VIEW_STORAGE_KEY);
+      return storedViewMode === "calendar" ? "calendar" : "list";
+    } catch {
+      return "list";
+    }
+  });
 
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
@@ -233,6 +250,14 @@ export default function VisitaDomiciliar() {
     void loadInitialData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(VISIT_VIEW_STORAGE_KEY, visitViewMode);
+    } catch {
+      // Se o navegador bloquear o localStorage, a troca de visualização continua funcionando.
+    }
+  }, [visitViewMode]);
 
   const handleRefresh = async () => {
     await loadInitialData();
@@ -499,29 +524,57 @@ export default function VisitaDomiciliar() {
         </div>
       </section>
 
-      <VisitTable
-        visits={visibleVisits}
-        searchTerm={searchTerm}
-        statusFilter={statusFilter}
-        loading={loadingVisits}
-        emptyTitle={
-          visitScope === "mine"
-            ? "Nenhuma visita sua foi encontrada"
-            : "Nenhuma visita foi encontrada"
-        }
-        emptyDescription={
-          visitScope === "mine"
-            ? "Você ainda não possui visitas neste filtro. Tente ver todas as visitas da paróquia ou marque uma nova visita."
-            : "Não encontramos visitas com os filtros atuais. Você pode limpar a busca, mudar o status selecionado ou marcar uma nova visita."
-        }
-        listTitle={
-          visitScope === "mine" ? "Minhas visitas" : "Todas as visitas da paróquia"
-        }
-        listDescription="Cada cartão representa uma visita. Use os botões para ver detalhes, registrar resultado, reagendar ou cancelar."
-        onOpenReport={openReportModal}
-        onOpenReschedule={openRescheduleModal}
-        onOpenCancel={openCancelModal}
-      />
+      <VisitViewToggle value={visitViewMode} onChange={setVisitViewMode} />
+
+      {visitViewMode === "list" ? (
+        <VisitTable
+          visits={visibleVisits}
+          searchTerm={searchTerm}
+          statusFilter={statusFilter}
+          loading={loadingVisits}
+          emptyTitle={
+            visitScope === "mine"
+              ? "Nenhuma visita sua foi encontrada"
+              : "Nenhuma visita foi encontrada"
+          }
+          emptyDescription={
+            visitScope === "mine"
+              ? "Você ainda não possui visitas neste filtro. Tente ver todas as visitas da paróquia ou marque uma nova visita."
+              : "Não encontramos visitas com os filtros atuais. Você pode limpar a busca, mudar o status selecionado ou marcar uma nova visita."
+          }
+          listTitle={
+            visitScope === "mine" ? "Minhas visitas" : "Todas as visitas da paróquia"
+          }
+          listDescription="Cada cartão representa uma visita. Use os botões para ver detalhes, registrar resultado, reagendar ou cancelar."
+          onOpenReport={openReportModal}
+          onOpenReschedule={openRescheduleModal}
+          onOpenCancel={openCancelModal}
+        />
+      ) : (
+        <VisitCalendarView
+          visits={visibleVisits}
+          searchTerm={searchTerm}
+          statusFilter={statusFilter}
+          loading={loadingVisits}
+          emptyTitle={
+            visitScope === "mine"
+              ? "Nenhuma visita sua foi encontrada"
+              : "Nenhuma visita foi encontrada"
+          }
+          emptyDescription={
+            visitScope === "mine"
+              ? "Você ainda não possui visitas neste filtro. Tente ver todas as visitas da paróquia ou marque uma nova visita."
+              : "Não encontramos visitas com os filtros atuais. Você pode limpar a busca, mudar o status selecionado ou marcar uma nova visita."
+          }
+          agendaTitle={
+            visitScope === "mine" ? "Agenda das minhas visitas" : "Agenda da paróquia"
+          }
+          agendaDescription="As visitas aparecem no mês selecionado, agrupadas por data, com status e ações principais."
+          onOpenReport={openReportModal}
+          onOpenReschedule={openRescheduleModal}
+          onOpenCancel={openCancelModal}
+        />
+      )}
 
       <ScheduleVisitModal
         open={scheduleModalOpen}

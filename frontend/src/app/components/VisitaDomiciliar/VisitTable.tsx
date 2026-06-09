@@ -3,10 +3,13 @@ import { CalendarClock, ChevronDown, ChevronUp } from "lucide-react";
 
 import type { HomeVisitStatus, HomeVisitWithFamily } from "./types";
 import {
+  filterHomeVisitsForDisplay,
   formatDateOnly,
   formatDateTime,
+  getFamilyName,
+  getFamilyResponsibleName,
+  getResponsibleVisitorName,
   isVisitStatus,
-  normalizeStatus,
 } from "./utils";
 import VisitStatusBadge from "./VisitStatusBadge";
 
@@ -24,29 +27,6 @@ type VisitTableProps = {
   onOpenCancel: (visit: HomeVisitWithFamily) => void;
 };
 
-function normalize(value: string): string {
-  return value
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-}
-
-function getResponsibleVisitorName(visit: HomeVisitWithFamily): string {
-  return (
-    visit.responsibleVisitor?.name ??
-    visit.user?.name ??
-    `Usuário #${visit.user_id}`
-  );
-}
-
-function getFamilyName(visit: HomeVisitWithFamily): string {
-  return visit.family?.name ?? `Família #${visit.family_id}`;
-}
-
-function getFamilyResponsibleName(visit: HomeVisitWithFamily): string {
-  return visit.family?.responsible?.name ?? "Não informado";
-}
-
 export default function VisitTable({
   visits,
   searchTerm,
@@ -62,27 +42,10 @@ export default function VisitTable({
 }: VisitTableProps) {
   const [expandedVisitId, setExpandedVisitId] = useState<number | null>(null);
 
-  const filteredVisits = useMemo(() => {
-    const normalizedSearch = normalize(searchTerm.trim());
-
-    return visits.filter((visit) => {
-      const familyName = getFamilyName(visit);
-      const familyResponsibleName = getFamilyResponsibleName(visit);
-      const responsibleVisitorName = getResponsibleVisitorName(visit);
-      const searchableText = normalize(
-        `${familyName} ${familyResponsibleName} ${responsibleVisitorName} ${
-          visit.notes ?? ""
-        } ${visit.forwarding ?? ""}`,
-      );
-
-      const matchesSearch =
-        !normalizedSearch || searchableText.includes(normalizedSearch);
-      const matchesStatus =
-        statusFilter === "all" || normalizeStatus(visit.status) === statusFilter;
-
-      return matchesSearch && matchesStatus;
-    });
-  }, [visits, searchTerm, statusFilter]);
+  const filteredVisits = useMemo(
+    () => filterHomeVisitsForDisplay(visits, searchTerm, statusFilter),
+    [visits, searchTerm, statusFilter],
+  );
 
   const toggleExpandedVisit = (visitId: number) => {
     setExpandedVisitId((current) => (current === visitId ? null : visitId));

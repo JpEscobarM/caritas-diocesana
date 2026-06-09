@@ -7,6 +7,7 @@ export type HomeVisitStatus = "pending" | "completed" | "canceled";
 export type HomeVisitRawStatus = HomeVisitStatus | "cancelled" | string;
 
 export type VisitScope = "mine" | "all";
+export type VisitViewMode = "list" | "calendar";
 
 export type VisitResponsibleUser = Pick<
   AuthUser,

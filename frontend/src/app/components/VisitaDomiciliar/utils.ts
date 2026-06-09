@@ -1,4 +1,9 @@
-import type { HomeVisit, HomeVisitRawStatus, HomeVisitStatus } from "./types";
+import type {
+  HomeVisit,
+  HomeVisitRawStatus,
+  HomeVisitStatus,
+  HomeVisitWithFamily,
+} from "./types";
 
 export function getApiErrorMessage(
   error: unknown,
@@ -74,6 +79,97 @@ export function getStatusLabel(
     default:
       return "Status não informado";
   }
+}
+
+export function normalizeSearchValue(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+export function getResponsibleVisitorName(visit: HomeVisitWithFamily): string {
+  return (
+    visit.responsibleVisitor?.name ??
+    visit.user?.name ??
+    `Usuário #${visit.user_id}`
+  );
+}
+
+export function getFamilyName(visit: HomeVisitWithFamily): string {
+  return visit.family?.name ?? `Família #${visit.family_id}`;
+}
+
+export function getFamilyResponsibleName(visit: HomeVisitWithFamily): string {
+  return visit.family?.responsible?.name ?? "Não informado";
+}
+
+export function filterHomeVisitsForDisplay(
+  visits: HomeVisitWithFamily[],
+  searchTerm: string,
+  statusFilter: HomeVisitStatus | "all",
+): HomeVisitWithFamily[] {
+  const normalizedSearch = normalizeSearchValue(searchTerm.trim());
+
+  return visits.filter((visit) => {
+    const familyName = getFamilyName(visit);
+    const familyResponsibleName = getFamilyResponsibleName(visit);
+    const responsibleVisitorName = getResponsibleVisitorName(visit);
+    const searchableText = normalizeSearchValue(
+      `${familyName} ${familyResponsibleName} ${responsibleVisitorName} ${
+        visit.notes ?? ""
+      } ${visit.forwarding ?? ""}`,
+    );
+
+    const matchesSearch =
+      !normalizedSearch || searchableText.includes(normalizedSearch);
+    const matchesStatus =
+      statusFilter === "all" || normalizeStatus(visit.status) === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
+}
+
+export function parseVisitDate(value: string | null | undefined): Date | null {
+  if (!value) {
+    return null;
+  }
+
+  const normalizedValue = value.includes("T") ? value : value.replace(" ", "T");
+  const date = new Date(normalizedValue);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date;
+}
+
+export function formatTimeOnly(value: string | null | undefined): string {
+  const date = parseVisitDate(value);
+
+  if (!date) {
+    return "Horário não informado";
+  }
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+export function getVisitDateKey(value: string | null | undefined): string | null {
+  const date = parseVisitDate(value);
+
+  if (!date) {
+    return null;
+  }
+
+  const pad = (number: number) => String(number).padStart(2, "0");
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    date.getDate(),
+  )}`;
 }
 
 export function formatDateTime(value: string | null | undefined): string {
