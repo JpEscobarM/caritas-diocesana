@@ -7,6 +7,7 @@ import NucleoFamiliar from "../components/NucleosFamiliares/NucleoFamiliar";
 import { clearAuthSession, getAuthSession } from "../api/auth";
 import Sidebar from "../components/Sidebar";
 import { menuParoquiaItems } from "../config/MenuParoquia";
+import VisitaDomiciliar from "../components/VisitaDomiciliar";
 
 export default function ParoquiaPage() {
   const navigate = useNavigate();
@@ -64,12 +65,7 @@ export default function ParoquiaPage() {
           />
         );
       case "visitas":
-        return (
-          <EmDesenvolvimento
-            title="Visitas domiciliares"
-            description="As visitas serão organizadas para facilitar o registro e o acompanhamento das famílias atendidas."
-          />
-        );
+        return <VisitaDomiciliar />;
       case "prestacao":
         return (
           <EmDesenvolvimento
