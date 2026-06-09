@@ -1,0 +1,138 @@
+.caritas-accessibility-widget {
+  position: relative;
+}
+
+html.caritas-readable body {
+  letter-spacing: 0.012em;
+  text-rendering: optimizeLegibility;
+}
+
+html.caritas-readable p,
+html.caritas-readable li,
+html.caritas-readable label,
+html.caritas-readable input,
+html.caritas-readable select,
+html.caritas-readable textarea,
+html.caritas-readable button,
+html.caritas-readable th,
+html.caritas-readable td {
+  line-height: 1.65 !important;
+}
+
+html.caritas-readable h1,
+html.caritas-readable h2,
+html.caritas-readable h3,
+html.caritas-readable h4 {
+  line-height: 1.25 !important;
+}
+
+html.caritas-readable input,
+html.caritas-readable select,
+html.caritas-readable textarea {
+  border-width: 2px !important;
+}
+
+html.caritas-readable *:focus-visible {
+  outline-width: 4px !important;
+  outline-offset: 4px !important;
+}
+
+html.caritas-readable .text-muted-foreground {
+  opacity: 1 !important;
+}
+
+html.caritas-high-contrast {
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #000000;
+  --card-foreground: #ffffff;
+  --popover: #000000;
+  --popover-foreground: #ffffff;
+  --primary: #ffd400;
+  --primary-foreground: #000000;
+  --primary-hover: #ffea70;
+  --secondary: #ffffff;
+  --secondary-foreground: #000000;
+  --secondary-hover: #e5e5e5;
+  --muted: #111111;
+  --muted-foreground: #ffffff;
+  --accent: #1f1f1f;
+  --accent-foreground: #ffffff;
+  --destructive: #ff4d4d;
+  --destructive-foreground: #000000;
+  --destructive-hover: #ff7676;
+  --border: #ffffff;
+  --input: #ffffff;
+  --input-background: #000000;
+  --ring: #ffd400;
+  --sidebar: #000000;
+  --sidebar-foreground: #ffffff;
+  --sidebar-border: #ffffff;
+  --sidebar-accent: #ffd400;
+  --sidebar-accent-foreground: #000000;
+  --sidebar-ring: #ffd400;
+}
+
+html.caritas-high-contrast body,
+html.caritas-high-contrast #root {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+html.caritas-high-contrast .text-muted-foreground,
+html.caritas-high-contrast .text-sidebar-foreground\/80,
+html.caritas-high-contrast .text-slate-500,
+html.caritas-high-contrast .text-slate-600,
+html.caritas-high-contrast .text-slate-700,
+html.caritas-high-contrast .text-gray-500,
+html.caritas-high-contrast .text-gray-600,
+html.caritas-high-contrast .text-gray-700 {
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+html.caritas-high-contrast input,
+html.caritas-high-contrast select,
+html.caritas-high-contrast textarea {
+  background-color: #000000 !important;
+  border-color: #ffffff !important;
+  color: #ffffff !important;
+}
+
+html.caritas-high-contrast input::placeholder,
+html.caritas-high-contrast textarea::placeholder {
+  color: #ffffff !important;
+  opacity: 0.85 !important;
+}
+
+html.caritas-high-contrast button:not(:disabled),
+html.caritas-high-contrast a {
+  text-decoration-thickness: 0.12em;
+}
+
+html.caritas-high-contrast *:focus-visible {
+  outline: 4px solid #ffd400 !important;
+  outline-offset: 4px !important;
+}
+
+html.caritas-high-contrast .border,
+html.caritas-high-contrast .border-2,
+html.caritas-high-contrast .border-b,
+html.caritas-high-contrast .border-l,
+html.caritas-high-contrast .border-t {
+  border-color: #ffffff !important;
+}
+
+html.caritas-high-contrast .shadow-sm,
+html.caritas-high-contrast .shadow-lg,
+html.caritas-high-contrast .shadow-xl,
+html.caritas-high-contrast .shadow-2xl,
+html.caritas-high-contrast .caritas-card-shadow {
+  box-shadow: 0 0 0 2px #ffffff !important;
+}
+
+@media print {
+  .caritas-accessibility-widget {
+    display: none !important;
+  }
+}
