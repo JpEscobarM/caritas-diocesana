@@ -5,6 +5,7 @@ import BrandLogo from "../components/BrandLogo";
 import { menuDioceseItems } from "../config/MenuDiocese";
 import ParishesManagementByDiocese from "../components/ParishesManagementByDiocese";
 import EmDesenvolvimento from "../components/EmDesenvolvimento";
+import PainelGeralDiocese from "../components/PainelDiocese/PainelGeralDiocese";
 
 import { clearAuthSession, getAuthSession } from "../api/auth";
 import Sidebar from "../components/Sidebar";
@@ -45,12 +46,7 @@ export default function DiocesePage() {
   const renderTabContent = () => {
     switch (activeTab) {
       case "geral":
-        return (
-          <EmDesenvolvimento
-            title="Painel geral da diocese"
-            description="Em breve, esta área reunirá os principais indicadores e atalhos para acompanhar as paróquias com mais clareza."
-          />
-        );
+        return <PainelGeralDiocese onNavigate={setActiveTab} />;
       case "paroquias":
         return <ParishesManagementByDiocese />;
       case "estoque":
