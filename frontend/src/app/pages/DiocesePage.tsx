@@ -9,6 +9,7 @@ import PainelGeralDiocese from "../components/PainelDiocese/PainelGeralDiocese";
 
 import { clearAuthSession, getAuthSession } from "../api/auth";
 import Sidebar from "../components/Sidebar";
+import PainelGeralUsuarios from "../components/PainelUsuarios/PainelGeralUsuarios";
 
 export default function DiocesePage() {
   const navigate = useNavigate();
@@ -41,7 +42,8 @@ export default function DiocesePage() {
   );
 
   const activeMenuLabel =
-    visibleMenuItems.find((item) => item.id === activeTab)?.label ?? "Painel Geral";
+    visibleMenuItems.find((item) => item.id === activeTab)?.label ??
+    "Painel Geral";
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -70,6 +72,8 @@ export default function DiocesePage() {
             description="Os relatórios serão apresentados em blocos fáceis de ler, com dados importantes para a tomada de decisão."
           />
         );
+      case "usuarios":
+        return <PainelGeralUsuarios />;
       default:
         return (
           <EmDesenvolvimento
@@ -156,7 +160,9 @@ export default function DiocesePage() {
             <button
               type="button"
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              aria-label={sidebarCollapsed ? "Abrir menu lateral" : "Fechar menu lateral"}
+              aria-label={
+                sidebarCollapsed ? "Abrir menu lateral" : "Fechar menu lateral"
+              }
               className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring"
             >
               {sidebarCollapsed ? (
@@ -177,7 +183,10 @@ export default function DiocesePage() {
           </div>
         </header>
 
-        <main id="conteudo-principal" className="flex-1 overflow-auto bg-muted/30 p-6">
+        <main
+          id="conteudo-principal"
+          className="flex-1 overflow-auto bg-muted/30 p-6"
+        >
           {renderTabContent()}
         </main>
       </div>
