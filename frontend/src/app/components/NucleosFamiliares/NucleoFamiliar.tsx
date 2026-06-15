@@ -30,7 +30,6 @@ export default function NucleoFamiliar() {
 
   const currentParish = getSessionParish();
 
-
   //Normalizar valores de personal_income vindo como string da API
 
   const normalizeIncome = (value: unknown): number => {
@@ -61,7 +60,6 @@ export default function NucleoFamiliar() {
   };
   //--------------------------------------------------------------
 
-
   const handleEditFamily = (family: Family) => {
     setFamiliaSelecionada(family);
     setModalEdicaoAberto(true);
@@ -88,15 +86,15 @@ export default function NucleoFamiliar() {
       console.log(normalizedFamilies);
       setShowingInactiveFamilies(false);
 
-      if (normalizedFamilies.length === 0) {
-        toast.error(
-          "Nenhuma família cadastrada foi encontrada para sua paróquia.",
-        );
-      }
+      // if (normalizedFamilies.length === 0) {
+      //   toast.error(
+      //     "Nenhuma família cadastrada foi encontrada para sua paróquia.",
+      //   );
+      // }
     } catch (error: any) {
       toast.error(
         error?.response?.data?.message ||
-        "Ocorreu um erro inesperado ao buscar famílias.",
+          "Ocorreu um erro inesperado ao buscar famílias.",
       );
     } finally {
       setLoadingFamilies(false);
@@ -118,7 +116,7 @@ export default function NucleoFamiliar() {
     } catch (error: any) {
       toast.error(
         error?.response?.data?.message ||
-        "Erro ao buscar famílias desativadas.",
+          "Erro ao buscar famílias desativadas.",
       );
     } finally {
       setLoadingFamilies(false);
@@ -212,8 +210,9 @@ export default function NucleoFamiliar() {
             className="group flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 font-medium text-[var(--primary)] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md active:translate-y-0 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
           >
             <RefreshCcw
-              className={`transition-transform duration-200 ${loadingFamilies ? "animate-spin" : "group-hover:rotate-90"
-                }`}
+              className={`transition-transform duration-200 ${
+                loadingFamilies ? "animate-spin" : "group-hover:rotate-90"
+              }`}
             />
             {loadingFamilies ? "Atualizando..." : "Atualizar lista"}
           </button>
@@ -241,8 +240,9 @@ export default function NucleoFamiliar() {
                 ? carregarFamiliasAtivas
                 : handleLoadInactiveFamilies
             }
-            className={`group flex cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2 font-medium text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-md active:translate-y-0 active:scale-[0.98] ${showingInactiveFamilies ? "bg-emerald-600" : "bg-[var(--primary)]"
-              }`}
+            className={`group flex cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2 font-medium text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-md active:translate-y-0 active:scale-[0.98] ${
+              showingInactiveFamilies ? "bg-emerald-600" : "bg-[var(--primary)]"
+            }`}
           >
             {showingInactiveFamilies
               ? "Voltar para famílias ativas"

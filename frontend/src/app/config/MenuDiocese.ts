@@ -1,6 +1,7 @@
 import {
   Home,
   Church,
+  Users,
   Package,
   ShoppingBag,
   BarChart3,
@@ -24,6 +25,12 @@ export const menuDioceseItems = [
     id: "paroquias",
     label: "Gerenciar paróquias",
     icon: Church,
+    allowedRoles: ["diocese_admin"],
+  },
+  {
+    id: "usuarios",
+    label: "Gerenciar Usuarios",
+    icon: Users,
     allowedRoles: ["diocese_admin"],
   },
   {

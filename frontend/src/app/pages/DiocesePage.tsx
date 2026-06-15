@@ -9,6 +9,7 @@ import PainelGeralDiocese from "../components/PainelDiocese/PainelGeralDiocese";
 
 import { clearAuthSession, getAuthSession } from "../api/auth";
 import Sidebar from "../components/Sidebar";
+import PainelGeralUsuarios from "../components/PainelUsuarios/PainelGeralUsuarios";
 
 export default function DiocesePage() {
   const navigate = useNavigate();
@@ -41,7 +42,8 @@ export default function DiocesePage() {
   );
 
   const activeMenuLabel =
-    visibleMenuItems.find((item) => item.id === activeTab)?.label ?? "Painel Geral";
+    visibleMenuItems.find((item) => item.id === activeTab)?.label ??
+    "Painel Geral";
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -70,6 +72,8 @@ export default function DiocesePage() {
             description="Os relatórios serão apresentados em blocos fáceis de ler, com dados importantes para a tomada de decisão."
           />
         );
+      case "usuarios":
+        return <PainelGeralUsuarios />;
       default:
         return (
           <EmDesenvolvimento
@@ -81,7 +85,7 @@ export default function DiocesePage() {
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-background text-foreground">
+    <div className="h-screen w-full overflow-hidden bg-background text-foreground">
       <a
         href="#conteudo-principal"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-card focus:px-4 focus:py-3 focus:text-foreground focus:shadow-lg focus:outline-3 focus:outline-ring"
@@ -90,12 +94,12 @@ export default function DiocesePage() {
       </a>
 
       <aside
-        className={`flex flex-col bg-sidebar text-sidebar-foreground transition-[width] duration-200 ${
+        className={`fixed inset-y-0 left-0 z-40 flex h-screen flex-col overflow-hidden bg-sidebar text-sidebar-foreground transition-[width] duration-200 ${
           sidebarCollapsed ? "w-20" : "w-72"
         }`}
         aria-label="Navegação da Cáritas Diocesana"
       >
-        <div className="border-b border-sidebar-border p-4">
+        <div className="shrink-0 border-b border-sidebar-border p-4">
           <div className="flex items-center gap-3">
             {sidebarCollapsed ? (
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white p-2">
@@ -128,14 +132,16 @@ export default function DiocesePage() {
           </div>
         </div>
 
-        <Sidebar
-          items={visibleMenuItems}
-          activeTab={activeTab}
-          onChangeTab={setActiveTab}
-          collapsed={sidebarCollapsed}
-        />
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <Sidebar
+            items={visibleMenuItems}
+            activeTab={activeTab}
+            onChangeTab={setActiveTab}
+            collapsed={sidebarCollapsed}
+          />
+        </div>
 
-        <div className="border-t border-sidebar-border p-4">
+        <div className="shrink-0 border-t border-sidebar-border p-4">
           <button
             type="button"
             onClick={handleLogout}
@@ -150,13 +156,19 @@ export default function DiocesePage() {
         </div>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-border bg-card px-6 py-4">
+      <div
+        className={`flex h-screen min-w-0 flex-col transition-[margin] duration-200 ${
+          sidebarCollapsed ? "ml-20" : "ml-72"
+        }`}
+      >
+        <header className="shrink-0 flex items-center justify-between border-b border-border bg-card px-6 py-4">
           <div className="flex items-center gap-4">
             <button
               type="button"
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              aria-label={sidebarCollapsed ? "Abrir menu lateral" : "Fechar menu lateral"}
+              aria-label={
+                sidebarCollapsed ? "Abrir menu lateral" : "Fechar menu lateral"
+              }
               className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring"
             >
               {sidebarCollapsed ? (
@@ -177,7 +189,10 @@ export default function DiocesePage() {
           </div>
         </header>
 
-        <main id="conteudo-principal" className="flex-1 overflow-auto bg-muted/30 p-6">
+        <main
+          id="conteudo-principal"
+          className="min-h-0 flex-1 overflow-y-auto bg-muted/30 p-6"
+        >
           {renderTabContent()}
         </main>
       </div>

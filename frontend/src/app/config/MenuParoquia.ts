@@ -24,6 +24,7 @@ export const menuParoquiaItems = [
       "atendente_social",
       "responsavel_estoque",
       "responsavel_bazar",
+      "user", // é o que retorna ao criar um usuario admin
     ],
   },
   {
@@ -35,6 +36,7 @@ export const menuParoquiaItems = [
       "atendente_social",
       "responsavel_estoque",
       "responsavel_bazar",
+      "user",
     ],
   },
   {
@@ -46,6 +48,7 @@ export const menuParoquiaItems = [
       "atendente_social",
       "responsavel_estoque",
       "responsavel_bazar",
+      "user",
     ],
   },
   {
@@ -57,6 +60,7 @@ export const menuParoquiaItems = [
       "atendente_social",
       "responsavel_estoque",
       "responsavel_bazar",
+      "user",
     ],
   },
   {
@@ -68,6 +72,7 @@ export const menuParoquiaItems = [
       "atendente_social",
       "responsavel_estoque",
       "responsavel_bazar",
+      "user",
     ],
   },
 ];
