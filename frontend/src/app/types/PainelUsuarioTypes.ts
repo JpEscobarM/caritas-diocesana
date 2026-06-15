@@ -40,13 +40,27 @@ export type UserResponse = {
   data: PainelUsuario;
 };
 
-export type CreateUserPayload = {
+export type CreateParishUserPayload = {
   name: string;
   email: string;
   password: string;
+  system_role?: "user";
   parish_ids: number[];
   parish_role: ParishRole;
 };
+
+export type CreateDioceseAdminPayload = {
+  name: string;
+  email: string;
+  password: string;
+  system_role: "diocese_admin";
+  parish_ids: number[];
+  parish_role?: never;
+};
+
+export type CreateUserPayload =
+  | CreateParishUserPayload
+  | CreateDioceseAdminPayload;
 
 export type UpdateUserPayload = {
   name?: string;
@@ -57,6 +71,7 @@ export type PainelUsuarioFormState = {
   name: string;
   email: string;
   password: string;
+  system_role: SystemRole;
   parish_ids: number[];
   parish_role: ParishRole;
 };

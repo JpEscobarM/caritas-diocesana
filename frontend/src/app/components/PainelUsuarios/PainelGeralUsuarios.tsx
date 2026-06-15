@@ -1,10 +1,5 @@
 import axios from "axios";
-import {
-  useEffect,
-  useMemo,
-  useState,
-  type FormEvent,
-} from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   Building2,
   Edit3,
@@ -95,6 +90,7 @@ const INITIAL_FORM: PainelUsuarioFormState = {
   name: "",
   email: "",
   password: "",
+  system_role: "user",
   parish_ids: [],
   parish_role: "member",
 };
@@ -170,6 +166,7 @@ export default function PainelGeralUsuarios() {
   const [roles, setRoles] = useState<RolesData>(FALLBACK_ROLES);
 
   const [search, setSearch] = useState("");
+  const [parishSearch, setParishSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("all");
 
   const [loading, setLoading] = useState(true);
@@ -178,14 +175,12 @@ export default function PainelGeralUsuarios() {
   const [deleting, setDeleting] = useState(false);
 
   const [formDialogOpen, setFormDialogOpen] = useState(false);
-  const [editingUser, setEditingUser] =
-    useState<PainelUsuario | null>(null);
-  const [form, setForm] =
-    useState<PainelUsuarioFormState>(INITIAL_FORM);
+  const [editingUser, setEditingUser] = useState<PainelUsuario | null>(null);
+  const [form, setForm] = useState<PainelUsuarioFormState>(INITIAL_FORM);
 
-  const [userToDelete, setUserToDelete] =
-    useState<PainelUsuario | null>(null);
+  const [userToDelete, setUserToDelete] = useState<PainelUsuario | null>(null);
 
+  const formScrollRef = useRef<HTMLDivElement | null>(null);
   const currentUserId = getAuthSession()?.user?.id;
 
   async function loadInitialData() {
@@ -227,6 +222,18 @@ export default function PainelGeralUsuarios() {
     void loadInitialData();
   }, []);
 
+  useEffect(() => {
+    if (!formDialogOpen) {
+      return;
+    }
+
+    const animationFrame = window.requestAnimationFrame(() => {
+      formScrollRef.current?.scrollTo({ top: 0 });
+    });
+
+    return () => window.cancelAnimationFrame(animationFrame);
+  }, [formDialogOpen, editingUser]);
+
   const activeParishes = useMemo(
     () =>
       parishes
@@ -237,14 +244,25 @@ export default function PainelGeralUsuarios() {
     [parishes],
   );
 
+  const filteredActiveParishes = useMemo(() => {
+    const normalizedSearch = parishSearch.trim().toLowerCase();
+
+    if (!normalizedSearch) {
+      return activeParishes;
+    }
+
+    return activeParishes.filter((parish) =>
+      parish.name.toLowerCase().includes(normalizedSearch),
+    );
+  }, [activeParishes, parishSearch]);
+
   const filteredUsers = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
 
     return users
       .filter((user) => {
         const matchesRole =
-          roleFilter === "all" ||
-          user.system_role === roleFilter;
+          roleFilter === "all" || user.system_role === roleFilter;
 
         const matchesSearch =
           !normalizedSearch ||
@@ -271,9 +289,7 @@ export default function PainelGeralUsuarios() {
     ).length;
 
     const representedParishes = new Set(
-      users.flatMap((user) =>
-        user.parishes.map((parish) => parish.id),
-      ),
+      users.flatMap((user) => user.parishes.map((parish) => parish.id)),
     ).size;
 
     return {
@@ -286,23 +302,22 @@ export default function PainelGeralUsuarios() {
 
   function getSystemRoleLabel(systemRole: SystemRole): string {
     return (
-      roles.system_roles.find(
-        (role) => role.value === systemRole,
-      )?.label ?? systemRole
+      roles.system_roles.find((role) => role.value === systemRole)?.label ??
+      systemRole
     );
   }
 
   function getParishRoleLabel(parishRole: ParishRole): string {
     return (
-      roles.parish_roles.find(
-        (role) => role.value === parishRole,
-      )?.label ?? parishRole
+      roles.parish_roles.find((role) => role.value === parishRole)?.label ??
+      parishRole
     );
   }
 
   function openCreateDialog() {
     setEditingUser(null);
     setForm(INITIAL_FORM);
+    setParishSearch("");
     setFormDialogOpen(true);
   }
 
@@ -312,6 +327,7 @@ export default function PainelGeralUsuarios() {
       name: user.name,
       email: user.email,
       password: "",
+      system_role: user.system_role,
       parish_ids: user.parishes.map((parish) => parish.id),
       parish_role: user.parishes[0]?.role ?? "member",
     });
@@ -326,18 +342,16 @@ export default function PainelGeralUsuarios() {
     setFormDialogOpen(false);
     setEditingUser(null);
     setForm(INITIAL_FORM);
+    setParishSearch("");
   }
 
   function toggleParish(parishId: number, checked: boolean) {
     setForm((currentForm) => ({
       ...currentForm,
       parish_ids: checked
-        ? Array.from(
-            new Set([...currentForm.parish_ids, parishId]),
-          )
+        ? Array.from(new Set([...currentForm.parish_ids, parishId]))
         : currentForm.parish_ids.filter(
-            (currentParishId) =>
-              currentParishId !== parishId,
+            (currentParishId) => currentParishId !== parishId,
           ),
     }));
   }
@@ -363,7 +377,11 @@ export default function PainelGeralUsuarios() {
       return;
     }
 
-    if (!editingUser && form.parish_ids.length === 0) {
+    if (
+      !editingUser &&
+      form.system_role === "user" &&
+      form.parish_ids.length === 0
+    ) {
       toast.error("Selecione ao menos uma paróquia.");
       return;
     }
@@ -385,18 +403,25 @@ export default function PainelGeralUsuarios() {
 
         toast.success("Usuário atualizado com sucesso.");
       } else {
-        const createdUser = await createUser({
-          name,
-          email,
-          password: form.password,
-          parish_ids: form.parish_ids,
-          parish_role: form.parish_role,
-        });
+        const createdUser =
+          form.system_role === "diocese_admin"
+            ? await createUser({
+                name,
+                email,
+                password: form.password,
+                system_role: "diocese_admin",
+                parish_ids: [],
+              })
+            : await createUser({
+                name,
+                email,
+                password: form.password,
+                system_role: "user",
+                parish_ids: form.parish_ids,
+                parish_role: form.parish_role,
+              });
 
-        setUsers((currentUsers) => [
-          createdUser,
-          ...currentUsers,
-        ]);
+        setUsers((currentUsers) => [createdUser, ...currentUsers]);
 
         toast.success("Usuário cadastrado com sucesso.");
       }
@@ -404,6 +429,7 @@ export default function PainelGeralUsuarios() {
       setFormDialogOpen(false);
       setEditingUser(null);
       setForm(INITIAL_FORM);
+      setParishSearch("");
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
@@ -413,9 +439,7 @@ export default function PainelGeralUsuarios() {
 
   function requestDelete(user: PainelUsuario) {
     if (user.id === currentUserId) {
-      toast.error(
-        "Você não pode excluir a própria conta por este painel.",
-      );
+      toast.error("Você não pode excluir a própria conta por este painel.");
       return;
     }
 
@@ -433,9 +457,7 @@ export default function PainelGeralUsuarios() {
       await deleteUser(userToDelete.id);
 
       setUsers((currentUsers) =>
-        currentUsers.filter(
-          (user) => user.id !== userToDelete.id,
-        ),
+        currentUsers.filter((user) => user.id !== userToDelete.id),
       );
 
       toast.success("Usuário excluído com sucesso.");
@@ -450,34 +472,29 @@ export default function PainelGeralUsuarios() {
   function renderParishes(user: PainelUsuario) {
     if (user.parishes.length === 0) {
       return (
-        <span className="text-sm text-muted-foreground">
-          Nenhuma paróquia
-        </span>
+        <span className="text-sm text-muted-foreground">Nenhuma paróquia</span>
       );
     }
 
     const visibleParishes = user.parishes.slice(0, 2);
-    const hiddenParishesCount =
-      user.parishes.length - visibleParishes.length;
+    const hiddenParishesCount = user.parishes.length - visibleParishes.length;
 
     return (
-      <div className="flex flex-wrap gap-1.5">
+      <div className="flex min-w-0 flex-wrap gap-1.5">
         {visibleParishes.map((parish) => (
           <Badge
             key={parish.id}
             variant="outline"
-            className="max-w-52 truncate"
+            className="h-auto max-w-full items-start whitespace-normal px-2 py-1 text-left leading-tight"
             title={parish.name}
           >
-            <Building2 className="size-3" />
-            {parish.name}
+            <Building2 className="mt-0.5 size-3 shrink-0" />
+            <span className="min-w-0 break-words">{parish.name}</span>
           </Badge>
         ))}
 
         {hiddenParishesCount > 0 && (
-          <Badge variant="secondary">
-            +{hiddenParishesCount}
-          </Badge>
+          <Badge variant="secondary">+{hiddenParishesCount}</Badge>
         )}
       </div>
     );
@@ -490,9 +507,7 @@ export default function PainelGeralUsuarios() {
 
     if (parishRoles.length === 0) {
       return (
-        <span className="text-sm text-muted-foreground">
-          Não se aplica
-        </span>
+        <span className="text-sm text-muted-foreground">Não se aplica</span>
       );
     }
 
@@ -501,9 +516,7 @@ export default function PainelGeralUsuarios() {
         {parishRoles.map((parishRole) => (
           <Badge
             key={parishRole}
-            variant={
-              parishRole === "admin" ? "default" : "secondary"
-            }
+            variant={parishRole === "admin" ? "default" : "secondary"}
           >
             {getParishRoleLabel(parishRole)}
           </Badge>
@@ -520,8 +533,8 @@ export default function PainelGeralUsuarios() {
             Gerenciar usuários
           </h1>
           <p className="max-w-3xl text-sm text-muted-foreground sm:text-base">
-            Cadastre usuários paroquiais, consulte seus vínculos
-            e mantenha os dados de acesso atualizados.
+            Cadastre administradores da diocese e usuários paroquiais, consulte
+            seus vínculos e mantenha os dados atualizados.
           </p>
         </div>
 
@@ -532,9 +545,7 @@ export default function PainelGeralUsuarios() {
             onClick={() => void refreshUsers()}
             disabled={refreshing || loading}
           >
-            <RefreshCcw
-              className={refreshing ? "animate-spin" : ""}
-            />
+            <RefreshCcw className={refreshing ? "animate-spin" : ""} />
             {refreshing ? "Atualizando..." : "Atualizar lista"}
           </Button>
 
@@ -556,9 +567,7 @@ export default function PainelGeralUsuarios() {
               <UsersRound className="size-6" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">
-                Total de usuários
-              </p>
+              <p className="text-sm text-muted-foreground">Total de usuários</p>
               <p className="text-2xl font-bold">{stats.total}</p>
             </div>
           </CardContent>
@@ -570,12 +579,8 @@ export default function PainelGeralUsuarios() {
               <ShieldCheck className="size-6" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">
-                Admins da diocese
-              </p>
-              <p className="text-2xl font-bold">
-                {stats.dioceseAdmins}
-              </p>
+              <p className="text-sm text-muted-foreground">Admins da diocese</p>
+              <p className="text-2xl font-bold">{stats.dioceseAdmins}</p>
             </div>
           </CardContent>
         </Card>
@@ -589,9 +594,7 @@ export default function PainelGeralUsuarios() {
               <p className="text-sm text-muted-foreground">
                 Usuários paroquiais
               </p>
-              <p className="text-2xl font-bold">
-                {stats.parishUsers}
-              </p>
+              <p className="text-2xl font-bold">{stats.parishUsers}</p>
             </div>
           </CardContent>
         </Card>
@@ -605,16 +608,14 @@ export default function PainelGeralUsuarios() {
               <p className="text-sm text-muted-foreground">
                 Paróquias representadas
               </p>
-              <p className="text-2xl font-bold">
-                {stats.representedParishes}
-              </p>
+              <p className="text-2xl font-bold">{stats.representedParishes}</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
       <Card className="overflow-hidden rounded-2xl border-border/70 shadow-sm">
-        <CardHeader className="border-b bg-muted/20">
+        <CardHeader className=" bg-muted/20">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <CardTitle>Usuários cadastrados</CardTitle>
@@ -631,9 +632,7 @@ export default function PainelGeralUsuarios() {
                 <Search className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   value={search}
-                  onChange={(event) =>
-                    setSearch(event.target.value)
-                  }
+                  onChange={(event) => setSearch(event.target.value)}
                   placeholder="Buscar por nome, e-mail ou paróquia"
                   className="pl-10"
                   aria-label="Buscar usuários"
@@ -642,22 +641,15 @@ export default function PainelGeralUsuarios() {
 
               <Select
                 value={roleFilter}
-                onValueChange={(value) =>
-                  setRoleFilter(value as RoleFilter)
-                }
+                onValueChange={(value) => setRoleFilter(value as RoleFilter)}
               >
                 <SelectTrigger aria-label="Filtrar por perfil">
                   <SelectValue placeholder="Todos os perfis" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">
-                    Todos os perfis
-                  </SelectItem>
+                  <SelectItem value="all">Todos os perfis</SelectItem>
                   {roles.system_roles.map((role) => (
-                    <SelectItem
-                      key={role.value}
-                      value={role.value}
-                    >
+                    <SelectItem key={role.value} value={role.value}>
                       {role.label}
                     </SelectItem>
                   ))}
@@ -667,14 +659,12 @@ export default function PainelGeralUsuarios() {
           </div>
         </CardHeader>
 
-        <CardContent className="p-0">
+        <CardContent className="px-4 pb-4 pt-6">
           {loading ? (
             <div className="flex min-h-72 flex-col items-center justify-center gap-3 px-6 py-12 text-center">
               <Loader2 className="size-8 animate-spin text-primary" />
               <div>
-                <p className="font-semibold">
-                  Carregando usuários...
-                </p>
+                <p className="font-semibold">Carregando usuários...</p>
                 <p className="text-sm text-muted-foreground">
                   Aguarde enquanto buscamos os dados.
                 </p>
@@ -686,12 +676,9 @@ export default function PainelGeralUsuarios() {
                 <UsersRound className="size-7 text-muted-foreground" />
               </div>
               <div className="max-w-md">
-                <p className="font-semibold">
-                  Nenhum usuário encontrado
-                </p>
+                <p className="font-semibold">Nenhum usuário encontrado</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Revise a busca ou cadastre um novo usuário para
-                  começar.
+                  Revise a busca ou cadastre um novo usuário para começar.
                 </p>
               </div>
               <Button type="button" onClick={openCreateDialog}>
@@ -701,19 +688,27 @@ export default function PainelGeralUsuarios() {
             </div>
           ) : (
             <>
-              <div className="hidden overflow-x-auto md:block">
-                <Table>
-                  <TableHeader>
+              <div className="hidden max-h-[60vh] w-full overflow-auto rounded-xl  md:block">
+                <Table className="min-w-[1280px] table-fixed">
+                  <colgroup>
+                    <col className="w-[32%]" />
+                    <col className="w-[13%]" />
+                    <col className="w-[25%]" />
+                    <col className="w-[14%]" />
+                    <col className="w-[16%]" />
+                  </colgroup>
+
+                  <TableHeader className="sticky top-0 z-20 bg-muted">
                     <TableRow>
-                      <TableHead className="min-w-64">
-                        Usuário
+                      <TableHead className="bg-muted">Usuário</TableHead>
+                      <TableHead className="bg-muted">
+                        Perfil do sistema
                       </TableHead>
-                      <TableHead>Perfil do sistema</TableHead>
-                      <TableHead className="min-w-64">
-                        Paróquias
+                      <TableHead className="bg-muted">Paróquias</TableHead>
+                      <TableHead className="bg-muted">
+                        Papel paroquial
                       </TableHead>
-                      <TableHead>Papel paroquial</TableHead>
-                      <TableHead className="text-right">
+                      <TableHead className="bg-muted pr-6 text-right">
                         Ações
                       </TableHead>
                     </TableRow>
@@ -721,65 +716,64 @@ export default function PainelGeralUsuarios() {
 
                   <TableBody>
                     {filteredUsers.map((user) => {
-                      const isCurrentUser =
-                        user.id === currentUserId;
+                      const isCurrentUser = user.id === currentUserId;
 
                       return (
                         <TableRow key={user.id}>
-                          <TableCell>
-                            <div className="flex items-center gap-3">
+                          <TableCell className="whitespace-normal align-middle">
+                            <div className="flex min-w-0 items-center gap-3">
                               <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">
                                 {getInitials(user.name)}
                               </div>
 
-                              <div className="min-w-0">
-                                <p className="truncate font-semibold text-foreground">
+                              <div className="min-w-0 flex-1">
+                                <p
+                                  className="whitespace-normal break-words font-semibold leading-tight text-foreground"
+                                  title={user.name}
+                                >
                                   {user.name}
                                 </p>
-                                <p className="flex items-center gap-1.5 truncate text-sm text-muted-foreground">
-                                  <Mail className="size-3.5 shrink-0" />
-                                  {user.email}
+
+                                <p className="mt-1 flex min-w-0 items-start gap-1.5 text-sm text-muted-foreground">
+                                  <Mail className="mt-0.5 size-3.5 shrink-0" />
+                                  <span className="min-w-0 break-all">
+                                    {user.email}
+                                  </span>
                                 </p>
                               </div>
                             </div>
                           </TableCell>
 
-                          <TableCell>
+                          <TableCell className="whitespace-normal align-middle">
                             <Badge
                               variant={
-                                user.system_role ===
-                                "diocese_admin"
+                                user.system_role === "diocese_admin"
                                   ? "default"
                                   : "secondary"
                               }
                             >
-                              {user.system_role ===
-                                "diocese_admin" && (
+                              {user.system_role === "diocese_admin" && (
                                 <ShieldCheck className="size-3" />
                               )}
-                              {getSystemRoleLabel(
-                                user.system_role,
-                              )}
+                              {getSystemRoleLabel(user.system_role)}
                             </Badge>
                           </TableCell>
 
-                          <TableCell>
+                          <TableCell className="whitespace-normal align-middle">
                             {renderParishes(user)}
                           </TableCell>
 
-                          <TableCell>
+                          <TableCell className="whitespace-normal align-middle">
                             {renderParishRoles(user)}
                           </TableCell>
 
-                          <TableCell>
-                            <div className="flex justify-end gap-2">
+                          <TableCell className="whitespace-nowrap pr-6 align-middle">
+                            <div className="flex items-center justify-end gap-2">
                               <Button
                                 type="button"
                                 variant="outline"
                                 size="sm"
-                                onClick={() =>
-                                  openEditDialog(user)
-                                }
+                                onClick={() => openEditDialog(user)}
                               >
                                 <Edit3 />
                                 Editar
@@ -789,9 +783,7 @@ export default function PainelGeralUsuarios() {
                                 type="button"
                                 variant="ghost"
                                 size="sm"
-                                onClick={() =>
-                                  requestDelete(user)
-                                }
+                                onClick={() => requestDelete(user)}
                                 disabled={isCurrentUser}
                                 title={
                                   isCurrentUser
@@ -814,23 +806,17 @@ export default function PainelGeralUsuarios() {
 
               <div className="divide-y md:hidden">
                 {filteredUsers.map((user) => {
-                  const isCurrentUser =
-                    user.id === currentUserId;
+                  const isCurrentUser = user.id === currentUserId;
 
                   return (
-                    <article
-                      key={user.id}
-                      className="space-y-4 p-5"
-                    >
+                    <article key={user.id} className="space-y-4 p-5">
                       <div className="flex items-start gap-3">
                         <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">
                           {getInitials(user.name)}
                         </div>
 
                         <div className="min-w-0 flex-1">
-                          <p className="font-semibold">
-                            {user.name}
-                          </p>
+                          <p className="font-semibold">{user.name}</p>
                           <p className="mt-0.5 truncate text-sm text-muted-foreground">
                             {user.email}
                           </p>
@@ -838,15 +824,12 @@ export default function PainelGeralUsuarios() {
 
                         <Badge
                           variant={
-                            user.system_role ===
-                            "diocese_admin"
+                            user.system_role === "diocese_admin"
                               ? "default"
                               : "secondary"
                           }
                         >
-                          {getSystemRoleLabel(
-                            user.system_role,
-                          )}
+                          {getSystemRoleLabel(user.system_role)}
                         </Badge>
                       </div>
 
@@ -908,13 +891,14 @@ export default function PainelGeralUsuarios() {
           }
         }}
       >
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
-          <form onSubmit={handleSubmit}>
-            <DialogHeader>
+        <DialogContent className="overflow-hidden p-0 sm:max-w-2xl">
+          <form
+            onSubmit={handleSubmit}
+            className="grid max-h-[85vh] grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden"
+          >
+            <DialogHeader className="px-6 pt-6">
               <DialogTitle>
-                {editingUser
-                  ? "Editar usuário"
-                  : "Cadastrar usuário"}
+                {editingUser ? "Editar usuário" : "Cadastrar usuário"}
               </DialogTitle>
               <DialogDescription>
                 {editingUser
@@ -923,184 +907,231 @@ export default function PainelGeralUsuarios() {
               </DialogDescription>
             </DialogHeader>
 
-            <div className="grid gap-5 py-6">
-              <div className="grid gap-2">
-                <Label htmlFor="user-name">
-                  Nome completo
-                </Label>
-                <Input
-                  id="user-name"
-                  value={form.name}
-                  onChange={(event) =>
-                    setForm((currentForm) => ({
-                      ...currentForm,
-                      name: event.target.value,
-                    }))
-                  }
-                  placeholder="Exemplo: Maria da Silva"
-                  autoComplete="name"
-                  disabled={saving}
-                  required
-                />
-              </div>
+            <div
+              ref={formScrollRef}
+              className="min-h-0 overflow-y-auto px-6 py-5"
+            >
+              <div className="grid gap-5">
+                <div className="grid gap-2">
+                  <Label htmlFor="user-name">Nome completo</Label>
+                  <Input
+                    id="user-name"
+                    value={form.name}
+                    onChange={(event) =>
+                      setForm((currentForm) => ({
+                        ...currentForm,
+                        name: event.target.value,
+                      }))
+                    }
+                    placeholder="Exemplo: Maria da Silva"
+                    autoComplete="name"
+                    disabled={saving}
+                    required
+                  />
+                </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="user-email">E-mail</Label>
-                <Input
-                  id="user-email"
-                  type="email"
-                  value={form.email}
-                  onChange={(event) =>
-                    setForm((currentForm) => ({
-                      ...currentForm,
-                      email: event.target.value,
-                    }))
-                  }
-                  placeholder="usuario@exemplo.com"
-                  autoComplete="email"
-                  disabled={saving}
-                  required
-                />
-              </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="user-email">E-mail</Label>
+                  <Input
+                    id="user-email"
+                    type="email"
+                    value={form.email}
+                    onChange={(event) =>
+                      setForm((currentForm) => ({
+                        ...currentForm,
+                        email: event.target.value,
+                      }))
+                    }
+                    placeholder="usuario@exemplo.com"
+                    autoComplete="email"
+                    disabled={saving}
+                    required
+                  />
+                </div>
 
-              {!editingUser && (
-                <>
-                  <div className="grid gap-2">
-                    <Label htmlFor="user-password">
-                      Senha inicial
-                    </Label>
-                    <Input
-                      id="user-password"
-                      type="password"
-                      value={form.password}
-                      onChange={(event) =>
-                        setForm((currentForm) => ({
-                          ...currentForm,
-                          password: event.target.value,
-                        }))
-                      }
-                      placeholder="Mínimo de 8 caracteres"
-                      autoComplete="new-password"
-                      minLength={8}
-                      disabled={saving}
-                      required
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Oriente o usuário a trocar a senha após o
-                      primeiro acesso, caso esse fluxo exista no
-                      sistema.
-                    </p>
-                  </div>
+                {!editingUser && (
+                  <>
+                    <div className="grid gap-2">
+                      <Label htmlFor="user-password">Senha inicial</Label>
+                      <Input
+                        id="user-password"
+                        type="password"
+                        value={form.password}
+                        onChange={(event) =>
+                          setForm((currentForm) => ({
+                            ...currentForm,
+                            password: event.target.value,
+                          }))
+                        }
+                        placeholder="Mínimo de 8 caracteres"
+                        autoComplete="new-password"
+                        minLength={8}
+                        disabled={saving}
+                        required
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Oriente o usuário a trocar a senha após o primeiro
+                        acesso, caso esse fluxo exista no sistema.
+                      </p>
+                    </div>
 
-                  <div className="grid gap-2">
-                    <Label>Papel na paróquia</Label>
-                    <Select
-                      value={form.parish_role}
-                      onValueChange={(value) =>
-                        setForm((currentForm) => ({
-                          ...currentForm,
-                          parish_role: value as ParishRole,
-                        }))
-                      }
-                      disabled={saving}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o papel" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {roles.parish_roles.map((role) => (
-                          <SelectItem
-                            key={role.value}
-                            value={role.value}
+                    <div className="grid gap-2">
+                      <Label>Tipo de usuário</Label>
+                      <Select
+                        value={form.system_role}
+                        onValueChange={(value) =>
+                          setForm((currentForm) => ({
+                            ...currentForm,
+                            system_role: value as SystemRole,
+                            parish_ids:
+                              value === "diocese_admin"
+                                ? []
+                                : currentForm.parish_ids,
+                          }))
+                        }
+                        disabled={saving}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o tipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {roles.system_roles.map((role) => (
+                            <SelectItem key={role.value} value={role.value}>
+                              {role.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {form.system_role === "user" && (
+                      <>
+                        <div className="grid gap-2">
+                          <Label>Papel na paróquia</Label>
+                          <Select
+                            value={form.parish_role}
+                            onValueChange={(value) =>
+                              setForm((currentForm) => ({
+                                ...currentForm,
+                                parish_role: value as ParishRole,
+                              }))
+                            }
+                            disabled={saving}
                           >
-                            {role.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="grid gap-2">
-                    <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-                      <Label>Paróquias vinculadas</Label>
-                      <span className="text-xs text-muted-foreground">
-                        {form.parish_ids.length} selecionada(s)
-                      </span>
-                    </div>
-
-                    <div className="max-h-56 space-y-2 overflow-y-auto rounded-xl border bg-muted/20 p-3">
-                      {activeParishes.length === 0 ? (
-                        <div className="py-6 text-center">
-                          <Building2 className="mx-auto size-7 text-muted-foreground" />
-                          <p className="mt-2 text-sm font-medium">
-                            Nenhuma paróquia ativa disponível
-                          </p>
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            Cadastre ou ative uma paróquia antes de
-                            criar o usuário.
-                          </p>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o papel" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {roles.parish_roles.map((role) => (
+                                <SelectItem key={role.value} value={role.value}>
+                                  {role.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
-                      ) : (
-                        activeParishes.map((parish) => {
-                          const checkboxId = `user-parish-${parish.id}`;
-                          const checked =
-                            form.parish_ids.includes(parish.id);
 
-                          return (
-                            <label
-                              key={parish.id}
-                              htmlFor={checkboxId}
-                              className="flex cursor-pointer items-center gap-3 rounded-lg border bg-background p-3 transition-colors hover:bg-accent"
-                            >
-                              <Checkbox
-                                id={checkboxId}
-                                checked={checked}
-                                onCheckedChange={(value) =>
-                                  toggleParish(
-                                    parish.id,
-                                    value === true,
-                                  )
-                                }
-                                disabled={saving}
-                              />
+                        <div className="grid gap-2">
+                          <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                            <Label>Paróquias vinculadas</Label>
+                            <span className="text-xs text-muted-foreground">
+                              {form.parish_ids.length} selecionada(s)
+                            </span>
+                          </div>
 
-                              <div className="min-w-0">
-                                <p className="truncate text-sm font-medium">
-                                  {parish.name}
+                          <div className="relative">
+                            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                              value={parishSearch}
+                              onChange={(event) =>
+                                setParishSearch(event.target.value)
+                              }
+                              placeholder="Buscar paróquia pelo nome"
+                              className="pl-9"
+                              aria-label="Buscar paróquia"
+                              disabled={saving}
+                            />
+                          </div>
+
+                          <div className="max-h-56 space-y-2 overflow-y-auto rounded-xl border bg-muted/20 p-3">
+                            {activeParishes.length === 0 ? (
+                              <div className="py-6 text-center">
+                                <Building2 className="mx-auto size-7 text-muted-foreground" />
+                                <p className="mt-2 text-sm font-medium">
+                                  Nenhuma paróquia ativa disponível
                                 </p>
-                                {parish.cnpj && (
-                                  <p className="text-xs text-muted-foreground">
-                                    CNPJ: {parish.cnpj}
-                                  </p>
-                                )}
+                                <p className="mt-1 text-xs text-muted-foreground">
+                                  Cadastre ou ative uma paróquia antes de criar
+                                  o usuário.
+                                </p>
                               </div>
-                            </label>
-                          );
-                        })
-                      )}
-                    </div>
-                  </div>
-                </>
-              )}
+                            ) : filteredActiveParishes.length === 0 ? (
+                              <div className="py-6 text-center">
+                                <Search className="mx-auto size-7 text-muted-foreground" />
+                                <p className="mt-2 text-sm font-medium">
+                                  Nenhuma paróquia encontrada
+                                </p>
+                                <p className="mt-1 text-xs text-muted-foreground">
+                                  Tente buscar utilizando outro nome.
+                                </p>
+                              </div>
+                            ) : (
+                              filteredActiveParishes.map((parish) => {
+                                const checkboxId = `user-parish-${parish.id}`;
+                                const checked = form.parish_ids.includes(
+                                  parish.id,
+                                );
 
-              {editingUser &&
-                editingUser.parishes.length > 0 && (
+                                return (
+                                  <label
+                                    key={parish.id}
+                                    htmlFor={checkboxId}
+                                    className="flex cursor-pointer items-center gap-3 rounded-lg border bg-background p-3 transition-colors hover:bg-accent"
+                                  >
+                                    <Checkbox
+                                      id={checkboxId}
+                                      checked={checked}
+                                      onCheckedChange={(value) =>
+                                        toggleParish(parish.id, value === true)
+                                      }
+                                      disabled={saving}
+                                    />
+
+                                    <div className="min-w-0">
+                                      <p className="truncate text-sm font-medium">
+                                        {parish.name}
+                                      </p>
+                                      {parish.cnpj && (
+                                        <p className="text-xs text-muted-foreground">
+                                          CNPJ: {parish.cnpj}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </label>
+                                );
+                              })
+                            )}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </>
+                )}
+
+                {editingUser && editingUser.parishes.length > 0 && (
                   <div className="rounded-xl border bg-muted/30 p-4">
-                    <p className="text-sm font-semibold">
-                      Vínculos atuais
-                    </p>
-                    <div className="mt-2">
-                      {renderParishes(editingUser)}
-                    </div>
+                    <p className="text-sm font-semibold">Vínculos atuais</p>
+                    <div className="mt-2">{renderParishes(editingUser)}</div>
                     <p className="mt-3 text-xs text-muted-foreground">
-                      Este formulário altera apenas os dados básicos,
-                      conforme o endpoint de edição disponibilizado.
+                      Este formulário altera apenas os dados básicos, conforme o
+                      endpoint de edição disponibilizado.
                     </p>
                   </div>
                 )}
+              </div>
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="border-t bg-background px-6 py-4">
               <Button
                 type="button"
                 variant="outline"
@@ -1115,13 +1146,12 @@ export default function PainelGeralUsuarios() {
                 disabled={
                   saving ||
                   (!editingUser &&
+                    form.system_role === "user" &&
                     activeParishes.length === 0)
                 }
               >
                 {saving && <Loader2 className="animate-spin" />}
-                {editingUser
-                  ? "Salvar alterações"
-                  : "Cadastrar usuário"}
+                {editingUser ? "Salvar alterações" : "Cadastrar usuário"}
               </Button>
             </DialogFooter>
           </form>
@@ -1138,23 +1168,16 @@ export default function PainelGeralUsuarios() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              Excluir usuário?
-            </AlertDialogTitle>
+            <AlertDialogTitle>Excluir usuário?</AlertDialogTitle>
             <AlertDialogDescription>
               O usuário{" "}
-              <strong className="text-foreground">
-                {userToDelete?.name}
-              </strong>{" "}
-              perderá o acesso ao sistema. Esta ação não pode ser
-              desfeita.
+              <strong className="text-foreground">{userToDelete?.name}</strong>{" "}
+              perderá o acesso ao sistema. Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>
-              Cancelar
-            </AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={(event) => {
                 event.preventDefault();

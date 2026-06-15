@@ -23,8 +23,8 @@ export async function listRoles(): Promise<RolesData> {
   return response.data.data;
 }
 
-// Cria um usuário paroquial.
-// Quando o token é da diocese, parish_ids define as paróquias vinculadas.
+// Cria um usuário paroquial ou um administrador da diocese.
+// Para usuários paroquiais, parish_ids define as paróquias vinculadas.
 export async function createUser(
   payload: CreateUserPayload,
 ): Promise<PainelUsuario> {
