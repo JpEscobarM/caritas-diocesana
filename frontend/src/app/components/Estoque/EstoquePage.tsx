@@ -384,6 +384,25 @@ export default function EstoquePage({
     0,
   );
 
+  async function refreshValidityAlerts(): Promise<boolean> {
+    try {
+      const [expiringResponse, expiredResponse] = await Promise.all([
+        listItemsExpiringThisWeek(),
+        listExpiredItems(),
+      ]);
+
+      setData((current) => ({
+        ...current,
+        expiringItems: expiringResponse.data,
+        expiredItems: expiredResponse.data,
+      }));
+
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   function openCreateInventory() {
     setInventoryBeingEdited(null);
     setInventoryFormError(null);
@@ -570,18 +589,9 @@ export default function EstoquePage({
         `Entrada registrada. O total de ${updatedItem.name} agora é ${updatedItem.total_quantity}.`,
       );
 
-      try {
-        const [expiringResponse, expiredResponse] = await Promise.all([
-          listItemsExpiringThisWeek(),
-          listExpiredItems(),
-        ]);
+      const validityUpdated = await refreshValidityAlerts();
 
-        setData((current) => ({
-          ...current,
-          expiringItems: expiringResponse.data,
-          expiredItems: expiredResponse.data,
-        }));
-      } catch {
+      if (!validityUpdated) {
         toast.warning(
           "A entrada foi registrada, mas os alertas de validade não puderam ser atualizados agora.",
         );
@@ -668,6 +678,14 @@ export default function EstoquePage({
         }));
 
         toast.success("Item criado com sucesso.");
+
+        const validityUpdated = await refreshValidityAlerts();
+
+        if (!validityUpdated) {
+          toast.warning(
+            "O item foi criado, mas os alertas de validade não puderam ser atualizados agora.",
+          );
+        }
       }
 
       setItemFormOpen(false);
@@ -927,8 +945,13 @@ export default function EstoquePage({
 
           {section === "validade" && (
             <AlertasValidade
+              inventories={parishInventories}
               expiringItems={parishExpiringItems}
               expiredItems={parishExpiredItems}
+              onOpenInventory={(inventoryId) => {
+                setSelectedInventoryId(inventoryId);
+                setSection("inventarios");
+              }}
             />
           )}
 
