@@ -1,0 +1,1019 @@
+import axios from "axios";
+import { useEffect, useMemo, useState } from "react";
+import {
+  AlertTriangle,
+  Boxes,
+  ClipboardList,
+  Gift,
+  Loader2,
+  RefreshCcw,
+  Warehouse,
+} from "lucide-react";
+import { toast } from "sonner";
+
+import { getAuthSession } from "../../api/auth";
+import { listParishes } from "../../api/parishes";
+import {
+  addParishInventoryItemQuantity,
+  createParishInventory,
+  createParishInventoryItem,
+  deleteParishInventory,
+  deleteParishInventoryItem,
+  listBasketDeliveries,
+  listBasketTemplates,
+  listExpiredItems,
+  listItemsExpiringThisWeek,
+  listParishInventories,
+  listParishInventoryItems,
+  updateParishInventory,
+  updateParishInventoryItem,
+} from "../../api/estoque";
+import type {
+  BasketDelivery,
+  BasketTemplate,
+  ExpiredParishInventoryItem,
+  ExpiringParishInventoryItem,
+  AddParishInventoryItemQuantityPayload,
+  ParishInventory,
+  ParishInventoryItem,
+} from "../../types/EstoqueTypes";
+import type { Parish } from "../../types/types";
+import { Button } from "../ui/button";
+import { Card, CardContent } from "../ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import AdicionarLoteModal from "./AdicionarLoteModal";
+import AlertasValidade from "./AlertasValidade";
+import EntregasCestaList from "./EntregasCestaList";
+import EstoqueResumo from "./EstoqueResumo";
+import ExcluirInventarioDialog from "./ExcluirInventarioDialog";
+import ExcluirItemInventarioDialog from "./ExcluirItemInventarioDialog";
+import InventarioForm, {
+  type InventarioFormValues,
+} from "./InventarioForm";
+import InventariosList from "./InventariosList";
+import ItemInventarioForm, {
+  type ItemInventarioFormValues,
+} from "./ItemInventarioForm";
+import ItensInventarioList from "./ItensInventarioList";
+import ModelosCestaList from "./ModelosCestaList";
+
+export type EstoqueMode = "diocese" | "paroquia";
+
+type EstoqueSection =
+  | "visao-geral"
+  | "inventarios"
+  | "validade"
+  | "modelos"
+  | "entregas";
+
+export interface EstoquePageProps {
+  modo: EstoqueMode;
+  parishId?: number;
+  parishName?: string;
+}
+
+interface EstoqueData {
+  inventories: ParishInventory[];
+  items: ParishInventoryItem[];
+  expiringItems: ExpiringParishInventoryItem[];
+  expiredItems: ExpiredParishInventoryItem[];
+  templates: BasketTemplate[];
+  deliveries: BasketDelivery[];
+}
+
+const EMPTY_DATA: EstoqueData = {
+  inventories: [],
+  items: [],
+  expiringItems: [],
+  expiredItems: [],
+  templates: [],
+  deliveries: [],
+};
+
+const SECTIONS: Array<{
+  id: EstoqueSection;
+  label: string;
+  icon: typeof Warehouse;
+}> = [
+  { id: "visao-geral", label: "Visão geral", icon: Warehouse },
+  { id: "inventarios", label: "Inventários e itens", icon: Boxes },
+  { id: "validade", label: "Validade", icon: AlertTriangle },
+  { id: "modelos", label: "Modelos de cesta", icon: ClipboardList },
+  { id: "entregas", label: "Entregas", icon: Gift },
+];
+
+function sortInventories(inventories: ParishInventory[]): ParishInventory[] {
+  return [...inventories].sort((first, second) =>
+    first.name.localeCompare(second.name, "pt-BR"),
+  );
+}
+
+function sortItems(items: ParishInventoryItem[]): ParishInventoryItem[] {
+  return [...items].sort((first, second) => {
+    const inventoryComparison =
+      first.parish_inventory_id - second.parish_inventory_id;
+
+    if (inventoryComparison !== 0) {
+      return inventoryComparison;
+    }
+
+    return first.name.localeCompare(second.name, "pt-BR");
+  });
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (axios.isAxiosError(error)) {
+    const status = error.response?.status;
+    const data = error.response?.data as
+      | { message?: string; errors?: Record<string, string[]> }
+      | undefined;
+
+    if (status === 401) {
+      return "Sua sessão expirou. Entre novamente para continuar.";
+    }
+
+    if (status === 403) {
+      return "Seu usuário não possui permissão para acessar ou alterar este estoque.";
+    }
+
+    if (data?.errors) {
+      return Object.values(data.errors).flat().join(" ");
+    }
+
+    if (data?.message) {
+      return data.message;
+    }
+  }
+
+  return fallback;
+}
+
+export default function EstoquePage({
+  modo,
+  parishId,
+  parishName,
+}: EstoquePageProps) {
+  const session = getAuthSession();
+  const sessionParishId = session?.parish?.id;
+  const sessionParishName = session?.parish?.name;
+
+  const [section, setSection] = useState<EstoqueSection>("visao-geral");
+  const [parishes, setParishes] = useState<Parish[]>([]);
+  const [selectedParishId, setSelectedParishId] = useState<number | null>(
+    modo === "paroquia" ? parishId ?? sessionParishId ?? null : parishId ?? null,
+  );
+  const [selectedInventoryId, setSelectedInventoryId] = useState<number | null>(
+    null,
+  );
+  const [data, setData] = useState<EstoqueData>(EMPTY_DATA);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const [inventoryFormOpen, setInventoryFormOpen] = useState(false);
+  const [inventoryBeingEdited, setInventoryBeingEdited] =
+    useState<ParishInventory | null>(null);
+  const [savingInventory, setSavingInventory] = useState(false);
+  const [inventoryFormError, setInventoryFormError] = useState<string | null>(
+    null,
+  );
+
+  const [inventoryBeingDeleted, setInventoryBeingDeleted] =
+    useState<ParishInventory | null>(null);
+  const [deletingInventory, setDeletingInventory] = useState(false);
+  const [deleteInventoryError, setDeleteInventoryError] = useState<
+    string | null
+  >(null);
+
+  const [itemFormOpen, setItemFormOpen] = useState(false);
+  const [itemBeingEdited, setItemBeingEdited] =
+    useState<ParishInventoryItem | null>(null);
+  const [savingItem, setSavingItem] = useState(false);
+  const [itemFormError, setItemFormError] = useState<string | null>(null);
+
+  const [itemBeingDeleted, setItemBeingDeleted] =
+    useState<ParishInventoryItem | null>(null);
+  const [deletingItem, setDeletingItem] = useState(false);
+  const [deleteItemError, setDeleteItemError] = useState<string | null>(null);
+
+  const [itemReceivingEntry, setItemReceivingEntry] =
+    useState<ParishInventoryItem | null>(null);
+  const [savingEntry, setSavingEntry] = useState(false);
+  const [entryFormError, setEntryFormError] = useState<string | null>(null);
+
+  async function loadData(showSuccessMessage = false) {
+    try {
+      if (showSuccessMessage) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+
+      const parishPromise =
+        modo === "diocese" ? listParishes() : Promise.resolve([]);
+
+      const [
+        parishData,
+        inventories,
+        items,
+        expiringResponse,
+        expiredResponse,
+        templates,
+        deliveries,
+      ] = await Promise.all([
+        parishPromise,
+        listParishInventories(),
+        listParishInventoryItems(),
+        listItemsExpiringThisWeek(),
+        listExpiredItems(),
+        listBasketTemplates(),
+        listBasketDeliveries(),
+      ]);
+
+      const activeParishes = parishData
+        .filter((parish) => parish.active)
+        .sort((first, second) =>
+          first.name.localeCompare(second.name, "pt-BR"),
+        );
+
+      setParishes(activeParishes);
+      setData({
+        inventories: sortInventories(inventories),
+        items: sortItems(items),
+        expiringItems: expiringResponse.data,
+        expiredItems: expiredResponse.data,
+        templates,
+        deliveries,
+      });
+
+      if (modo === "diocese" && selectedParishId === null) {
+        const firstParishWithInventory = activeParishes.find((parish) =>
+          inventories.some((inventory) => inventory.parish_id === parish.id),
+        );
+
+        setSelectedParishId(
+          firstParishWithInventory?.id ?? activeParishes[0]?.id ?? null,
+        );
+      }
+
+      if (showSuccessMessage) {
+        toast.success("Estoque atualizado com sucesso.");
+      }
+    } catch (error) {
+      toast.error(
+        getErrorMessage(
+          error,
+          "Não foi possível carregar o estoque. Tente novamente.",
+        ),
+      );
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadData();
+    // A carga inicial deve acontecer apenas quando o contexto do módulo mudar.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [modo]);
+
+  useEffect(() => {
+    if (modo === "paroquia") {
+      setSelectedParishId(parishId ?? sessionParishId ?? null);
+    }
+  }, [modo, parishId, sessionParishId]);
+
+  const selectedParish = useMemo(
+    () => parishes.find((parish) => parish.id === selectedParishId) ?? null,
+    [parishes, selectedParishId],
+  );
+
+  const parishInventories = useMemo(
+    () =>
+      data.inventories.filter(
+        (inventory) => inventory.parish_id === selectedParishId,
+      ),
+    [data.inventories, selectedParishId],
+  );
+
+  const parishInventoryIds = useMemo(
+    () => new Set(parishInventories.map((inventory) => inventory.id)),
+    [parishInventories],
+  );
+
+  const parishItems = useMemo(
+    () =>
+      data.items.filter((item) =>
+        parishInventoryIds.has(item.parish_inventory_id),
+      ),
+    [data.items, parishInventoryIds],
+  );
+
+  const parishExpiringItems = useMemo(
+    () =>
+      data.expiringItems.filter((item) =>
+        parishInventoryIds.has(item.parish_inventory_id),
+      ),
+    [data.expiringItems, parishInventoryIds],
+  );
+
+  const parishExpiredItems = useMemo(
+    () =>
+      data.expiredItems.filter((item) =>
+        parishInventoryIds.has(item.parish_inventory_id),
+      ),
+    [data.expiredItems, parishInventoryIds],
+  );
+
+  const parishTemplates = useMemo(
+    () =>
+      data.templates.filter(
+        (template) => template.parish_id === selectedParishId,
+      ),
+    [data.templates, selectedParishId],
+  );
+
+  const parishDeliveries = useMemo(
+    () =>
+      data.deliveries.filter(
+        (delivery) => delivery.parish_id === selectedParishId,
+      ),
+    [data.deliveries, selectedParishId],
+  );
+
+  useEffect(() => {
+    const inventoryStillExists = parishInventories.some(
+      (inventory) => inventory.id === selectedInventoryId,
+    );
+
+    if (!inventoryStillExists) {
+      setSelectedInventoryId(parishInventories[0]?.id ?? null);
+    }
+  }, [parishInventories, selectedInventoryId]);
+
+  const selectedInventory =
+    parishInventories.find(
+      (inventory) => inventory.id === selectedInventoryId,
+    ) ?? null;
+
+  const selectedInventoryItems = parishItems.filter(
+    (item) => item.parish_inventory_id === selectedInventoryId,
+  );
+
+  const selectedParishLabel =
+    modo === "paroquia"
+      ? parishName ?? sessionParishName ?? "Paróquia atual"
+      : selectedParish?.name ?? "Nenhuma paróquia selecionada";
+
+  const totalQuantity = parishItems.reduce(
+    (total, item) => total + item.total_quantity,
+    0,
+  );
+  const expiringQuantity = parishExpiringItems.reduce(
+    (total, item) => total + item.valid_until_quantity,
+    0,
+  );
+  const expiredQuantity = parishExpiredItems.reduce(
+    (total, item) => total + item.expired_quantity,
+    0,
+  );
+
+  function openCreateInventory() {
+    setInventoryBeingEdited(null);
+    setInventoryFormError(null);
+    setInventoryFormOpen(true);
+  }
+
+  function openEditInventory(inventory: ParishInventory) {
+    setSelectedInventoryId(inventory.id);
+    setInventoryBeingEdited(inventory);
+    setInventoryFormError(null);
+    setInventoryFormOpen(true);
+  }
+
+  function openDeleteInventory(inventory: ParishInventory) {
+    setSelectedInventoryId(inventory.id);
+    setInventoryBeingDeleted(inventory);
+    setDeleteInventoryError(null);
+  }
+
+  async function handleInventorySubmit(values: InventarioFormValues) {
+    if (selectedParishId === null) {
+      setInventoryFormError(
+        "Não foi possível identificar a paróquia deste inventário.",
+      );
+      return;
+    }
+
+    try {
+      setSavingInventory(true);
+      setInventoryFormError(null);
+
+      if (inventoryBeingEdited) {
+        const updatedInventory = await updateParishInventory(
+          inventoryBeingEdited.id,
+          values,
+        );
+
+        setData((current) => ({
+          ...current,
+          inventories: sortInventories(
+            current.inventories.map((inventory) =>
+              inventory.id === updatedInventory.id
+                ? updatedInventory
+                : inventory,
+            ),
+          ),
+        }));
+        setSelectedInventoryId(updatedInventory.id);
+        toast.success("Inventário atualizado com sucesso.");
+      } else {
+        const createPayload =
+          modo === "diocese"
+            ? { parish_id: selectedParishId, ...values }
+            : values;
+
+        const createdInventory = await createParishInventory(createPayload);
+
+        setData((current) => ({
+          ...current,
+          inventories: sortInventories([
+            ...current.inventories,
+            createdInventory,
+          ]),
+        }));
+        setSelectedInventoryId(createdInventory.id);
+        toast.success("Inventário criado com sucesso.");
+      }
+
+      setInventoryFormOpen(false);
+      setInventoryBeingEdited(null);
+    } catch (error) {
+      setInventoryFormError(
+        getErrorMessage(
+          error,
+          inventoryBeingEdited
+            ? "Não foi possível atualizar o inventário."
+            : "Não foi possível criar o inventário.",
+        ),
+      );
+    } finally {
+      setSavingInventory(false);
+    }
+  }
+
+  async function handleDeleteInventory() {
+    if (!inventoryBeingDeleted) {
+      return;
+    }
+
+    try {
+      setDeletingInventory(true);
+      setDeleteInventoryError(null);
+
+      const deletedInventoryId = inventoryBeingDeleted.id;
+      await deleteParishInventory(deletedInventoryId);
+
+      setData((current) => ({
+        ...current,
+        inventories: current.inventories.filter(
+          (inventory) => inventory.id !== deletedInventoryId,
+        ),
+        items: current.items.filter(
+          (item) => item.parish_inventory_id !== deletedInventoryId,
+        ),
+        expiringItems: current.expiringItems.filter(
+          (item) => item.parish_inventory_id !== deletedInventoryId,
+        ),
+        expiredItems: current.expiredItems.filter(
+          (item) => item.parish_inventory_id !== deletedInventoryId,
+        ),
+      }));
+
+      setInventoryBeingDeleted(null);
+      toast.success("Inventário excluído com sucesso.");
+    } catch (error) {
+      setDeleteInventoryError(
+        getErrorMessage(
+          error,
+          "Não foi possível excluir o inventário. Verifique se existem dados vinculados a ele.",
+        ),
+      );
+    } finally {
+      setDeletingInventory(false);
+    }
+  }
+
+  function openCreateItem() {
+    if (!selectedInventory) {
+      toast.error("Selecione um inventário antes de criar um item.");
+      return;
+    }
+
+    setItemBeingEdited(null);
+    setItemFormError(null);
+    setItemFormOpen(true);
+  }
+
+  function openEditItem(item: ParishInventoryItem) {
+    setSelectedInventoryId(item.parish_inventory_id);
+    setItemBeingEdited(item);
+    setItemFormError(null);
+    setItemFormOpen(true);
+  }
+
+  function openDeleteItem(item: ParishInventoryItem) {
+    setSelectedInventoryId(item.parish_inventory_id);
+    setItemBeingDeleted(item);
+    setDeleteItemError(null);
+  }
+
+  function openAddEntry(item: ParishInventoryItem) {
+    setSelectedInventoryId(item.parish_inventory_id);
+    setItemReceivingEntry(item);
+    setEntryFormError(null);
+  }
+
+  async function handleAddEntry(
+    payload: AddParishInventoryItemQuantityPayload,
+  ) {
+    if (!itemReceivingEntry) {
+      return;
+    }
+
+    try {
+      setSavingEntry(true);
+      setEntryFormError(null);
+
+      const updatedItem = await addParishInventoryItemQuantity(
+        itemReceivingEntry.id,
+        payload,
+      );
+
+      setData((current) => ({
+        ...current,
+        items: sortItems(
+          current.items.map((item) =>
+            item.id === updatedItem.id ? updatedItem : item,
+          ),
+        ),
+      }));
+
+      setItemReceivingEntry(null);
+      toast.success(
+        `Entrada registrada. O total de ${updatedItem.name} agora é ${updatedItem.total_quantity}.`,
+      );
+
+      try {
+        const [expiringResponse, expiredResponse] = await Promise.all([
+          listItemsExpiringThisWeek(),
+          listExpiredItems(),
+        ]);
+
+        setData((current) => ({
+          ...current,
+          expiringItems: expiringResponse.data,
+          expiredItems: expiredResponse.data,
+        }));
+      } catch {
+        toast.warning(
+          "A entrada foi registrada, mas os alertas de validade não puderam ser atualizados agora.",
+        );
+      }
+    } catch (error) {
+      setEntryFormError(
+        getErrorMessage(error, "Não foi possível registrar a entrada do item."),
+      );
+    } finally {
+      setSavingEntry(false);
+    }
+  }
+
+  async function handleItemSubmit(values: ItemInventarioFormValues) {
+    try {
+      setSavingItem(true);
+      setItemFormError(null);
+
+      if (itemBeingEdited) {
+        const updatedItem = await updateParishInventoryItem(
+          itemBeingEdited.id,
+          {
+            name: values.name,
+            description: values.description,
+          },
+        );
+
+        setData((current) => ({
+          ...current,
+          items: sortItems(
+            current.items.map((item) =>
+              item.id === updatedItem.id ? updatedItem : item,
+            ),
+          ),
+          expiringItems: current.expiringItems.map((item) =>
+            item.id === updatedItem.id
+              ? {
+                  ...item,
+                  name: updatedItem.name,
+                  description: updatedItem.description,
+                  updated_at: updatedItem.updated_at,
+                }
+              : item,
+          ),
+          expiredItems: current.expiredItems.map((item) =>
+            item.id === updatedItem.id
+              ? {
+                  ...item,
+                  name: updatedItem.name,
+                  description: updatedItem.description,
+                  updated_at: updatedItem.updated_at,
+                }
+              : item,
+          ),
+        }));
+
+        toast.success("Item atualizado com sucesso.");
+      } else {
+        if (selectedInventoryId === null) {
+          setItemFormError(
+            "Selecione o inventário em que o item será cadastrado.",
+          );
+          return;
+        }
+
+        if (values.quantity === undefined || !values.valid_until) {
+          setItemFormError(
+            "Informe a quantidade inicial e a validade do primeiro lote.",
+          );
+          return;
+        }
+
+        const createdItem = await createParishInventoryItem({
+          parish_inventory_id: selectedInventoryId,
+          name: values.name,
+          description: values.description,
+          quantity: values.quantity,
+          valid_until: values.valid_until,
+        });
+
+        setData((current) => ({
+          ...current,
+          items: sortItems([...current.items, createdItem]),
+        }));
+
+        toast.success("Item criado com sucesso.");
+      }
+
+      setItemFormOpen(false);
+      setItemBeingEdited(null);
+    } catch (error) {
+      setItemFormError(
+        getErrorMessage(
+          error,
+          itemBeingEdited
+            ? "Não foi possível atualizar o item."
+            : "Não foi possível criar o item.",
+        ),
+      );
+    } finally {
+      setSavingItem(false);
+    }
+  }
+
+  async function handleDeleteItem() {
+    if (!itemBeingDeleted) {
+      return;
+    }
+
+    try {
+      setDeletingItem(true);
+      setDeleteItemError(null);
+
+      const deletedItemId = itemBeingDeleted.id;
+      await deleteParishInventoryItem(deletedItemId);
+
+      setData((current) => ({
+        ...current,
+        items: current.items.filter((item) => item.id !== deletedItemId),
+        expiringItems: current.expiringItems.filter(
+          (item) => item.id !== deletedItemId,
+        ),
+        expiredItems: current.expiredItems.filter(
+          (item) => item.id !== deletedItemId,
+        ),
+        templates: current.templates.map((template) => ({
+          ...template,
+          items: template.items.filter(
+            (item) => item.parish_inventory_item_id !== deletedItemId,
+          ),
+        })),
+      }));
+
+      setItemBeingDeleted(null);
+      toast.success("Item excluído com sucesso.");
+    } catch (error) {
+      setDeleteItemError(
+        getErrorMessage(
+          error,
+          "Não foi possível excluir o item. Verifique se ele está vinculado a um modelo de cesta.",
+        ),
+      );
+    } finally {
+      setDeletingItem(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="flex min-h-72 flex-col items-center justify-center gap-3 text-center">
+          <Loader2
+            className="size-8 animate-spin text-primary"
+            aria-hidden="true"
+          />
+          <div>
+            <p className="font-semibold text-foreground">Carregando estoque</p>
+            <p className="text-sm text-muted-foreground">
+              Aguarde enquanto buscamos inventários, lotes e entregas.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <section className="space-y-6" aria-labelledby="estoque-page-title">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="space-y-1">
+          <h2
+            id="estoque-page-title"
+            className="text-2xl font-bold text-foreground"
+          >
+            Gestão de estoque
+          </h2>
+          <p className="max-w-3xl text-muted-foreground">
+            {modo === "diocese"
+              ? "Consulte e gerencie os estoques das paróquias. A diocese não possui estoque próprio."
+              : "Gerencie inventários, lotes, modelos de cesta e entregas da sua paróquia."}
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          {modo === "diocese" && (
+            <Select
+              value={selectedParishId?.toString() ?? ""}
+              onValueChange={(value) => {
+                setSelectedParishId(Number(value));
+                setSection("visao-geral");
+              }}
+            >
+              <SelectTrigger
+                className="w-full min-w-64 sm:w-72"
+                aria-label="Selecionar paróquia"
+              >
+                <SelectValue placeholder="Selecione uma paróquia" />
+              </SelectTrigger>
+              <SelectContent>
+                {parishes.map((parish) => (
+                  <SelectItem key={parish.id} value={parish.id.toString()}>
+                    {parish.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => void loadData(true)}
+            disabled={
+              refreshing ||
+              savingInventory ||
+              deletingInventory ||
+              savingItem ||
+              deletingItem ||
+              savingEntry
+            }
+          >
+            <RefreshCcw
+              className={refreshing ? "animate-spin" : undefined}
+              aria-hidden="true"
+            />
+            {refreshing ? "Atualizando..." : "Atualizar"}
+          </Button>
+        </div>
+      </header>
+
+      {selectedParishId === null ? (
+        <Card>
+          <CardContent className="flex min-h-64 flex-col items-center justify-center gap-3 text-center">
+            <Warehouse
+              className="size-10 text-muted-foreground"
+              aria-hidden="true"
+            />
+            <div>
+              <p className="font-semibold text-foreground">
+                Selecione uma paróquia
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Escolha a paróquia para visualizar e gerenciar seu estoque.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          <div className="rounded-xl border bg-card px-4 py-3 text-sm">
+            <span className="text-muted-foreground">Estoque em exibição:</span>{" "}
+            <strong className="text-foreground">{selectedParishLabel}</strong>
+          </div>
+
+          <nav
+            className="flex gap-2 overflow-x-auto rounded-xl border bg-card p-2"
+            aria-label="Seções do estoque"
+          >
+            {SECTIONS.map((item) => {
+              const Icon = item.icon;
+              const active = section === item.id;
+
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setSection(item.id)}
+                  aria-current={active ? "page" : undefined}
+                  className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+                    active
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  }`}
+                >
+                  <Icon className="size-4" aria-hidden="true" />
+                  {item.label}
+                </button>
+              );
+            })}
+          </nav>
+
+          {section === "visao-geral" && (
+            <div className="space-y-6">
+              <EstoqueResumo
+                inventoriesCount={parishInventories.length}
+                itemsCount={parishItems.length}
+                totalQuantity={totalQuantity}
+                expiringQuantity={expiringQuantity}
+                expiredQuantity={expiredQuantity}
+                deliveriesCount={parishDeliveries.length}
+              />
+
+              <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)]">
+                <InventariosList
+                  inventories={parishInventories}
+                  selectedInventoryId={selectedInventoryId}
+                  onSelect={setSelectedInventoryId}
+                  compact
+                />
+                <ItensInventarioList
+                  items={selectedInventoryItems}
+                  inventoryName={selectedInventory?.name ?? null}
+                  compact
+                />
+              </div>
+            </div>
+          )}
+
+          {section === "inventarios" && (
+            <div className="grid gap-6 xl:grid-cols-[minmax(18rem,0.8fr)_minmax(0,1.5fr)]">
+              <InventariosList
+                inventories={parishInventories}
+                selectedInventoryId={selectedInventoryId}
+                onSelect={setSelectedInventoryId}
+                onCreate={openCreateInventory}
+                onEdit={openEditInventory}
+                onDelete={openDeleteInventory}
+                actionsDisabled={
+                  savingInventory ||
+                  deletingInventory ||
+                  savingItem ||
+                  deletingItem ||
+                  savingEntry
+                }
+              />
+              <ItensInventarioList
+                items={selectedInventoryItems}
+                inventoryName={selectedInventory?.name ?? null}
+                onCreate={openCreateItem}
+                onAddLot={openAddEntry}
+                onEdit={openEditItem}
+                onDelete={openDeleteItem}
+                actionsDisabled={
+                  savingInventory ||
+                  deletingInventory ||
+                  savingItem ||
+                  deletingItem ||
+                  savingEntry
+                }
+              />
+            </div>
+          )}
+
+          {section === "validade" && (
+            <AlertasValidade
+              expiringItems={parishExpiringItems}
+              expiredItems={parishExpiredItems}
+            />
+          )}
+
+          {section === "modelos" && (
+            <ModelosCestaList templates={parishTemplates} />
+          )}
+
+          {section === "entregas" && (
+            <EntregasCestaList deliveries={parishDeliveries} />
+          )}
+        </>
+      )}
+
+      <InventarioForm
+        open={inventoryFormOpen}
+        onOpenChange={(open) => {
+          setInventoryFormOpen(open);
+          if (!open) {
+            setInventoryBeingEdited(null);
+            setInventoryFormError(null);
+          }
+        }}
+        inventory={inventoryBeingEdited}
+        saving={savingInventory}
+        error={inventoryFormError}
+        onSubmit={handleInventorySubmit}
+      />
+
+      <ExcluirInventarioDialog
+        open={inventoryBeingDeleted !== null}
+        inventory={inventoryBeingDeleted}
+        deleting={deletingInventory}
+        error={deleteInventoryError}
+        onOpenChange={(open) => {
+          if (!open) {
+            setInventoryBeingDeleted(null);
+            setDeleteInventoryError(null);
+          }
+        }}
+        onConfirm={handleDeleteInventory}
+      />
+
+      <ItemInventarioForm
+        open={itemFormOpen}
+        onOpenChange={(open) => {
+          setItemFormOpen(open);
+          if (!open) {
+            setItemBeingEdited(null);
+            setItemFormError(null);
+          }
+        }}
+        item={itemBeingEdited}
+        inventoryName={selectedInventory?.name ?? null}
+        saving={savingItem}
+        error={itemFormError}
+        onSubmit={handleItemSubmit}
+      />
+
+      <AdicionarLoteModal
+        open={itemReceivingEntry !== null}
+        item={itemReceivingEntry}
+        saving={savingEntry}
+        error={entryFormError}
+        onOpenChange={(open) => {
+          if (!open) {
+            setItemReceivingEntry(null);
+            setEntryFormError(null);
+          }
+        }}
+        onSubmit={handleAddEntry}
+      />
+
+      <ExcluirItemInventarioDialog
+        open={itemBeingDeleted !== null}
+        item={itemBeingDeleted}
+        deleting={deletingItem}
+        error={deleteItemError}
+        onOpenChange={(open) => {
+          if (!open) {
+            setItemBeingDeleted(null);
+            setDeleteItemError(null);
+          }
+        }}
+        onConfirm={handleDeleteItem}
+      />
+    </section>
+  );
+}

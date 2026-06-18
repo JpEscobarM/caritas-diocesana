@@ -9,6 +9,7 @@ import Sidebar from "../components/Sidebar";
 import { menuParoquiaItems } from "../config/MenuParoquia";
 import VisitaDomiciliar from "../components/VisitaDomiciliar";
 import PainelGeralParoquia from "../components/PainelParoquia/PainelGeralParoquia";
+import { EstoqueParoquia } from "../components/Estoque";
 
 export default function ParoquiaPage() {
   const navigate = useNavigate();
@@ -54,12 +55,7 @@ export default function ParoquiaPage() {
         return <NucleoFamiliar />;
 
       case "estoque":
-        return (
-          <EmDesenvolvimento
-            title="Estoque paroquial"
-            description="A gestão de itens da paróquia será apresentada aqui, com ações claras para entrada, saída e consulta."
-          />
-        );
+        return <EstoqueParoquia />;
       case "visitas":
         return <VisitaDomiciliar />;
       case "prestacao":
