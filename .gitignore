@@ -6,3 +6,5 @@ build/
 target/
 .env
 .env.local
+
+/frontend/package-lock.json

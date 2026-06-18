@@ -9,6 +9,7 @@ import Sidebar from "../components/Sidebar";
 import { menuParoquiaItems } from "../config/MenuParoquia";
 import VisitaDomiciliar from "../components/VisitaDomiciliar";
 import PainelGeralParoquia from "../components/PainelParoquia/PainelGeralParoquia";
+import { EstoqueParoquia } from "../components/Estoque";
 
 export default function ParoquiaPage() {
   const navigate = useNavigate();
@@ -52,14 +53,8 @@ export default function ParoquiaPage() {
         return <PainelGeralParoquia onNavigate={setActiveTab} />;
       case "nucleos":
         return <NucleoFamiliar />;
-
       case "estoque":
-        return (
-          <EmDesenvolvimento
-            title="Estoque paroquial"
-            description="A gestão de itens da paróquia será apresentada aqui, com ações claras para entrada, saída e consulta."
-          />
-        );
+        return <EstoqueParoquia />;
       case "visitas":
         return <VisitaDomiciliar />;
       case "prestacao":
@@ -80,7 +75,7 @@ export default function ParoquiaPage() {
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-background text-foreground">
+    <div className="h-screen w-full overflow-hidden bg-background text-foreground">
       <a
         href="#conteudo-principal"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-card focus:px-4 focus:py-3 focus:text-foreground focus:shadow-lg focus:outline-3 focus:outline-ring"
@@ -89,12 +84,12 @@ export default function ParoquiaPage() {
       </a>
 
       <aside
-        className={`flex flex-col bg-sidebar text-sidebar-foreground transition-[width] duration-200 ${
+        className={`fixed inset-y-0 left-0 z-40 flex h-screen flex-col overflow-hidden bg-sidebar text-sidebar-foreground transition-[width] duration-200 ${
           sidebarCollapsed ? "w-20" : "w-72"
         }`}
         aria-label="Navegação da Cáritas Paroquial"
       >
-        <div className="border-b border-sidebar-border p-4">
+        <div className="shrink-0 border-b border-sidebar-border p-4">
           <div className="flex items-center gap-3">
             {sidebarCollapsed ? (
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white p-2">
@@ -127,14 +122,16 @@ export default function ParoquiaPage() {
           </div>
         </div>
 
-        <Sidebar
-          items={visibleMenuItems}
-          activeTab={activeTab}
-          onChangeTab={setActiveTab}
-          collapsed={sidebarCollapsed}
-        />
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <Sidebar
+            items={visibleMenuItems}
+            activeTab={activeTab}
+            onChangeTab={setActiveTab}
+            collapsed={sidebarCollapsed}
+          />
+        </div>
 
-        <div className="border-t border-sidebar-border p-4">
+        <div className="shrink-0 border-t border-sidebar-border p-4">
           <button
             type="button"
             onClick={handleLogout}
@@ -149,8 +146,12 @@ export default function ParoquiaPage() {
         </div>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-border bg-card px-6 py-4">
+      <div
+        className={`flex h-screen min-w-0 flex-col transition-[margin] duration-200 ${
+          sidebarCollapsed ? "ml-20" : "ml-72"
+        }`}
+      >
+        <header className="shrink-0 flex items-center justify-between border-b border-border bg-card px-6 py-4">
           <div className="flex items-center gap-4">
             <button
               type="button"
@@ -180,7 +181,7 @@ export default function ParoquiaPage() {
 
         <main
           id="conteudo-principal"
-          className="flex-1 overflow-auto bg-muted/30 p-6"
+          className="min-h-0 flex-1 overflow-y-auto bg-muted/30 p-6"
         >
           {renderTabContent()}
         </main>

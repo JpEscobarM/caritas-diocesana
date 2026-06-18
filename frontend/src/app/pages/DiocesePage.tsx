@@ -10,6 +10,7 @@ import PainelGeralDiocese from "../components/PainelDiocese/PainelGeralDiocese";
 import { clearAuthSession, getAuthSession } from "../api/auth";
 import Sidebar from "../components/Sidebar";
 import PainelGeralUsuarios from "../components/PainelUsuarios/PainelGeralUsuarios";
+import { EstoqueDiocese } from "../components/Estoque";
 
 export default function DiocesePage() {
   const navigate = useNavigate();
@@ -52,12 +53,7 @@ export default function DiocesePage() {
       case "paroquias":
         return <ParishesManagementByDiocese />;
       case "estoque":
-        return (
-          <EmDesenvolvimento
-            title="Estoque diocesano"
-            description="A gestão de estoque da diocese será organizada aqui, com informações simples de consultar e atualizar."
-          />
-        );
+        return <EstoqueDiocese />;
       case "bazar":
         return (
           <EmDesenvolvimento
