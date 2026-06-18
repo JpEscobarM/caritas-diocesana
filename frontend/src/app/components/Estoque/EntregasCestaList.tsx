@@ -98,7 +98,7 @@ export default function EntregasCestaList({
   }, [deliveries, search, typeFilter]);
 
   return (
-    <Card>
+    <Card className="min-h-0">
       <CardHeader className="gap-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -153,7 +153,7 @@ export default function EntregasCestaList({
         </div>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="min-h-0">
         {deliveries.length === 0 ? (
           <div className="flex min-h-64 flex-col items-center justify-center gap-3 rounded-xl border border-dashed p-6 text-center">
             <Gift className="size-10 text-muted-foreground" aria-hidden="true" />
@@ -200,7 +200,7 @@ export default function EntregasCestaList({
             </Button>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="max-h-[calc(100vh-24rem)] space-y-3 overflow-y-auto pr-2">
             <div className="flex items-center justify-between text-sm text-muted-foreground">
               <span>{filteredDeliveries.length} entrega(s) encontrada(s)</span>
               <Badge variant="secondary">Total: {deliveries.length}</Badge>

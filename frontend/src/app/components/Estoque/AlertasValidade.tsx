@@ -303,7 +303,7 @@ export default function AlertasValidade({
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <Card>
+        <Card className="min-h-0">
           <CardContent className="flex items-start justify-between gap-4 p-5">
             <div className="space-y-1">
               <p className="text-sm font-medium text-muted-foreground">
@@ -361,7 +361,7 @@ export default function AlertasValidade({
         </Card>
       </div>
 
-      <Card>
+      <Card className="min-h-0">
         <CardHeader className="gap-4">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
             <div>
@@ -441,7 +441,7 @@ export default function AlertasValidade({
           </div>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="min-h-0">
           {filteredAlerts.length === 0 ? (
             <div className="flex min-h-64 flex-col items-center justify-center gap-3 rounded-xl border border-dashed p-6 text-center">
               <PackageSearch
@@ -468,7 +468,7 @@ export default function AlertasValidade({
               )}
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="max-h-[calc(100vh-25rem)] space-y-4 overflow-y-auto pr-2">
               {filteredAlerts.map((alert) => {
                 const inventoryName =
                   inventoryNames.get(alert.item.parish_inventory_id) ??
@@ -529,7 +529,7 @@ export default function AlertasValidade({
                       </div>
                     </div>
 
-                    <div className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+                    <div className="mt-4 grid max-h-56 gap-2 overflow-y-auto pr-1 md:grid-cols-2 xl:grid-cols-3">
                       {lots.map((lot) => (
                         <div
                           key={lot.id}

@@ -140,7 +140,7 @@ export default function ModelosCestaList({
   const filtersApplied = search.trim().length > 0 || statusFilter !== "all";
 
   return (
-    <Card>
+    <Card className="min-h-0">
       <CardHeader>
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -254,7 +254,7 @@ export default function ModelosCestaList({
             )}
           </div>
         ) : (
-          <div className="grid gap-4 xl:grid-cols-2">
+          <div className="grid max-h-[calc(100vh-24rem)] gap-4 overflow-y-auto pr-2 xl:grid-cols-2">
             {filteredTemplates.map((template) => {
               const possibleBaskets = getPossibleBaskets(template);
               const insufficientItems = template.items.filter(
@@ -366,7 +366,7 @@ export default function ModelosCestaList({
                     </div>
                   </div>
 
-                  <div className="mt-4 flex-1 space-y-2">
+                  <div className="mt-4 max-h-56 flex-1 space-y-2 overflow-y-auto pr-1">
                     {template.items.length === 0 ? (
                       <div className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
                         Este modelo não possui itens.

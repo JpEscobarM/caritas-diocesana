@@ -90,8 +90,12 @@ export default function ItensInventarioList({
     });
   }, [items, search]);
 
+  const listScrollClass = compact
+    ? "max-h-96 overflow-y-auto pr-2"
+    : "max-h-[calc(100vh-24rem)] overflow-y-auto pr-2";
+
   return (
-    <Card>
+    <Card className="min-h-0">
       <CardHeader>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -136,7 +140,7 @@ export default function ItensInventarioList({
         )}
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="min-h-0">
         {!inventoryName ? (
           <div className="flex min-h-52 flex-col items-center justify-center gap-3 rounded-xl border border-dashed p-6 text-center">
             <Package className="size-8 text-muted-foreground" aria-hidden="true" />
@@ -171,7 +175,7 @@ export default function ItensInventarioList({
             )}
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className={`space-y-4 ${listScrollClass}`}>
             {filteredItems.map((item) => (
               <article key={item.id} className="rounded-xl border p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -248,7 +252,7 @@ export default function ItensInventarioList({
                         Nenhum lote disponível.
                       </p>
                     ) : (
-                      <div className="grid gap-2 sm:grid-cols-2">
+                      <div className="grid max-h-48 gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
                         {sortLots(item.quantities).map((lot) => (
                           <div
                             key={lot.id}
