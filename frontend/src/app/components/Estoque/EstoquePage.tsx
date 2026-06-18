@@ -12,11 +12,15 @@ import {
 import { toast } from "sonner";
 
 import { getAuthSession } from "../../api/auth";
+import { listFamilies } from "../../api/families";
 import { listParishes } from "../../api/parishes";
 import {
   addParishInventoryItemQuantity,
+  createBasketDelivery,
+  createBasketTemplate,
   createParishInventory,
   createParishInventoryItem,
+  deleteBasketTemplate,
   deleteParishInventory,
   deleteParishInventoryItem,
   listBasketDeliveries,
@@ -25,11 +29,13 @@ import {
   listItemsExpiringThisWeek,
   listParishInventories,
   listParishInventoryItems,
+  updateBasketTemplate,
   updateParishInventory,
   updateParishInventoryItem,
 } from "../../api/estoque";
 import type {
   BasketDelivery,
+  CreateBasketDeliveryPayload,
   BasketTemplate,
   ExpiredParishInventoryItem,
   ExpiringParishInventoryItem,
@@ -37,7 +43,7 @@ import type {
   ParishInventory,
   ParishInventoryItem,
 } from "../../types/EstoqueTypes";
-import type { Parish } from "../../types/types";
+import type { Family, Parish } from "../../types/types";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import {
@@ -49,10 +55,12 @@ import {
 } from "../ui/select";
 import AdicionarLoteModal from "./AdicionarLoteModal";
 import AlertasValidade from "./AlertasValidade";
+import DetalheEntregaDialog from "./DetalheEntregaDialog";
 import EntregasCestaList from "./EntregasCestaList";
 import EstoqueResumo from "./EstoqueResumo";
 import ExcluirInventarioDialog from "./ExcluirInventarioDialog";
 import ExcluirItemInventarioDialog from "./ExcluirItemInventarioDialog";
+import ExcluirModeloCestaDialog from "./ExcluirModeloCestaDialog";
 import InventarioForm, {
   type InventarioFormValues,
 } from "./InventarioForm";
@@ -61,7 +69,11 @@ import ItemInventarioForm, {
   type ItemInventarioFormValues,
 } from "./ItemInventarioForm";
 import ItensInventarioList from "./ItensInventarioList";
+import ModeloCestaForm, {
+  type ModeloCestaFormValues,
+} from "./ModeloCestaForm";
 import ModelosCestaList from "./ModelosCestaList";
+import RegistrarEntregaModal from "./RegistrarEntregaModal";
 
 export type EstoqueMode = "diocese" | "paroquia";
 
@@ -125,6 +137,39 @@ function sortItems(items: ParishInventoryItem[]): ParishInventoryItem[] {
 
     return first.name.localeCompare(second.name, "pt-BR");
   });
+}
+
+function sortTemplates(templates: BasketTemplate[]): BasketTemplate[] {
+  return [...templates].sort((first, second) => {
+    if (first.active !== second.active) {
+      return first.active ? -1 : 1;
+    }
+
+    return first.name.localeCompare(second.name, "pt-BR");
+  });
+}
+
+function syncTemplateItemWithInventoryItem(
+  template: BasketTemplate,
+  inventoryItem: ParishInventoryItem,
+): BasketTemplate {
+  return {
+    ...template,
+    items: template.items.map((item) =>
+      item.parish_inventory_item_id === inventoryItem.id
+        ? {
+            ...item,
+            name: inventoryItem.name,
+            available_total_quantity: inventoryItem.total_quantity,
+            quantities: inventoryItem.quantities.map((quantity) => ({
+              id: quantity.id,
+              quantity: quantity.quantity,
+              valid_until: quantity.valid_until,
+            })),
+          }
+        : item,
+    ),
+  };
 }
 
 function getErrorMessage(error: unknown, fallback: string): string {
@@ -206,6 +251,36 @@ export default function EstoquePage({
   const [savingEntry, setSavingEntry] = useState(false);
   const [entryFormError, setEntryFormError] = useState<string | null>(null);
 
+  const [templateFormOpen, setTemplateFormOpen] = useState(false);
+  const [templateBeingEdited, setTemplateBeingEdited] =
+    useState<BasketTemplate | null>(null);
+  const [savingTemplate, setSavingTemplate] = useState(false);
+  const [templateFormError, setTemplateFormError] = useState<string | null>(
+    null,
+  );
+
+  const [templateBeingDeleted, setTemplateBeingDeleted] =
+    useState<BasketTemplate | null>(null);
+  const [deletingTemplate, setDeletingTemplate] = useState(false);
+  const [deleteTemplateError, setDeleteTemplateError] = useState<
+    string | null
+  >(null);
+  const [togglingTemplateId, setTogglingTemplateId] = useState<number | null>(
+    null,
+  );
+
+  const [families, setFamilies] = useState<Family[]>([]);
+  const [familiesLoadError, setFamiliesLoadError] = useState<string | null>(
+    null,
+  );
+  const [deliveryFormOpen, setDeliveryFormOpen] = useState(false);
+  const [savingDelivery, setSavingDelivery] = useState(false);
+  const [deliveryFormError, setDeliveryFormError] = useState<string | null>(
+    null,
+  );
+  const [deliveryBeingViewed, setDeliveryBeingViewed] =
+    useState<BasketDelivery | null>(null);
+
   async function loadData(showSuccessMessage = false) {
     try {
       if (showSuccessMessage) {
@@ -216,6 +291,15 @@ export default function EstoquePage({
 
       const parishPromise =
         modo === "diocese" ? listParishes() : Promise.resolve([]);
+      const familiesPromise = listFamilies(true, 1000)
+        .then((familyData) => ({ familyData, familyError: null as string | null }))
+        .catch((error: unknown) => ({
+          familyData: [] as Family[],
+          familyError: getErrorMessage(
+            error,
+            "Não foi possível carregar as famílias disponíveis para entrega.",
+          ),
+        }));
 
       const [
         parishData,
@@ -225,6 +309,7 @@ export default function EstoquePage({
         expiredResponse,
         templates,
         deliveries,
+        familyResult,
       ] = await Promise.all([
         parishPromise,
         listParishInventories(),
@@ -233,6 +318,7 @@ export default function EstoquePage({
         listExpiredItems(),
         listBasketTemplates(),
         listBasketDeliveries(),
+        familiesPromise,
       ]);
 
       const activeParishes = parishData
@@ -242,12 +328,20 @@ export default function EstoquePage({
         );
 
       setParishes(activeParishes);
+      setFamilies(
+        familyResult.familyData
+          .filter((family) => family.is_active !== false)
+          .sort((first, second) =>
+            first.name.localeCompare(second.name, "pt-BR"),
+          ),
+      );
+      setFamiliesLoadError(familyResult.familyError);
       setData({
         inventories: sortInventories(inventories),
         items: sortItems(items),
         expiringItems: expiringResponse.data,
         expiredItems: expiredResponse.data,
-        templates,
+        templates: sortTemplates(templates),
         deliveries,
       });
 
@@ -345,6 +439,12 @@ export default function EstoquePage({
         (delivery) => delivery.parish_id === selectedParishId,
       ),
     [data.deliveries, selectedParishId],
+  );
+
+  const parishFamilies = useMemo(
+    () =>
+      families.filter((family) => family.parish_id === selectedParishId),
+    [families, selectedParishId],
   );
 
   useEffect(() => {
@@ -582,6 +682,9 @@ export default function EstoquePage({
             item.id === updatedItem.id ? updatedItem : item,
           ),
         ),
+        templates: current.templates.map((template) =>
+          syncTemplateItemWithInventoryItem(template, updatedItem),
+        ),
       }));
 
       setItemReceivingEntry(null);
@@ -645,6 +748,9 @@ export default function EstoquePage({
                   updated_at: updatedItem.updated_at,
                 }
               : item,
+          ),
+          templates: current.templates.map((template) =>
+            syncTemplateItemWithInventoryItem(template, updatedItem),
           ),
         }));
 
@@ -747,6 +853,256 @@ export default function EstoquePage({
     }
   }
 
+  function openCreateTemplate() {
+    if (selectedParishId === null) {
+      toast.error("Não foi possível identificar a paróquia do modelo.");
+      return;
+    }
+
+    if (parishItems.length === 0) {
+      toast.error(
+        "Cadastre pelo menos um item no estoque antes de criar um modelo de cesta.",
+      );
+      return;
+    }
+
+    setTemplateBeingEdited(null);
+    setTemplateFormError(null);
+    setTemplateFormOpen(true);
+  }
+
+  function openEditTemplate(template: BasketTemplate) {
+    setTemplateBeingEdited(template);
+    setTemplateFormError(null);
+    setTemplateFormOpen(true);
+  }
+
+  function openDeleteTemplate(template: BasketTemplate) {
+    setTemplateBeingDeleted(template);
+    setDeleteTemplateError(null);
+  }
+
+  async function handleTemplateSubmit(values: ModeloCestaFormValues) {
+    if (selectedParishId === null) {
+      setTemplateFormError(
+        "Não foi possível identificar a paróquia deste modelo.",
+      );
+      return;
+    }
+
+    try {
+      setSavingTemplate(true);
+      setTemplateFormError(null);
+
+      if (templateBeingEdited) {
+        const updatedTemplate = await updateBasketTemplate(
+          templateBeingEdited.id,
+          {
+            name: values.name,
+            description: values.description,
+            active: values.active,
+            items: values.items,
+          },
+        );
+
+        setData((current) => ({
+          ...current,
+          templates: sortTemplates(
+            current.templates.map((template) =>
+              template.id === updatedTemplate.id ? updatedTemplate : template,
+            ),
+          ),
+        }));
+        toast.success("Modelo de cesta atualizado com sucesso.");
+      } else {
+        const basePayload = {
+          name: values.name,
+          description: values.description,
+          items: values.items,
+        };
+        const createPayload =
+          modo === "diocese"
+            ? { parish_id: selectedParishId, ...basePayload }
+            : basePayload;
+
+        const createdTemplate = await createBasketTemplate(createPayload);
+
+        setData((current) => ({
+          ...current,
+          templates: sortTemplates([
+            ...current.templates,
+            createdTemplate,
+          ]),
+        }));
+        toast.success("Modelo de cesta criado com sucesso.");
+      }
+
+      setTemplateFormOpen(false);
+      setTemplateBeingEdited(null);
+    } catch (error) {
+      setTemplateFormError(
+        getErrorMessage(
+          error,
+          templateBeingEdited
+            ? "Não foi possível atualizar o modelo de cesta."
+            : "Não foi possível criar o modelo de cesta.",
+        ),
+      );
+    } finally {
+      setSavingTemplate(false);
+    }
+  }
+
+  async function handleToggleTemplateActive(template: BasketTemplate) {
+    try {
+      setTogglingTemplateId(template.id);
+
+      const updatedTemplate = await updateBasketTemplate(template.id, {
+        name: template.name,
+        active: !template.active,
+      });
+
+      setData((current) => ({
+        ...current,
+        templates: sortTemplates(
+          current.templates.map((currentTemplate) =>
+            currentTemplate.id === updatedTemplate.id
+              ? updatedTemplate
+              : currentTemplate,
+          ),
+        ),
+      }));
+
+      toast.success(
+        updatedTemplate.active
+          ? "Modelo ativado com sucesso."
+          : "Modelo desativado com sucesso.",
+      );
+    } catch (error) {
+      toast.error(
+        getErrorMessage(
+          error,
+          "Não foi possível alterar a situação do modelo.",
+        ),
+      );
+    } finally {
+      setTogglingTemplateId(null);
+    }
+  }
+
+  async function handleDeleteTemplate() {
+    if (!templateBeingDeleted) {
+      return;
+    }
+
+    try {
+      setDeletingTemplate(true);
+      setDeleteTemplateError(null);
+
+      const deletedTemplateId = templateBeingDeleted.id;
+      await deleteBasketTemplate(deletedTemplateId);
+
+      setData((current) => ({
+        ...current,
+        templates: current.templates.filter(
+          (template) => template.id !== deletedTemplateId,
+        ),
+      }));
+
+      setTemplateBeingDeleted(null);
+      toast.success("Modelo de cesta excluído com sucesso.");
+    } catch (error) {
+      setDeleteTemplateError(
+        getErrorMessage(
+          error,
+          "Não foi possível excluir o modelo de cesta. Verifique se há entregas vinculadas.",
+        ),
+      );
+    } finally {
+      setDeletingTemplate(false);
+    }
+  }
+
+  function openCreateDelivery() {
+    if (selectedParishId === null) {
+      toast.error("Não foi possível identificar a paróquia da entrega.");
+      return;
+    }
+
+    if (familiesLoadError) {
+      toast.error(familiesLoadError);
+      return;
+    }
+
+    if (parishFamilies.length === 0) {
+      toast.error(
+        "Nenhuma família ativa foi encontrada para esta paróquia.",
+      );
+      return;
+    }
+
+    if (parishItems.length === 0) {
+      toast.error(
+        "Cadastre itens no estoque antes de registrar uma entrega.",
+      );
+      return;
+    }
+
+    setDeliveryFormError(null);
+    setDeliveryFormOpen(true);
+  }
+
+  async function handleDeliverySubmit(
+    payload: CreateBasketDeliveryPayload,
+  ) {
+    try {
+      setSavingDelivery(true);
+      setDeliveryFormError(null);
+
+      const createdDelivery = await createBasketDelivery(payload);
+
+      setData((current) => ({
+        ...current,
+        deliveries: [createdDelivery, ...current.deliveries],
+      }));
+      setDeliveryFormOpen(false);
+      toast.success(
+        `Entrega registrada para ${createdDelivery.family_name}.`,
+      );
+
+      try {
+        const [items, templates, expiringResponse, expiredResponse] =
+          await Promise.all([
+            listParishInventoryItems(),
+            listBasketTemplates(),
+            listItemsExpiringThisWeek(),
+            listExpiredItems(),
+          ]);
+
+        setData((current) => ({
+          ...current,
+          items: sortItems(items),
+          templates: sortTemplates(templates),
+          expiringItems: expiringResponse.data,
+          expiredItems: expiredResponse.data,
+        }));
+      } catch {
+        toast.warning(
+          "A entrega foi registrada, mas os saldos da tela não puderam ser atualizados agora. Use o botão Atualizar.",
+        );
+      }
+    } catch (error) {
+      setDeliveryFormError(
+        getErrorMessage(
+          error,
+          "Não foi possível registrar a entrega. Verifique a família e os saldos disponíveis.",
+        ),
+      );
+    } finally {
+      setSavingDelivery(false);
+    }
+  }
+
   if (loading) {
     return (
       <Card>
@@ -818,7 +1174,11 @@ export default function EstoquePage({
               deletingInventory ||
               savingItem ||
               deletingItem ||
-              savingEntry
+              savingEntry ||
+              savingTemplate ||
+              deletingTemplate ||
+              togglingTemplateId !== null ||
+              savingDelivery
             }
           >
             <RefreshCcw
@@ -922,7 +1282,10 @@ export default function EstoquePage({
                   deletingInventory ||
                   savingItem ||
                   deletingItem ||
-                  savingEntry
+                  savingEntry ||
+                  savingTemplate ||
+                  deletingTemplate ||
+                  togglingTemplateId !== null
                 }
               />
               <ItensInventarioList
@@ -937,7 +1300,10 @@ export default function EstoquePage({
                   deletingInventory ||
                   savingItem ||
                   deletingItem ||
-                  savingEntry
+                  savingEntry ||
+                  savingTemplate ||
+                  deletingTemplate ||
+                  togglingTemplateId !== null
                 }
               />
             </div>
@@ -956,11 +1322,53 @@ export default function EstoquePage({
           )}
 
           {section === "modelos" && (
-            <ModelosCestaList templates={parishTemplates} />
+            <ModelosCestaList
+              templates={parishTemplates}
+              inventories={parishInventories}
+              inventoryItems={parishItems}
+              onCreate={openCreateTemplate}
+              onEdit={openEditTemplate}
+              onDelete={openDeleteTemplate}
+              onToggleActive={(template) =>
+                void handleToggleTemplateActive(template)
+              }
+              actionsDisabled={
+                savingTemplate ||
+                deletingTemplate ||
+                togglingTemplateId !== null ||
+                savingItem ||
+                deletingItem ||
+                savingEntry
+              }
+            />
           )}
 
           {section === "entregas" && (
-            <EntregasCestaList deliveries={parishDeliveries} />
+            <div className="space-y-4">
+              {familiesLoadError && (
+                <div
+                  role="alert"
+                  className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive"
+                >
+                  {familiesLoadError} Atualize a página antes de registrar uma
+                  nova entrega.
+                </div>
+              )}
+              <EntregasCestaList
+                deliveries={parishDeliveries}
+                onCreate={openCreateDelivery}
+                onViewDetails={setDeliveryBeingViewed}
+                actionsDisabled={
+                  savingDelivery ||
+                  savingItem ||
+                  deletingItem ||
+                  savingEntry ||
+                  savingTemplate ||
+                  deletingTemplate ||
+                  togglingTemplateId !== null
+                }
+              />
+            </div>
           )}
         </>
       )}
@@ -1036,6 +1444,66 @@ export default function EstoquePage({
           }
         }}
         onConfirm={handleDeleteItem}
+      />
+
+      <ModeloCestaForm
+        open={templateFormOpen}
+        onOpenChange={(open) => {
+          setTemplateFormOpen(open);
+          if (!open) {
+            setTemplateBeingEdited(null);
+            setTemplateFormError(null);
+          }
+        }}
+        parishId={selectedParishId ?? 0}
+        inventories={parishInventories}
+        inventoryItems={parishItems}
+        template={templateBeingEdited}
+        saving={savingTemplate}
+        error={templateFormError}
+        onSubmit={handleTemplateSubmit}
+      />
+
+      <ExcluirModeloCestaDialog
+        open={templateBeingDeleted !== null}
+        template={templateBeingDeleted}
+        deleting={deletingTemplate}
+        error={deleteTemplateError}
+        onOpenChange={(open) => {
+          if (!open) {
+            setTemplateBeingDeleted(null);
+            setDeleteTemplateError(null);
+          }
+        }}
+        onConfirm={handleDeleteTemplate}
+      />
+
+      <RegistrarEntregaModal
+        open={deliveryFormOpen}
+        onOpenChange={(open) => {
+          setDeliveryFormOpen(open);
+          if (!open) {
+            setDeliveryFormError(null);
+          }
+        }}
+        parishId={selectedParishId ?? 0}
+        families={parishFamilies}
+        templates={parishTemplates}
+        inventories={parishInventories}
+        inventoryItems={parishItems}
+        saving={savingDelivery}
+        error={deliveryFormError}
+        onSubmit={handleDeliverySubmit}
+      />
+
+      <DetalheEntregaDialog
+        open={deliveryBeingViewed !== null}
+        delivery={deliveryBeingViewed}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeliveryBeingViewed(null);
+          }
+        }}
       />
     </section>
   );

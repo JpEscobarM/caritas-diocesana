@@ -162,15 +162,23 @@ export interface BasketTemplatePayloadItem {
   quantity: number;
 }
 
-export interface CreateBasketTemplatePayload {
-  parish_id: number;
+interface CreateBasketTemplateBasePayload {
   name: string;
   description?: string | null;
   items: BasketTemplatePayloadItem[];
 }
 
+/**
+ * Token da diocese: parish_id deve ser informado.
+ * Token paroquial: parish_id deve ser omitido; o backend usa a paróquia da sessão.
+ */
+export type CreateBasketTemplatePayload =
+  | (CreateBasketTemplateBasePayload & { parish_id: number })
+  | (CreateBasketTemplateBasePayload & { parish_id?: never });
+
 export interface UpdateBasketTemplatePayload {
-  name?: string;
+  /** O backend exige o nome em toda atualização do modelo. */
+  name: string;
   description?: string | null;
   active?: boolean;
   items?: BasketTemplatePayloadItem[];
