@@ -3,6 +3,7 @@ import {
   CalendarDays,
   Eye,
   Gift,
+  History,
   Package,
   Plus,
   Search,
@@ -26,6 +27,7 @@ export interface EntregasCestaListProps {
   deliveries: BasketDelivery[];
   onCreate?: () => void;
   onViewDetails?: (delivery: BasketDelivery) => void;
+  onViewFamilyHistory?: (delivery: BasketDelivery) => void;
   actionsDisabled?: boolean;
 }
 
@@ -52,6 +54,7 @@ export default function EntregasCestaList({
   deliveries,
   onCreate,
   onViewDetails,
+  onViewFamilyHistory,
   actionsDisabled = false,
 }: EntregasCestaListProps) {
   const [search, setSearch] = useState("");
@@ -261,16 +264,29 @@ export default function EntregasCestaList({
                       )}
                     </div>
 
-                    {onViewDetails && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => onViewDetails(delivery)}
-                      >
-                        <Eye aria-hidden="true" />
-                        Ver detalhes
-                      </Button>
-                    )}
+                    <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
+                      {onViewDetails && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => onViewDetails(delivery)}
+                        >
+                          <Eye aria-hidden="true" />
+                          Ver detalhes
+                        </Button>
+                      )}
+
+                      {onViewFamilyHistory && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => onViewFamilyHistory(delivery)}
+                        >
+                          <History aria-hidden="true" />
+                          Histórico da família
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </article>
               );

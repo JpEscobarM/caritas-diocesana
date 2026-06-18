@@ -29,4 +29,5 @@ export type { AdicionarLoteModalProps } from "./AdicionarLoteModal";
 
 export type { DetalheEntregaDialogProps } from "./DetalheEntregaDialog";
 export type { EntregasCestaListProps } from "./EntregasCestaList";
+export type { HistoricoFamiliaModalProps } from "./HistoricoFamiliaModal";
 export type { RegistrarEntregaModalProps } from "./RegistrarEntregaModal";

@@ -25,6 +25,7 @@ import {
   deleteParishInventoryItem,
   listBasketDeliveries,
   listBasketTemplates,
+  listFamilyBasketDeliveries,
   listExpiredItems,
   listItemsExpiringThisWeek,
   listParishInventories,
@@ -57,6 +58,7 @@ import AdicionarLoteModal from "./AdicionarLoteModal";
 import AlertasValidade from "./AlertasValidade";
 import DetalheEntregaDialog from "./DetalheEntregaDialog";
 import EntregasCestaList from "./EntregasCestaList";
+import HistoricoFamiliaModal from "./HistoricoFamiliaModal";
 import EstoqueResumo from "./EstoqueResumo";
 import ExcluirInventarioDialog from "./ExcluirInventarioDialog";
 import ExcluirItemInventarioDialog from "./ExcluirItemInventarioDialog";
@@ -280,6 +282,17 @@ export default function EstoquePage({
   );
   const [deliveryBeingViewed, setDeliveryBeingViewed] =
     useState<BasketDelivery | null>(null);
+  const [familyHistoryTarget, setFamilyHistoryTarget] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
+  const [familyHistoryDeliveries, setFamilyHistoryDeliveries] = useState<
+    BasketDelivery[]
+  >([]);
+  const [loadingFamilyHistory, setLoadingFamilyHistory] = useState(false);
+  const [familyHistoryError, setFamilyHistoryError] = useState<string | null>(
+    null,
+  );
 
   async function loadData(showSuccessMessage = false) {
     try {
@@ -1065,6 +1078,14 @@ export default function EstoquePage({
         ...current,
         deliveries: [createdDelivery, ...current.deliveries],
       }));
+      setFamilyHistoryDeliveries((current) =>
+        familyHistoryTarget?.id === createdDelivery.family_id
+          ? [
+              createdDelivery,
+              ...current.filter((delivery) => delivery.id !== createdDelivery.id),
+            ]
+          : current,
+      );
       setDeliveryFormOpen(false);
       toast.success(
         `Entrega registrada para ${createdDelivery.family_name}.`,
@@ -1101,6 +1122,35 @@ export default function EstoquePage({
     } finally {
       setSavingDelivery(false);
     }
+  }
+
+  async function loadFamilyHistory(familyId: number) {
+    try {
+      setLoadingFamilyHistory(true);
+      setFamilyHistoryError(null);
+
+      const deliveries = await listFamilyBasketDeliveries(familyId);
+      setFamilyHistoryDeliveries(deliveries);
+    } catch (error) {
+      setFamilyHistoryError(
+        getErrorMessage(
+          error,
+          "Não foi possível carregar o histórico desta família.",
+        ),
+      );
+    } finally {
+      setLoadingFamilyHistory(false);
+    }
+  }
+
+  function openFamilyHistory(delivery: BasketDelivery) {
+    setFamilyHistoryTarget({
+      id: delivery.family_id,
+      name: delivery.family_name,
+    });
+    setFamilyHistoryDeliveries([]);
+    setFamilyHistoryError(null);
+    void loadFamilyHistory(delivery.family_id);
   }
 
   if (loading) {
@@ -1358,6 +1408,7 @@ export default function EstoquePage({
                 deliveries={parishDeliveries}
                 onCreate={openCreateDelivery}
                 onViewDetails={setDeliveryBeingViewed}
+                onViewFamilyHistory={openFamilyHistory}
                 actionsDisabled={
                   savingDelivery ||
                   savingItem ||
@@ -1503,6 +1554,31 @@ export default function EstoquePage({
           if (!open) {
             setDeliveryBeingViewed(null);
           }
+        }}
+      />
+
+      <HistoricoFamiliaModal
+        open={familyHistoryTarget !== null}
+        familyId={familyHistoryTarget?.id ?? null}
+        familyName={familyHistoryTarget?.name ?? null}
+        deliveries={familyHistoryDeliveries}
+        loading={loadingFamilyHistory}
+        error={familyHistoryError}
+        onOpenChange={(open) => {
+          if (!open) {
+            setFamilyHistoryTarget(null);
+            setFamilyHistoryDeliveries([]);
+            setFamilyHistoryError(null);
+          }
+        }}
+        onRetry={() => {
+          if (familyHistoryTarget) {
+            void loadFamilyHistory(familyHistoryTarget.id);
+          }
+        }}
+        onViewDelivery={(delivery) => {
+          setFamilyHistoryTarget(null);
+          setDeliveryBeingViewed(delivery);
         }}
       />
     </section>
