@@ -48,12 +48,14 @@ type AlertItem =
       status: "expiring";
       item: ExpiringParishInventoryItem;
       alertQuantity: number;
+      lots: ParishInventoryItemQuantity[];
     }
   | {
       key: string;
       status: "expired";
       item: ExpiredParishInventoryItem;
       alertQuantity: number;
+      lots: ParishInventoryItemQuantity[];
     };
 
 const DAY_IN_MILLISECONDS = 86_400_000;
@@ -139,6 +141,16 @@ function sortLots(
   );
 }
 
+function getLotsWithAvailableQuantity(
+  quantities: ParishInventoryItemQuantity[],
+): ParishInventoryItemQuantity[] {
+  return quantities.filter((lot) => Number(lot.quantity) > 0);
+}
+
+function sumLotQuantities(quantities: ParishInventoryItemQuantity[]): number {
+  return quantities.reduce((total, lot) => total + Number(lot.quantity || 0), 0);
+}
+
 function pluralizeLots(value: number): string {
   return value === 1 ? "lote" : "lotes";
 }
@@ -161,56 +173,78 @@ export default function AlertasValidade({
     [inventories],
   );
 
+  const normalizedExpiringAlerts = useMemo(
+    () =>
+      expiringItems
+        .map((item): AlertItem => {
+          const lots = sortLots(getLotsWithAvailableQuantity(item.quantities));
+
+          return {
+            key: `expiring-${item.id}`,
+            status: "expiring",
+            item,
+            alertQuantity: sumLotQuantities(lots),
+            lots,
+          };
+        })
+        .filter((alert) => alert.alertQuantity > 0 && alert.lots.length > 0),
+    [expiringItems],
+  );
+
+  const normalizedExpiredAlerts = useMemo(
+    () =>
+      expiredItems
+        .map((item): AlertItem => {
+          const lots = sortLots(getLotsWithAvailableQuantity(item.quantities));
+
+          return {
+            key: `expired-${item.id}`,
+            status: "expired",
+            item,
+            alertQuantity: sumLotQuantities(lots),
+            lots,
+          };
+        })
+        .filter((alert) => alert.alertQuantity > 0 && alert.lots.length > 0),
+    [expiredItems],
+  );
+
   const expiringQuantity = useMemo(
     () =>
-      expiringItems.reduce(
-        (total, item) => total + item.valid_until_quantity,
+      normalizedExpiringAlerts.reduce(
+        (total, alert) => total + alert.alertQuantity,
         0,
       ),
-    [expiringItems],
+    [normalizedExpiringAlerts],
   );
 
   const expiredQuantity = useMemo(
     () =>
-      expiredItems.reduce(
-        (total, item) => total + item.expired_quantity,
+      normalizedExpiredAlerts.reduce(
+        (total, alert) => total + alert.alertQuantity,
         0,
       ),
-    [expiredItems],
+    [normalizedExpiredAlerts],
   );
 
   const totalAlertLots = useMemo(
     () =>
-      expiringItems.reduce(
-        (total, item) => total + item.quantities.length,
+      normalizedExpiringAlerts.reduce(
+        (total, alert) => total + alert.lots.length,
         0,
       ) +
-      expiredItems.reduce(
-        (total, item) => total + item.quantities.length,
+      normalizedExpiredAlerts.reduce(
+        (total, alert) => total + alert.lots.length,
         0,
       ),
-    [expiredItems, expiringItems],
+    [normalizedExpiredAlerts, normalizedExpiringAlerts],
   );
 
   const filteredAlerts = useMemo(() => {
     const normalizedSearch = search.trim().toLocaleLowerCase("pt-BR");
     const alerts: AlertItem[] = [
-      ...expiringItems.map(
-        (item): AlertItem => ({
-          key: `expiring-${item.id}`,
-          status: "expiring",
-          item,
-          alertQuantity: item.valid_until_quantity,
-        }),
-      ),
-      ...expiredItems.map(
-        (item): AlertItem => ({
-          key: `expired-${item.id}`,
-          status: "expired",
-          item,
-          alertQuantity: item.expired_quantity,
-        }),
-      ),
+      ...normalizedExpiringAlerts,
+      ...normalizedExpiredAlerts,
     ];
 
     return alerts
@@ -239,8 +273,8 @@ export default function AlertasValidade({
       })
       .sort((first, second) => {
         const validityComparison = getFirstValidityDate(
-          first.item.quantities,
-        ).localeCompare(getFirstValidityDate(second.item.quantities));
+          first.lots,
+        ).localeCompare(getFirstValidityDate(second.lots));
 
         if (validityComparison !== 0) {
           return validityComparison;
@@ -249,10 +283,10 @@ export default function AlertasValidade({
         return first.item.name.localeCompare(second.item.name, "pt-BR");
       });
   }, [
-    expiredItems,
-    expiringItems,
     inventoryFilter,
     inventoryNames,
+    normalizedExpiredAlerts,
+    normalizedExpiringAlerts,
     search,
     status,
   ]);
@@ -279,7 +313,7 @@ export default function AlertasValidade({
                 {expiringQuantity}
               </p>
               <p className="text-xs text-muted-foreground">
-                {expiringItems.length} item(ns) com lotes próximos do vencimento
+                {normalizedExpiringAlerts.length} item(ns) com lotes próximos do vencimento
               </p>
             </div>
             <div className="rounded-xl bg-amber-500/10 p-3 text-amber-700">
@@ -298,7 +332,7 @@ export default function AlertasValidade({
                 {expiredQuantity}
               </p>
               <p className="text-xs text-muted-foreground">
-                {expiredItems.length} item(ns) com lotes expirados
+                {normalizedExpiredAlerts.length} item(ns) com lotes expirados
               </p>
             </div>
             <div className="rounded-xl bg-destructive/10 p-3 text-destructive">
@@ -439,7 +473,7 @@ export default function AlertasValidade({
                 const inventoryName =
                   inventoryNames.get(alert.item.parish_inventory_id) ??
                   "Inventário não identificado";
-                const lots = sortLots(alert.item.quantities);
+                const lots = alert.lots;
                 const expired = alert.status === "expired";
 
                 return (

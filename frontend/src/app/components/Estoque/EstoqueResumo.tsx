@@ -1,11 +1,4 @@
-import {
-  AlertTriangle,
-  Boxes,
-  Gift,
-  PackageCheck,
-  PackageX,
-  Warehouse,
-} from "lucide-react";
+import { AlertTriangle, PackageX, Warehouse } from "lucide-react";
 
 import { Card, CardContent } from "../ui/card";
 
@@ -21,10 +14,8 @@ export interface EstoqueResumoProps {
 export default function EstoqueResumo({
   inventoriesCount,
   itemsCount,
-  totalQuantity,
   expiringQuantity,
   expiredQuantity,
-  deliveriesCount,
 }: EstoqueResumoProps) {
   const cards = [
     {
@@ -32,12 +23,6 @@ export default function EstoqueResumo({
       value: inventoriesCount,
       helper: `${itemsCount} item(ns) cadastrado(s)`,
       icon: Warehouse,
-    },
-    {
-      label: "Quantidade em estoque",
-      value: totalQuantity,
-      helper: "Soma dos totais dos itens",
-      icon: Boxes,
     },
     {
       label: "Vencendo em 7 dias",
@@ -50,18 +35,6 @@ export default function EstoqueResumo({
       value: expiredQuantity,
       helper: "Quantidade em lotes expirados",
       icon: PackageX,
-    },
-    {
-      label: "Entregas registradas",
-      value: deliveriesCount,
-      helper: "Saídas realizadas para famílias",
-      icon: Gift,
-    },
-    {
-      label: "Fluxo de saída",
-      value: "Entrega",
-      helper: "Única forma de saída implementada",
-      icon: PackageCheck,
     },
   ];
 

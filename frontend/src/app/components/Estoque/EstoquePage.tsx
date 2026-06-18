@@ -76,6 +76,7 @@ import ModeloCestaForm, {
 } from "./ModeloCestaForm";
 import ModelosCestaList from "./ModelosCestaList";
 import RegistrarEntregaModal from "./RegistrarEntregaModal";
+import ResumoEstoqueDiocese from "./ResumoEstoqueDiocese";
 
 export type EstoqueMode = "diocese" | "paroquia";
 
@@ -109,6 +110,8 @@ const EMPTY_DATA: EstoqueData = {
   templates: [],
   deliveries: [],
 };
+
+const DIOCESE_ALL_PARISHES_VALUE = "__all_parishes__";
 
 const SECTIONS: Array<{
   id: EstoqueSection;
@@ -358,16 +361,6 @@ export default function EstoquePage({
         deliveries,
       });
 
-      if (modo === "diocese" && selectedParishId === null) {
-        const firstParishWithInventory = activeParishes.find((parish) =>
-          inventories.some((inventory) => inventory.parish_id === parish.id),
-        );
-
-        setSelectedParishId(
-          firstParishWithInventory?.id ?? activeParishes[0]?.id ?? null,
-        );
-      }
-
       if (showSuccessMessage) {
         toast.success("Estoque atualizado com sucesso.");
       }
@@ -401,12 +394,22 @@ export default function EstoquePage({
     [parishes, selectedParishId],
   );
 
+  const activeParishIds = useMemo(
+    () => new Set(parishes.map((parish) => parish.id)),
+    [parishes],
+  );
+
+  const isDioceseConsolidated = modo === "diocese" && selectedParishId === null;
+  const canManageCurrentParish = selectedParishId !== null;
+
   const parishInventories = useMemo(
     () =>
-      data.inventories.filter(
-        (inventory) => inventory.parish_id === selectedParishId,
+      data.inventories.filter((inventory) =>
+        isDioceseConsolidated
+          ? activeParishIds.has(inventory.parish_id)
+          : inventory.parish_id === selectedParishId,
       ),
-    [data.inventories, selectedParishId],
+    [activeParishIds, data.inventories, isDioceseConsolidated, selectedParishId],
   );
 
   const parishInventoryIds = useMemo(
@@ -440,24 +443,32 @@ export default function EstoquePage({
 
   const parishTemplates = useMemo(
     () =>
-      data.templates.filter(
-        (template) => template.parish_id === selectedParishId,
+      data.templates.filter((template) =>
+        isDioceseConsolidated
+          ? activeParishIds.has(template.parish_id)
+          : template.parish_id === selectedParishId,
       ),
-    [data.templates, selectedParishId],
+    [activeParishIds, data.templates, isDioceseConsolidated, selectedParishId],
   );
 
   const parishDeliveries = useMemo(
     () =>
-      data.deliveries.filter(
-        (delivery) => delivery.parish_id === selectedParishId,
+      data.deliveries.filter((delivery) =>
+        isDioceseConsolidated
+          ? activeParishIds.has(delivery.parish_id)
+          : delivery.parish_id === selectedParishId,
       ),
-    [data.deliveries, selectedParishId],
+    [activeParishIds, data.deliveries, isDioceseConsolidated, selectedParishId],
   );
 
   const parishFamilies = useMemo(
     () =>
-      families.filter((family) => family.parish_id === selectedParishId),
-    [families, selectedParishId],
+      families.filter((family) =>
+        isDioceseConsolidated
+          ? activeParishIds.has(family.parish_id)
+          : family.parish_id === selectedParishId,
+      ),
+    [activeParishIds, families, isDioceseConsolidated, selectedParishId],
   );
 
   useEffect(() => {
@@ -482,7 +493,9 @@ export default function EstoquePage({
   const selectedParishLabel =
     modo === "paroquia"
       ? parishName ?? sessionParishName ?? "Paróquia atual"
-      : selectedParish?.name ?? "Nenhuma paróquia selecionada";
+      : isDioceseConsolidated
+        ? "Todas as paróquias — visão consolidada"
+        : selectedParish?.name ?? `Paróquia #${selectedParishId}`;
 
   const totalQuantity = parishItems.reduce(
     (total, item) => total + item.total_quantity,
@@ -1192,19 +1205,32 @@ export default function EstoquePage({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           {modo === "diocese" && (
             <Select
-              value={selectedParishId?.toString() ?? ""}
+              value={
+                selectedParishId === null
+                  ? DIOCESE_ALL_PARISHES_VALUE
+                  : selectedParishId.toString()
+              }
               onValueChange={(value) => {
-                setSelectedParishId(Number(value));
+                if (value === DIOCESE_ALL_PARISHES_VALUE) {
+                  setSelectedParishId(null);
+                  setSelectedInventoryId(null);
+                } else {
+                  setSelectedParishId(Number(value));
+                }
+
                 setSection("visao-geral");
               }}
             >
               <SelectTrigger
-                className="w-full min-w-64 sm:w-72"
+                className="w-full min-w-64 sm:w-80"
                 aria-label="Selecionar paróquia"
               >
                 <SelectValue placeholder="Selecione uma paróquia" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value={DIOCESE_ALL_PARISHES_VALUE}>
+                  Todas as paróquias — consolidado
+                </SelectItem>
                 {parishes.map((parish) => (
                   <SelectItem key={parish.id} value={parish.id.toString()}>
                     {parish.name}
@@ -1240,7 +1266,7 @@ export default function EstoquePage({
         </div>
       </header>
 
-      {selectedParishId === null ? (
+      {modo === "paroquia" && selectedParishId === null ? (
         <Card>
           <CardContent className="flex min-h-64 flex-col items-center justify-center gap-3 text-center">
             <Warehouse
@@ -1262,6 +1288,12 @@ export default function EstoquePage({
           <div className="rounded-xl border bg-card px-4 py-3 text-sm">
             <span className="text-muted-foreground">Estoque em exibição:</span>{" "}
             <strong className="text-foreground">{selectedParishLabel}</strong>
+            {isDioceseConsolidated && (
+              <p className="mt-1 text-muted-foreground">
+                Esta visão é consolidada e serve para consulta. Para criar,
+                editar ou excluir registros, selecione uma paróquia específica.
+              </p>
+            )}
           </div>
 
           <nav
@@ -1302,6 +1334,23 @@ export default function EstoquePage({
                 deliveriesCount={parishDeliveries.length}
               />
 
+              {isDioceseConsolidated && (
+                <ResumoEstoqueDiocese
+                  parishes={parishes}
+                  inventories={data.inventories}
+                  items={data.items}
+                  expiringItems={data.expiringItems}
+                  expiredItems={data.expiredItems}
+                  templates={data.templates}
+                  deliveries={data.deliveries}
+                  onSelectParish={(parishIdToManage) => {
+                    setSelectedParishId(parishIdToManage);
+                    setSelectedInventoryId(null);
+                    setSection("visao-geral");
+                  }}
+                />
+              )}
+
               <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)]">
                 <InventariosList
                   inventories={parishInventories}
@@ -1324,9 +1373,9 @@ export default function EstoquePage({
                 inventories={parishInventories}
                 selectedInventoryId={selectedInventoryId}
                 onSelect={setSelectedInventoryId}
-                onCreate={openCreateInventory}
-                onEdit={openEditInventory}
-                onDelete={openDeleteInventory}
+                onCreate={canManageCurrentParish ? openCreateInventory : undefined}
+                onEdit={canManageCurrentParish ? openEditInventory : undefined}
+                onDelete={canManageCurrentParish ? openDeleteInventory : undefined}
                 actionsDisabled={
                   savingInventory ||
                   deletingInventory ||
@@ -1341,10 +1390,10 @@ export default function EstoquePage({
               <ItensInventarioList
                 items={selectedInventoryItems}
                 inventoryName={selectedInventory?.name ?? null}
-                onCreate={openCreateItem}
-                onAddLot={openAddEntry}
-                onEdit={openEditItem}
-                onDelete={openDeleteItem}
+                onCreate={canManageCurrentParish ? openCreateItem : undefined}
+                onAddLot={canManageCurrentParish ? openAddEntry : undefined}
+                onEdit={canManageCurrentParish ? openEditItem : undefined}
+                onDelete={canManageCurrentParish ? openDeleteItem : undefined}
                 actionsDisabled={
                   savingInventory ||
                   deletingInventory ||
@@ -1376,11 +1425,13 @@ export default function EstoquePage({
               templates={parishTemplates}
               inventories={parishInventories}
               inventoryItems={parishItems}
-              onCreate={openCreateTemplate}
-              onEdit={openEditTemplate}
-              onDelete={openDeleteTemplate}
-              onToggleActive={(template) =>
-                void handleToggleTemplateActive(template)
+              onCreate={canManageCurrentParish ? openCreateTemplate : undefined}
+              onEdit={canManageCurrentParish ? openEditTemplate : undefined}
+              onDelete={canManageCurrentParish ? openDeleteTemplate : undefined}
+              onToggleActive={
+                canManageCurrentParish
+                  ? (template) => void handleToggleTemplateActive(template)
+                  : undefined
               }
               actionsDisabled={
                 savingTemplate ||
@@ -1406,7 +1457,7 @@ export default function EstoquePage({
               )}
               <EntregasCestaList
                 deliveries={parishDeliveries}
-                onCreate={openCreateDelivery}
+                onCreate={canManageCurrentParish ? openCreateDelivery : undefined}
                 onViewDetails={setDeliveryBeingViewed}
                 onViewFamilyHistory={openFamilyHistory}
                 actionsDisabled={

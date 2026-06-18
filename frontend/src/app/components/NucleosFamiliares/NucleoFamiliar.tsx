@@ -83,7 +83,7 @@ export default function NucleoFamiliar() {
       const normalizedFamilies = normalizeFamilies(familiesResponse);
 
       setFamilias(normalizedFamilies);
-      console.log(normalizedFamilies);
+
       setShowingInactiveFamilies(false);
 
       // if (normalizedFamilies.length === 0) {

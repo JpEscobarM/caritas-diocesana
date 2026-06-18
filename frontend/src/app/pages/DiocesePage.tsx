@@ -6,10 +6,11 @@ import { menuDioceseItems } from "../config/MenuDiocese";
 import ParishesManagementByDiocese from "../components/ParishesManagementByDiocese";
 import EmDesenvolvimento from "../components/EmDesenvolvimento";
 import PainelGeralDiocese from "../components/PainelDiocese/PainelGeralDiocese";
-import { EstoquePage } from "../components/Estoque";
+
 import { clearAuthSession, getAuthSession } from "../api/auth";
 import Sidebar from "../components/Sidebar";
 import PainelGeralUsuarios from "../components/PainelUsuarios/PainelGeralUsuarios";
+import { EstoqueDiocese } from "../components/Estoque";
 
 export default function DiocesePage() {
   const navigate = useNavigate();
@@ -52,7 +53,7 @@ export default function DiocesePage() {
       case "paroquias":
         return <ParishesManagementByDiocese />;
       case "estoque":
-        return <EstoquePage modo="diocese" />;
+        return <EstoqueDiocese />;
       case "bazar":
         return (
           <EmDesenvolvimento

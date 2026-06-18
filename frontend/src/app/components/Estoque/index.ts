@@ -2,6 +2,7 @@ export { default as AdicionarLoteModal } from "./AdicionarLoteModal";
 export { default as AlertasValidade } from "./AlertasValidade";
 export { default as DetalheEntregaDialog } from "./DetalheEntregaDialog";
 export { default as EntregasCestaList } from "./EntregasCestaList";
+export { default as EstoqueDiocese } from "./EstoqueDiocese";
 export { default as EstoquePage } from "./EstoquePage";
 export { default as EstoqueParoquia } from "./EstoqueParoquia";
 export { default as EstoqueResumo } from "./EstoqueResumo";
@@ -16,6 +17,7 @@ export { default as ItensInventarioList } from "./ItensInventarioList";
 export { default as ModeloCestaForm } from "./ModeloCestaForm";
 export { default as ModelosCestaList } from "./ModelosCestaList";
 export { default as RegistrarEntregaModal } from "./RegistrarEntregaModal";
+export { default as ResumoEstoqueDiocese } from "./ResumoEstoqueDiocese";
 
 export type { EstoqueMode, EstoquePageProps } from "./EstoquePage";
 export type { ExcluirInventarioDialogProps } from "./ExcluirInventarioDialog";
