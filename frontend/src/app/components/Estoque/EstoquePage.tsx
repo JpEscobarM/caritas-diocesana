@@ -2,6 +2,7 @@ import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
+  ArrowRightLeft,
   Boxes,
   ClipboardList,
   Gift,
@@ -20,9 +21,11 @@ import {
   createBasketTemplate,
   createParishInventory,
   createParishInventoryItem,
+  createParishInventoryRepasse,
   deleteBasketTemplate,
   deleteParishInventory,
   deleteParishInventoryItem,
+  getParishInventoryRepasse,
   listBasketDeliveries,
   listBasketTemplates,
   listFamilyBasketDeliveries,
@@ -30,12 +33,15 @@ import {
   listItemsExpiringThisWeek,
   listParishInventories,
   listParishInventoryItems,
+  listParishInventoryItemsByParish,
+  listParishInventoryRepasses,
   updateBasketTemplate,
   updateParishInventory,
   updateParishInventoryItem,
 } from "../../api/estoque";
 import type {
   BasketDelivery,
+  CreateParishInventoryRepassePayload,
   CreateBasketDeliveryPayload,
   BasketTemplate,
   ExpiredParishInventoryItem,
@@ -43,6 +49,7 @@ import type {
   AddParishInventoryItemQuantityPayload,
   ParishInventory,
   ParishInventoryItem,
+  ParishInventoryRepasse,
 } from "../../types/EstoqueTypes";
 import type { Family, Parish } from "../../types/types";
 import { Button } from "../ui/button";
@@ -57,6 +64,7 @@ import {
 import AdicionarLoteModal from "./AdicionarLoteModal";
 import AlertasValidade from "./AlertasValidade";
 import DetalheEntregaDialog from "./DetalheEntregaDialog";
+import DetalheRepasseDialog from "./DetalheRepasseDialog";
 import EntregasCestaList from "./EntregasCestaList";
 import HistoricoFamiliaModal from "./HistoricoFamiliaModal";
 import EstoqueResumo from "./EstoqueResumo";
@@ -76,6 +84,8 @@ import ModeloCestaForm, {
 } from "./ModeloCestaForm";
 import ModelosCestaList from "./ModelosCestaList";
 import RegistrarEntregaModal from "./RegistrarEntregaModal";
+import RepasseEstoqueForm from "./RepasseEstoqueForm";
+import RepassesEstoqueList from "./RepassesEstoqueList";
 import ResumoEstoqueDiocese from "./ResumoEstoqueDiocese";
 
 export type EstoqueMode = "diocese" | "paroquia";
@@ -85,12 +95,14 @@ type EstoqueSection =
   | "inventarios"
   | "validade"
   | "modelos"
+  | "repasses"
   | "entregas";
 
 export interface EstoquePageProps {
   modo: EstoqueMode;
   parishId?: number;
   parishName?: string;
+  readOnlyParishLookup?: boolean;
 }
 
 interface EstoqueData {
@@ -99,6 +111,7 @@ interface EstoqueData {
   expiringItems: ExpiringParishInventoryItem[];
   expiredItems: ExpiredParishInventoryItem[];
   templates: BasketTemplate[];
+  repasses: ParishInventoryRepasse[];
   deliveries: BasketDelivery[];
 }
 
@@ -108,6 +121,7 @@ const EMPTY_DATA: EstoqueData = {
   expiringItems: [],
   expiredItems: [],
   templates: [],
+  repasses: [],
   deliveries: [],
 };
 
@@ -122,6 +136,7 @@ const SECTIONS: Array<{
   { id: "inventarios", label: "Inventários e itens", icon: Boxes },
   { id: "validade", label: "Validade", icon: AlertTriangle },
   { id: "modelos", label: "Modelos de cesta", icon: ClipboardList },
+  { id: "repasses", label: "Repasses", icon: ArrowRightLeft },
   { id: "entregas", label: "Entregas", icon: Gift },
 ];
 
@@ -152,6 +167,16 @@ function sortTemplates(templates: BasketTemplate[]): BasketTemplate[] {
 
     return first.name.localeCompare(second.name, "pt-BR");
   });
+}
+
+function sortRepasses(
+  repasses: ParishInventoryRepasse[],
+): ParishInventoryRepasse[] {
+  return [...repasses].sort(
+    (first, second) =>
+      new Date(second.delivered_at).getTime() -
+      new Date(first.delivered_at).getTime(),
+  );
 }
 
 function syncTemplateItemWithInventoryItem(
@@ -208,6 +233,7 @@ export default function EstoquePage({
   modo,
   parishId,
   parishName,
+  readOnlyParishLookup = false,
 }: EstoquePageProps) {
   const session = getAuthSession();
   const sessionParishId = session?.parish?.id;
@@ -216,14 +242,24 @@ export default function EstoquePage({
   const [section, setSection] = useState<EstoqueSection>("visao-geral");
   const [parishes, setParishes] = useState<Parish[]>([]);
   const [selectedParishId, setSelectedParishId] = useState<number | null>(
-    modo === "paroquia" ? parishId ?? sessionParishId ?? null : parishId ?? null,
+    readOnlyParishLookup
+      ? null
+      : modo === "paroquia"
+        ? parishId ?? sessionParishId ?? null
+        : parishId ?? null,
   );
   const [selectedInventoryId, setSelectedInventoryId] = useState<number | null>(
     null,
   );
   const [data, setData] = useState<EstoqueData>(EMPTY_DATA);
+  const [itemParishIds, setItemParishIds] = useState<Record<number, number>>(
+    {},
+  );
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadingParishItemsId, setLoadingParishItemsId] = useState<
+    number | null
+  >(null);
 
   const [inventoryFormOpen, setInventoryFormOpen] = useState(false);
   const [inventoryBeingEdited, setInventoryBeingEdited] =
@@ -285,6 +321,15 @@ export default function EstoquePage({
   );
   const [deliveryBeingViewed, setDeliveryBeingViewed] =
     useState<BasketDelivery | null>(null);
+  const [repasseFormOpen, setRepasseFormOpen] = useState(false);
+  const [savingRepasse, setSavingRepasse] = useState(false);
+  const [repasseFormError, setRepasseFormError] = useState<string | null>(null);
+  const [repasseBeingViewed, setRepasseBeingViewed] =
+    useState<ParishInventoryRepasse | null>(null);
+  const [loadingRepasseDetails, setLoadingRepasseDetails] = useState(false);
+  const [repasseDetailsError, setRepasseDetailsError] = useState<string | null>(
+    null,
+  );
   const [familyHistoryTarget, setFamilyHistoryTarget] = useState<{
     id: number;
     name: string;
@@ -305,17 +350,30 @@ export default function EstoquePage({
         setLoading(true);
       }
 
+      const shouldLoadOperationalData =
+        modo === "paroquia" && !readOnlyParishLookup;
       const parishPromise =
-        modo === "diocese" ? listParishes() : Promise.resolve([]);
-      const familiesPromise = listFamilies(true, 1000)
-        .then((familyData) => ({ familyData, familyError: null as string | null }))
-        .catch((error: unknown) => ({
-          familyData: [] as Family[],
-          familyError: getErrorMessage(
-            error,
-            "Não foi possível carregar as famílias disponíveis para entrega.",
-          ),
-        }));
+        modo === "diocese"
+          ? listParishes()
+          : listParishes().catch(() => (session?.parish ? [session.parish] : []));
+      const familiesPromise =
+        shouldLoadOperationalData
+          ? listFamilies(true, 1000)
+              .then((familyData) => ({
+                familyData,
+                familyError: null as string | null,
+              }))
+              .catch((error: unknown) => ({
+                familyData: [] as Family[],
+                familyError: getErrorMessage(
+                  error,
+                  "Nao foi possivel carregar as familias disponiveis para entrega.",
+                ),
+              }))
+          : Promise.resolve({
+              familyData: [] as Family[],
+              familyError: null as string | null,
+            });
 
       const [
         parishData,
@@ -324,6 +382,7 @@ export default function EstoquePage({
         expiringResponse,
         expiredResponse,
         templates,
+        repasses,
         deliveries,
         familyResult,
       ] = await Promise.all([
@@ -332,8 +391,11 @@ export default function EstoquePage({
         listParishInventoryItems(),
         listItemsExpiringThisWeek(),
         listExpiredItems(),
-        listBasketTemplates(),
-        listBasketDeliveries(),
+        shouldLoadOperationalData ? listBasketTemplates() : Promise.resolve([]),
+        shouldLoadOperationalData
+          ? listParishInventoryRepasses()
+          : Promise.resolve([]),
+        shouldLoadOperationalData ? listBasketDeliveries() : Promise.resolve([]),
         familiesPromise,
       ]);
 
@@ -358,6 +420,7 @@ export default function EstoquePage({
         expiringItems: expiringResponse.data,
         expiredItems: expiredResponse.data,
         templates: sortTemplates(templates),
+        repasses: sortRepasses(repasses),
         deliveries,
       });
 
@@ -381,13 +444,88 @@ export default function EstoquePage({
     void loadData();
     // A carga inicial deve acontecer apenas quando o contexto do módulo mudar.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [modo]);
+  }, [modo, readOnlyParishLookup]);
 
   useEffect(() => {
-    if (modo === "paroquia") {
+    if (modo === "paroquia" && !readOnlyParishLookup) {
       setSelectedParishId(parishId ?? sessionParishId ?? null);
     }
-  }, [modo, parishId, sessionParishId]);
+  }, [modo, parishId, readOnlyParishLookup, sessionParishId]);
+
+  async function loadParishInventoryItems(
+    parishIdToLoad: number,
+  ): Promise<boolean> {
+    const previousLoadedItemIds = new Set(
+      Object.entries(itemParishIds)
+        .filter(([, loadedParishId]) => loadedParishId === parishIdToLoad)
+        .map(([itemId]) => Number(itemId)),
+    );
+
+    try {
+      setLoadingParishItemsId(parishIdToLoad);
+
+      const items = await listParishInventoryItemsByParish(parishIdToLoad);
+
+      setData((current) => {
+        const fetchedItemIds = new Set(items.map((item) => item.id));
+        const parishInventoryIds = new Set(
+          current.inventories
+            .filter((inventory) => inventory.parish_id === parishIdToLoad)
+            .map((inventory) => inventory.id),
+        );
+        const remainingItems = current.items.filter(
+          (item) =>
+            !fetchedItemIds.has(item.id) &&
+            !previousLoadedItemIds.has(item.id) &&
+            !parishInventoryIds.has(item.parish_inventory_id),
+        );
+
+        return {
+          ...current,
+          items: sortItems([...remainingItems, ...items]),
+        };
+      });
+      setItemParishIds((current) => {
+        const next = { ...current };
+
+        for (const [itemId, loadedParishId] of Object.entries(next)) {
+          if (loadedParishId === parishIdToLoad) {
+            delete next[Number(itemId)];
+          }
+        }
+
+        for (const item of items) {
+          next[item.id] = parishIdToLoad;
+        }
+
+        return next;
+      });
+
+      return true;
+    } catch (error) {
+      toast.error(
+        getErrorMessage(
+          error,
+          "Não foi possível listar o estoque desta paróquia.",
+        ),
+      );
+      return false;
+    } finally {
+      setLoadingParishItemsId(null);
+    }
+  }
+
+  async function selectParishForViewing(parishIdToView: number) {
+    const loaded = await loadParishInventoryItems(parishIdToView);
+
+    if (!loaded) {
+      return;
+    }
+
+    setSelectedParishId(parishIdToView);
+    setSelectedInventoryId(null);
+    setSection("visao-geral");
+  }
 
   const selectedParish = useMemo(
     () => parishes.find((parish) => parish.id === selectedParishId) ?? null,
@@ -399,8 +537,24 @@ export default function EstoquePage({
     [parishes],
   );
 
-  const isDioceseConsolidated = modo === "diocese" && selectedParishId === null;
-  const canManageCurrentParish = selectedParishId !== null;
+  const inventoryParishIds = useMemo(
+    () =>
+      new Map(
+        data.inventories.map((inventory) => [
+          inventory.id,
+          inventory.parish_id,
+        ] as const),
+      ),
+    [data.inventories],
+  );
+
+  const isDioceseConsolidated =
+    (modo === "diocese" || readOnlyParishLookup) && selectedParishId === null;
+  const canManageCurrentParish =
+    !readOnlyParishLookup &&
+    modo === "paroquia" &&
+    selectedParishId !== null &&
+    selectedParishId === sessionParishId;
 
   const parishInventories = useMemo(
     () =>
@@ -419,10 +573,23 @@ export default function EstoquePage({
 
   const parishItems = useMemo(
     () =>
-      data.items.filter((item) =>
-        parishInventoryIds.has(item.parish_inventory_id),
-      ),
-    [data.items, parishInventoryIds],
+      data.items.filter((item) => {
+        const itemParishId =
+          inventoryParishIds.get(item.parish_inventory_id) ??
+          itemParishIds[item.id];
+
+        return isDioceseConsolidated
+          ? itemParishId !== undefined && activeParishIds.has(itemParishId)
+          : itemParishId === selectedParishId;
+      }),
+    [
+      activeParishIds,
+      data.items,
+      inventoryParishIds,
+      isDioceseConsolidated,
+      itemParishIds,
+      selectedParishId,
+    ],
   );
 
   const parishExpiringItems = useMemo(
@@ -449,6 +616,18 @@ export default function EstoquePage({
           : template.parish_id === selectedParishId,
       ),
     [activeParishIds, data.templates, isDioceseConsolidated, selectedParishId],
+  );
+
+  const repasseParishFilterId =
+    modo === "paroquia" ? sessionParishId ?? selectedParishId : selectedParishId;
+  const parishRepasses = useMemo(
+    () =>
+      data.repasses.filter((repasse) =>
+        modo === "diocese" && repasseParishFilterId === null
+          ? activeParishIds.has(repasse.parish_id)
+          : repasse.parish_id === repasseParishFilterId,
+      ),
+    [activeParishIds, data.repasses, modo, repasseParishFilterId],
   );
 
   const parishDeliveries = useMemo(
@@ -486,16 +665,26 @@ export default function EstoquePage({
       (inventory) => inventory.id === selectedInventoryId,
     ) ?? null;
 
-  const selectedInventoryItems = parishItems.filter(
-    (item) => item.parish_inventory_id === selectedInventoryId,
-  );
-
   const selectedParishLabel =
-    modo === "paroquia"
-      ? parishName ?? sessionParishName ?? "Paróquia atual"
-      : isDioceseConsolidated
-        ? "Todas as paróquias — visão consolidada"
-        : selectedParish?.name ?? `Paróquia #${selectedParishId}`;
+    isDioceseConsolidated
+      ? "Todas as paróquias — visão consolidada"
+      : selectedParish?.name ??
+        (selectedParishId === sessionParishId
+          ? parishName ?? sessionParishName ?? "Paróquia atual"
+          : `Paróquia #${selectedParishId}`);
+
+  const showingParishItemsWithoutInventory =
+    selectedInventoryId === null &&
+    parishInventories.length === 0 &&
+    parishItems.length > 0;
+  const selectedInventoryItems = showingParishItemsWithoutInventory
+    ? parishItems
+    : parishItems.filter(
+        (item) => item.parish_inventory_id === selectedInventoryId,
+      );
+  const selectedInventoryName =
+    selectedInventory?.name ??
+    (showingParishItemsWithoutInventory ? selectedParishLabel : null);
 
   const totalQuantity = parishItems.reduce(
     (total, item) => total + item.total_quantity,
@@ -1049,6 +1238,126 @@ export default function EstoquePage({
     }
   }
 
+  function openCreateRepasse() {
+    if (modo !== "diocese") {
+      toast.error("Apenas a diocese pode registrar repasses.");
+      return;
+    }
+
+    setRepasseFormError(null);
+    setRepasseFormOpen(true);
+  }
+
+  async function handleRepasseSubmit(
+    payload: CreateParishInventoryRepassePayload,
+  ) {
+    try {
+      setSavingRepasse(true);
+      setRepasseFormError(null);
+
+      const createdRepasse = await createParishInventoryRepasse(payload);
+
+      setData((current) => ({
+        ...current,
+        repasses: sortRepasses([
+          createdRepasse,
+          ...current.repasses.filter(
+            (repasse) => repasse.id !== createdRepasse.id,
+          ),
+        ]),
+      }));
+      setRepasseFormOpen(false);
+      toast.success("Repasse registrado com sucesso.");
+
+      try {
+        const [inventories, items, expiringResponse, expiredResponse] =
+          await Promise.all([
+            listParishInventories(),
+            listParishInventoryItemsByParish(payload.parish_id),
+            listItemsExpiringThisWeek(),
+            listExpiredItems(),
+          ]);
+
+        setData((current) => {
+          const fetchedItemIds = new Set(items.map((item) => item.id));
+          const parishInventoryIds = new Set(
+            inventories
+              .filter((inventory) => inventory.parish_id === payload.parish_id)
+              .map((inventory) => inventory.id),
+          );
+          const remainingItems = current.items.filter(
+            (item) =>
+              !fetchedItemIds.has(item.id) &&
+              !parishInventoryIds.has(item.parish_inventory_id),
+          );
+
+          return {
+            ...current,
+            inventories: sortInventories(inventories),
+            items: sortItems([...remainingItems, ...items]),
+            expiringItems: expiringResponse.data,
+            expiredItems: expiredResponse.data,
+          };
+        });
+        setItemParishIds((current) => {
+          const next = { ...current };
+
+          for (const [itemId, loadedParishId] of Object.entries(next)) {
+            if (loadedParishId === payload.parish_id) {
+              delete next[Number(itemId)];
+            }
+          }
+
+          for (const item of items) {
+            next[item.id] = payload.parish_id;
+          }
+
+          return next;
+        });
+      } catch {
+        toast.warning(
+          "O repasse foi registrado, mas os saldos da tela não puderam ser atualizados agora. Use o botão Atualizar.",
+        );
+      }
+    } catch (error) {
+      setRepasseFormError(
+        getErrorMessage(error, "Não foi possível registrar o repasse."),
+      );
+    } finally {
+      setSavingRepasse(false);
+    }
+  }
+
+  function openRepasseDetails(repasse: ParishInventoryRepasse) {
+    setRepasseBeingViewed(repasse);
+    setRepasseDetailsError(null);
+    setLoadingRepasseDetails(true);
+
+    void getParishInventoryRepasse(repasse.id)
+      .then((detailedRepasse) => {
+        setRepasseBeingViewed(detailedRepasse);
+        setData((current) => ({
+          ...current,
+          repasses: sortRepasses(
+            current.repasses.map((currentRepasse) =>
+              currentRepasse.id === detailedRepasse.id
+                ? detailedRepasse
+                : currentRepasse,
+            ),
+          ),
+        }));
+      })
+      .catch((error: unknown) => {
+        setRepasseDetailsError(
+          getErrorMessage(
+            error,
+            "Não foi possível carregar os detalhes deste repasse.",
+          ),
+        );
+      })
+      .finally(() => setLoadingRepasseDetails(false));
+  }
+
   function openCreateDelivery() {
     if (selectedParishId === null) {
       toast.error("Não foi possível identificar a paróquia da entrega.");
@@ -1166,6 +1475,15 @@ export default function EstoquePage({
     void loadFamilyHistory(delivery.family_id);
   }
 
+  const canSelectParish =
+    modo === "diocese" || readOnlyParishLookup;
+  const canShowOperationalSections =
+    modo === "paroquia" && !readOnlyParishLookup;
+  const shouldShowEmptyParishSelection =
+    canShowOperationalSections && selectedParishId === null;
+  const shouldShowOverview =
+    modo === "diocese" || readOnlyParishLookup || section === "visao-geral";
+
   if (loading) {
     return (
       <Card>
@@ -1193,32 +1511,37 @@ export default function EstoquePage({
             id="estoque-page-title"
             className="text-2xl font-bold text-foreground"
           >
-            Gestão de estoque
+            {readOnlyParishLookup
+              ? "Estoques das paróquias"
+              : "Gestão de estoque"}
           </h2>
           <p className="max-w-3xl text-muted-foreground">
-            {modo === "diocese"
-              ? "Consulte e gerencie os estoques das paróquias. A diocese não possui estoque próprio."
-              : "Gerencie inventários, lotes, modelos de cesta e entregas da sua paróquia."}
+            {readOnlyParishLookup
+              ? "Consulte os estoques das paróquias em uma tela simples de listagem de itens."
+              : modo === "diocese"
+                ? "Consulte e gerencie os estoques das paróquias. A diocese não possui estoque próprio."
+                : "Gerencie inventários, lotes, modelos de cesta e entregas da sua paróquia."}
           </p>
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          {modo === "diocese" && (
+          {canSelectParish && (
             <Select
               value={
                 selectedParishId === null
                   ? DIOCESE_ALL_PARISHES_VALUE
                   : selectedParishId.toString()
               }
+              disabled={loadingParishItemsId !== null}
               onValueChange={(value) => {
                 if (value === DIOCESE_ALL_PARISHES_VALUE) {
                   setSelectedParishId(null);
                   setSelectedInventoryId(null);
-                } else {
-                  setSelectedParishId(Number(value));
+                  setSection("visao-geral");
+                  return;
                 }
 
-                setSection("visao-geral");
+                void selectParishForViewing(Number(value));
               }}
             >
               <SelectTrigger
@@ -1228,9 +1551,11 @@ export default function EstoquePage({
                 <SelectValue placeholder="Selecione uma paróquia" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={DIOCESE_ALL_PARISHES_VALUE}>
-                  Todas as paróquias — consolidado
-                </SelectItem>
+                {(modo === "diocese" || readOnlyParishLookup) && (
+                  <SelectItem value={DIOCESE_ALL_PARISHES_VALUE}>
+                    Todas as paróquias — consolidado
+                  </SelectItem>
+                )}
                 {parishes.map((parish) => (
                   <SelectItem key={parish.id} value={parish.id.toString()}>
                     {parish.name}
@@ -1238,6 +1563,26 @@ export default function EstoquePage({
                 ))}
               </SelectContent>
             </Select>
+          )}
+
+          {modo === "diocese" && (
+            <Button
+              type="button"
+              onClick={openCreateRepasse}
+              disabled={
+                loading ||
+                refreshing ||
+                savingRepasse ||
+                loadingParishItemsId !== null
+              }
+            >
+              {savingRepasse ? (
+                <Loader2 className="animate-spin" aria-hidden="true" />
+              ) : (
+                <ArrowRightLeft aria-hidden="true" />
+              )}
+              Novo repasse
+            </Button>
           )}
 
           <Button
@@ -1254,6 +1599,8 @@ export default function EstoquePage({
               savingTemplate ||
               deletingTemplate ||
               togglingTemplateId !== null ||
+              loadingParishItemsId !== null ||
+              savingRepasse ||
               savingDelivery
             }
           >
@@ -1266,7 +1613,7 @@ export default function EstoquePage({
         </div>
       </header>
 
-      {modo === "paroquia" && selectedParishId === null ? (
+      {shouldShowEmptyParishSelection ? (
         <Card>
           <CardContent className="flex min-h-64 flex-col items-center justify-center gap-3 text-center">
             <Warehouse
@@ -1290,40 +1637,48 @@ export default function EstoquePage({
             <strong className="text-foreground">{selectedParishLabel}</strong>
             {isDioceseConsolidated && (
               <p className="mt-1 text-muted-foreground">
-                Esta visão é consolidada e serve para consulta. Para criar,
-                editar ou excluir registros, selecione uma paróquia específica.
+                Esta visão é consolidada e serve para consulta. Selecione uma
+                paróquia para listar os itens do estoque dela.
+              </p>
+            )}
+            {canShowOperationalSections && !canManageCurrentParish && (
+              <p className="mt-1 text-muted-foreground">
+                Consulta liberada. Alterações continuam disponíveis apenas no
+                estoque da sua paróquia.
               </p>
             )}
           </div>
 
-          <nav
-            className="flex gap-2 overflow-x-auto rounded-xl border bg-card p-2"
-            aria-label="Seções do estoque"
-          >
-            {SECTIONS.map((item) => {
-              const Icon = item.icon;
-              const active = section === item.id;
+          {canShowOperationalSections && (
+            <nav
+              className="flex gap-2 overflow-x-auto rounded-xl border bg-card p-2"
+              aria-label="Seções do estoque"
+            >
+              {SECTIONS.map((item) => {
+                const Icon = item.icon;
+                const active = section === item.id;
 
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setSection(item.id)}
-                  aria-current={active ? "page" : undefined}
-                  className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring ${
-                    active
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                  }`}
-                >
-                  <Icon className="size-4" aria-hidden="true" />
-                  {item.label}
-                </button>
-              );
-            })}
-          </nav>
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setSection(item.id)}
+                    aria-current={active ? "page" : undefined}
+                    className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+                      active
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    }`}
+                  >
+                    <Icon className="size-4" aria-hidden="true" />
+                    {item.label}
+                  </button>
+                );
+              })}
+            </nav>
+          )}
 
-          {section === "visao-geral" && (
+          {shouldShowOverview && (
             <div className="space-y-6">
               <EstoqueResumo
                 inventoriesCount={parishInventories.length}
@@ -1341,13 +1696,8 @@ export default function EstoquePage({
                   items={data.items}
                   expiringItems={data.expiringItems}
                   expiredItems={data.expiredItems}
-                  templates={data.templates}
-                  deliveries={data.deliveries}
-                  onSelectParish={(parishIdToManage) => {
-                    setSelectedParishId(parishIdToManage);
-                    setSelectedInventoryId(null);
-                    setSection("visao-geral");
-                  }}
+                  selectingParishId={loadingParishItemsId}
+                  onSelectParish={selectParishForViewing}
                 />
               )}
 
@@ -1360,22 +1710,26 @@ export default function EstoquePage({
                 />
                 <ItensInventarioList
                   items={selectedInventoryItems}
-                  inventoryName={selectedInventory?.name ?? null}
+                  inventoryName={selectedInventoryName}
                   compact
                 />
               </div>
             </div>
           )}
 
-          {section === "inventarios" && (
+          {canShowOperationalSections && section === "inventarios" && (
             <div className="grid gap-6 xl:grid-cols-[minmax(18rem,0.8fr)_minmax(0,1.5fr)]">
               <InventariosList
                 inventories={parishInventories}
                 selectedInventoryId={selectedInventoryId}
                 onSelect={setSelectedInventoryId}
-                onCreate={canManageCurrentParish ? openCreateInventory : undefined}
+                onCreate={
+                  canManageCurrentParish ? openCreateInventory : undefined
+                }
                 onEdit={canManageCurrentParish ? openEditInventory : undefined}
-                onDelete={canManageCurrentParish ? openDeleteInventory : undefined}
+                onDelete={
+                  canManageCurrentParish ? openDeleteInventory : undefined
+                }
                 actionsDisabled={
                   savingInventory ||
                   deletingInventory ||
@@ -1384,13 +1738,18 @@ export default function EstoquePage({
                   savingEntry ||
                   savingTemplate ||
                   deletingTemplate ||
+                  savingRepasse ||
                   togglingTemplateId !== null
                 }
               />
               <ItensInventarioList
                 items={selectedInventoryItems}
-                inventoryName={selectedInventory?.name ?? null}
-                onCreate={canManageCurrentParish ? openCreateItem : undefined}
+                inventoryName={selectedInventoryName}
+                onCreate={
+                  canManageCurrentParish && selectedInventory
+                    ? openCreateItem
+                    : undefined
+                }
                 onAddLot={canManageCurrentParish ? openAddEntry : undefined}
                 onEdit={canManageCurrentParish ? openEditItem : undefined}
                 onDelete={canManageCurrentParish ? openDeleteItem : undefined}
@@ -1402,13 +1761,14 @@ export default function EstoquePage({
                   savingEntry ||
                   savingTemplate ||
                   deletingTemplate ||
+                  savingRepasse ||
                   togglingTemplateId !== null
                 }
               />
             </div>
           )}
 
-          {section === "validade" && (
+          {canShowOperationalSections && section === "validade" && (
             <AlertasValidade
               inventories={parishInventories}
               expiringItems={parishExpiringItems}
@@ -1420,14 +1780,18 @@ export default function EstoquePage({
             />
           )}
 
-          {section === "modelos" && (
+          {canShowOperationalSections && section === "modelos" && (
             <ModelosCestaList
               templates={parishTemplates}
               inventories={parishInventories}
               inventoryItems={parishItems}
-              onCreate={canManageCurrentParish ? openCreateTemplate : undefined}
+              onCreate={
+                canManageCurrentParish ? openCreateTemplate : undefined
+              }
               onEdit={canManageCurrentParish ? openEditTemplate : undefined}
-              onDelete={canManageCurrentParish ? openDeleteTemplate : undefined}
+              onDelete={
+                canManageCurrentParish ? openDeleteTemplate : undefined
+              }
               onToggleActive={
                 canManageCurrentParish
                   ? (template) => void handleToggleTemplateActive(template)
@@ -1439,12 +1803,35 @@ export default function EstoquePage({
                 togglingTemplateId !== null ||
                 savingItem ||
                 deletingItem ||
-                savingEntry
+                savingEntry ||
+                savingRepasse
               }
             />
           )}
 
-          {section === "entregas" && (
+          {canShowOperationalSections && section === "repasses" && (
+            <RepassesEstoqueList
+              repasses={parishRepasses}
+              parishes={parishes}
+              onCreate={modo === "diocese" ? openCreateRepasse : undefined}
+              onViewDetails={openRepasseDetails}
+              actionsDisabled={
+                savingRepasse ||
+                refreshing ||
+                loadingParishItemsId !== null ||
+                savingInventory ||
+                deletingInventory ||
+                savingItem ||
+                deletingItem ||
+                savingEntry ||
+                savingTemplate ||
+                deletingTemplate ||
+                togglingTemplateId !== null
+              }
+            />
+          )}
+
+          {canShowOperationalSections && section === "entregas" && (
             <div className="space-y-4">
               {familiesLoadError && (
                 <div
@@ -1457,7 +1844,9 @@ export default function EstoquePage({
               )}
               <EntregasCestaList
                 deliveries={parishDeliveries}
-                onCreate={canManageCurrentParish ? openCreateDelivery : undefined}
+                onCreate={
+                  canManageCurrentParish ? openCreateDelivery : undefined
+                }
                 onViewDetails={setDeliveryBeingViewed}
                 onViewFamilyHistory={openFamilyHistory}
                 actionsDisabled={
@@ -1467,6 +1856,7 @@ export default function EstoquePage({
                   savingEntry ||
                   savingTemplate ||
                   deletingTemplate ||
+                  savingRepasse ||
                   togglingTemplateId !== null
                 }
               />
@@ -1578,6 +1968,36 @@ export default function EstoquePage({
           }
         }}
         onConfirm={handleDeleteTemplate}
+      />
+
+      <RepasseEstoqueForm
+        open={repasseFormOpen}
+        onOpenChange={(open) => {
+          setRepasseFormOpen(open);
+          if (!open) {
+            setRepasseFormError(null);
+          }
+        }}
+        parishes={parishes}
+        defaultParishId={modo === "diocese" ? selectedParishId : null}
+        saving={savingRepasse}
+        error={repasseFormError}
+        onSubmit={handleRepasseSubmit}
+      />
+
+      <DetalheRepasseDialog
+        open={repasseBeingViewed !== null}
+        repasse={repasseBeingViewed}
+        parishes={parishes}
+        loading={loadingRepasseDetails}
+        error={repasseDetailsError}
+        onOpenChange={(open) => {
+          if (!open) {
+            setRepasseBeingViewed(null);
+            setRepasseDetailsError(null);
+            setLoadingRepasseDetails(false);
+          }
+        }}
       />
 
       <RegistrarEntregaModal

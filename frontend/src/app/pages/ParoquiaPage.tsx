@@ -9,7 +9,10 @@ import Sidebar from "../components/Sidebar";
 import { menuParoquiaItems } from "../config/MenuParoquia";
 import VisitaDomiciliar from "../components/VisitaDomiciliar";
 import PainelGeralParoquia from "../components/PainelParoquia/PainelGeralParoquia";
-import { EstoqueParoquia } from "../components/Estoque";
+import {
+  EstoqueConsultaParoquias,
+  EstoqueParoquia,
+} from "../components/Estoque";
 
 export default function ParoquiaPage() {
   const navigate = useNavigate();
@@ -55,6 +58,8 @@ export default function ParoquiaPage() {
         return <NucleoFamiliar />;
       case "estoque":
         return <EstoqueParoquia />;
+      case "paroquias":
+        return <EstoqueConsultaParoquias />;
       case "visitas":
         return <VisitaDomiciliar />;
       case "prestacao":

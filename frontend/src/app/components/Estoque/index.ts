@@ -1,7 +1,9 @@
 export { default as AdicionarLoteModal } from "./AdicionarLoteModal";
 export { default as AlertasValidade } from "./AlertasValidade";
 export { default as DetalheEntregaDialog } from "./DetalheEntregaDialog";
+export { default as DetalheRepasseDialog } from "./DetalheRepasseDialog";
 export { default as EntregasCestaList } from "./EntregasCestaList";
+export { default as EstoqueConsultaParoquias } from "./EstoqueConsultaParoquias";
 export { default as EstoqueDiocese } from "./EstoqueDiocese";
 export { default as EstoquePage } from "./EstoquePage";
 export { default as EstoqueParoquia } from "./EstoqueParoquia";
@@ -17,6 +19,8 @@ export { default as ItensInventarioList } from "./ItensInventarioList";
 export { default as ModeloCestaForm } from "./ModeloCestaForm";
 export { default as ModelosCestaList } from "./ModelosCestaList";
 export { default as RegistrarEntregaModal } from "./RegistrarEntregaModal";
+export { default as RepasseEstoqueForm } from "./RepasseEstoqueForm";
+export { default as RepassesEstoqueList } from "./RepassesEstoqueList";
 export { default as ResumoEstoqueDiocese } from "./ResumoEstoqueDiocese";
 
 export type { EstoqueMode, EstoquePageProps } from "./EstoquePage";
@@ -30,6 +34,9 @@ export type { ModeloCestaFormValues } from "./ModeloCestaForm";
 export type { AdicionarLoteModalProps } from "./AdicionarLoteModal";
 
 export type { DetalheEntregaDialogProps } from "./DetalheEntregaDialog";
+export type { DetalheRepasseDialogProps } from "./DetalheRepasseDialog";
 export type { EntregasCestaListProps } from "./EntregasCestaList";
 export type { HistoricoFamiliaModalProps } from "./HistoricoFamiliaModal";
 export type { RegistrarEntregaModalProps } from "./RegistrarEntregaModal";
+export type { RepasseEstoqueFormProps } from "./RepasseEstoqueForm";
+export type { RepassesEstoqueListProps } from "./RepassesEstoqueList";

@@ -16,6 +16,13 @@ export async function listUsers(): Promise<PainelUsuario[]> {
   return response.data.data;
 }
 
+// Lista usuÃ¡rios inativos no escopo do token autenticado.
+export async function listInactiveUsers(): Promise<PainelUsuario[]> {
+  const response = await api.get<UsersListResponse>("/inactive-users");
+
+  return response.data.data;
+}
+
 // Carrega os papéis de sistema e de paróquia disponibilizados pela API.
 export async function listRoles(): Promise<RolesData> {
   const response = await api.get<RolesResponse>("/roles");
@@ -46,7 +53,12 @@ export async function updateUser(
   return response.data.data;
 }
 
-// Exclui um usuário. A API responde com HTTP 204 e sem conteúdo.
-export async function deleteUser(userId: number): Promise<void> {
-  await api.delete(`/users/${userId}`);
+export async function inactivateUser(userId: number): Promise<void> {
+  await api.patch(`/users/${userId}/inactivate`);
+}
+
+export async function activateUser(userId: number): Promise<PainelUsuario> {
+  const response = await api.patch<UserResponse>(`/users/${userId}/activate`);
+
+  return response.data.data;
 }

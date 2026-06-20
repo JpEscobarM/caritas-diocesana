@@ -104,6 +104,55 @@ export type ParishInventoryItemsListResponse =
   ApiListResponse<ParishInventoryItem>;
 
 // -----------------------------------------------------------------------------
+// Repasses de estoque
+// -----------------------------------------------------------------------------
+
+export interface ParishInventoryRepasseItem {
+  id: number;
+  name: string;
+  description: string | null;
+  quantity: number;
+  unit: string | null;
+  valid_until: ISODateString;
+  created_at: ISODateTimeString;
+  updated_at: ISODateTimeString;
+}
+
+export interface ParishInventoryRepasse {
+  id: number;
+  parish_id: number;
+  delivered_at: ISODateTimeString;
+  notes: string | null;
+  items: ParishInventoryRepasseItem[];
+  created_at: ISODateTimeString;
+  updated_at: ISODateTimeString;
+}
+
+export interface CreateParishInventoryRepasseItemPayload {
+  name: string;
+  description?: string | null;
+  quantity: number;
+  unit?: string | null;
+  valid_until: ISODateString;
+}
+
+export interface CreateParishInventoryRepassePayload {
+  parish_id: number;
+  delivered_at?: ISODateTimeString;
+  notes?: string | null;
+  items: CreateParishInventoryRepasseItemPayload[];
+}
+
+export interface ParishInventoryRepasseFilters {
+  parish_id?: number;
+}
+
+export type ParishInventoryRepasseResponse =
+  ApiDataResponse<ParishInventoryRepasse>;
+export type ParishInventoryRepassesListResponse =
+  ApiListResponse<ParishInventoryRepasse>;
+
+// -----------------------------------------------------------------------------
 // Alertas de validade
 // -----------------------------------------------------------------------------
 

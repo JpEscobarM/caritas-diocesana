@@ -20,6 +20,7 @@ export type PainelUsuario = {
   name: string;
   email: string;
   system_role: SystemRole;
+  active: boolean;
   parishes: UserParish[];
 };
 

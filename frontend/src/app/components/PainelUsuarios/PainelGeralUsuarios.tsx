@@ -9,7 +9,8 @@ import {
   RefreshCcw,
   Search,
   ShieldCheck,
-  Trash2,
+  UserCheck,
+  UserX,
   UserRound,
   UsersRound,
 } from "lucide-react";
@@ -18,8 +19,10 @@ import { toast } from "sonner";
 import { getAuthSession } from "../../api/auth";
 import { listParishes } from "../../api/parishes";
 import {
+  activateUser,
   createUser,
-  deleteUser,
+  inactivateUser,
+  listInactiveUsers,
   listRoles,
   listUsers,
   updateUser,
@@ -162,23 +165,27 @@ function getInitials(name: string): string {
 
 export default function PainelGeralUsuarios() {
   const [users, setUsers] = useState<PainelUsuario[]>([]);
+  const [inactiveUsers, setInactiveUsers] = useState<PainelUsuario[]>([]);
   const [parishes, setParishes] = useState<Parish[]>([]);
   const [roles, setRoles] = useState<RolesData>(FALLBACK_ROLES);
 
   const [search, setSearch] = useState("");
   const [parishSearch, setParishSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("all");
+  const [showingInactiveUsers, setShowingInactiveUsers] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [activatingUserId, setActivatingUserId] = useState<number | null>(null);
 
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<PainelUsuario | null>(null);
   const [form, setForm] = useState<PainelUsuarioFormState>(INITIAL_FORM);
 
-  const [userToDelete, setUserToDelete] = useState<PainelUsuario | null>(null);
+  const [userToInactivate, setUserToInactivate] =
+    useState<PainelUsuario | null>(null);
 
   const formScrollRef = useRef<HTMLDivElement | null>(null);
   const currentUserId = getAuthSession()?.user?.id;
@@ -207,10 +214,43 @@ export default function PainelGeralUsuarios() {
     try {
       setRefreshing(true);
 
-      const usersData = await listUsers();
-      setUsers(usersData);
+      if (showingInactiveUsers) {
+        const usersData = await listInactiveUsers();
+        setInactiveUsers(usersData);
+      } else {
+        const usersData = await listUsers();
+        setUsers(usersData);
+      }
 
       toast.success("Lista de usuários atualizada.");
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setRefreshing(false);
+    }
+  }
+
+  async function showActiveUsers() {
+    try {
+      setRefreshing(true);
+      const usersData = await listUsers();
+      setUsers(usersData);
+      setShowingInactiveUsers(false);
+      setSearch("");
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setRefreshing(false);
+    }
+  }
+
+  async function showInactiveUsers() {
+    try {
+      setRefreshing(true);
+      const usersData = await listInactiveUsers();
+      setInactiveUsers(usersData);
+      setShowingInactiveUsers(true);
+      setSearch("");
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
@@ -256,10 +296,12 @@ export default function PainelGeralUsuarios() {
     );
   }, [activeParishes, parishSearch]);
 
+  const displayedUsers = showingInactiveUsers ? inactiveUsers : users;
+
   const filteredUsers = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
 
-    return users
+    return displayedUsers
       .filter((user) => {
         const matchesRole =
           roleFilter === "all" || user.system_role === roleFilter;
@@ -277,7 +319,7 @@ export default function PainelGeralUsuarios() {
       .sort((firstUser, secondUser) =>
         firstUser.name.localeCompare(secondUser.name, "pt-BR"),
       );
-  }, [roleFilter, search, users]);
+  }, [displayedUsers, roleFilter, search]);
 
   const stats = useMemo(() => {
     const dioceseAdmins = users.filter(
@@ -437,35 +479,54 @@ export default function PainelGeralUsuarios() {
     }
   }
 
-  function requestDelete(user: PainelUsuario) {
+  function requestInactivate(user: PainelUsuario) {
     if (user.id === currentUserId) {
-      toast.error("Você não pode excluir a própria conta por este painel.");
+      toast.error("Você não pode inativar a própria conta por este painel.");
       return;
     }
 
-    setUserToDelete(user);
+    setUserToInactivate(user);
   }
 
-  async function confirmDelete() {
-    if (!userToDelete) {
+  async function confirmInactivate() {
+    if (!userToInactivate) {
       return;
     }
 
     try {
       setDeleting(true);
 
-      await deleteUser(userToDelete.id);
+      await inactivateUser(userToInactivate.id);
 
       setUsers((currentUsers) =>
-        currentUsers.filter((user) => user.id !== userToDelete.id),
+        currentUsers.filter((user) => user.id !== userToInactivate.id),
       );
 
-      toast.success("Usuário excluído com sucesso.");
-      setUserToDelete(null);
+      toast.success("Usuário inativado com sucesso.");
+      setUserToInactivate(null);
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
       setDeleting(false);
+    }
+  }
+
+  async function handleActivateUser(user: PainelUsuario) {
+    try {
+      setActivatingUserId(user.id);
+
+      const activatedUser = await activateUser(user.id);
+
+      setInactiveUsers((currentUsers) =>
+        currentUsers.filter((currentUser) => currentUser.id !== user.id),
+      );
+      setUsers((currentUsers) => [activatedUser, ...currentUsers]);
+
+      toast.success("Usuário reativado com sucesso.");
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setActivatingUserId(null);
     }
   }
 
@@ -551,7 +612,22 @@ export default function PainelGeralUsuarios() {
 
           <Button
             type="button"
+            variant="outline"
+            onClick={() =>
+              showingInactiveUsers
+                ? void showActiveUsers()
+                : void showInactiveUsers()
+            }
+            disabled={refreshing || loading}
+          >
+            {showingInactiveUsers ? <UsersRound /> : <UserX />}
+            {showingInactiveUsers ? "Ver ativos" : "Ver inativos"}
+          </Button>
+
+          <Button
+            type="button"
             onClick={openCreateDialog}
+            disabled={showingInactiveUsers}
             className="bg-[var(--chart-3)] text-white hover:opacity-95"
           >
             <Plus />
@@ -618,7 +694,11 @@ export default function PainelGeralUsuarios() {
         <CardHeader className=" bg-muted/20">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <CardTitle>Usuários cadastrados</CardTitle>
+              <CardTitle>
+                {showingInactiveUsers
+                  ? "Usuários inativos"
+                  : "Usuários ativos"}
+              </CardTitle>
               <CardDescription className="mt-1">
                 {filteredUsers.length}{" "}
                 {filteredUsers.length === 1
@@ -676,15 +756,28 @@ export default function PainelGeralUsuarios() {
                 <UsersRound className="size-7 text-muted-foreground" />
               </div>
               <div className="max-w-md">
-                <p className="font-semibold">Nenhum usuário encontrado</p>
+                <p className="font-semibold">
+                  {showingInactiveUsers
+                    ? "Nenhum usuário inativo encontrado"
+                    : "Nenhum usuário encontrado"}
+                </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Revise a busca ou cadastre um novo usuário para começar.
+                  {showingInactiveUsers
+                    ? "Revise a busca ou volte para a lista de usuários ativos."
+                    : "Revise a busca ou cadastre um novo usuário para começar."}
                 </p>
               </div>
-              <Button type="button" onClick={openCreateDialog}>
-                <Plus />
-                Cadastrar usuário
-              </Button>
+              {showingInactiveUsers ? (
+                <Button type="button" variant="outline" onClick={() => void showActiveUsers()}>
+                  <UsersRound />
+                  Ver usuários ativos
+                </Button>
+              ) : (
+                <Button type="button" onClick={openCreateDialog}>
+                  <Plus />
+                  Cadastrar usuário
+                </Button>
+              )}
             </div>
           ) : (
             <>
@@ -769,32 +862,52 @@ export default function PainelGeralUsuarios() {
 
                           <TableCell className="whitespace-nowrap pr-6 align-middle">
                             <div className="flex items-center justify-end gap-2">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => openEditDialog(user)}
-                              >
-                                <Edit3 />
-                                Editar
-                              </Button>
+                              {!showingInactiveUsers && (
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => openEditDialog(user)}
+                                >
+                                  <Edit3 />
+                                  Editar
+                                </Button>
+                              )}
 
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => requestDelete(user)}
-                                disabled={isCurrentUser}
-                                title={
-                                  isCurrentUser
-                                    ? "Você não pode excluir a própria conta."
-                                    : "Excluir usuário"
-                                }
-                                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                              >
-                                <Trash2 />
-                                Excluir
-                              </Button>
+                              {showingInactiveUsers ? (
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => void handleActivateUser(user)}
+                                  disabled={activatingUserId === user.id}
+                                  className="text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+                                >
+                                  {activatingUserId === user.id ? (
+                                    <Loader2 className="animate-spin" />
+                                  ) : (
+                                    <UserCheck />
+                                  )}
+                                  Reativar
+                                </Button>
+                              ) : (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => requestInactivate(user)}
+                                  disabled={isCurrentUser}
+                                  title={
+                                    isCurrentUser
+                                      ? "Você não pode inativar a própria conta."
+                                      : "Inativar usuário"
+                                  }
+                                  className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                >
+                                  <UserX />
+                                  Inativar
+                                </Button>
+                              )}
                             </div>
                           </TableCell>
                         </TableRow>
@@ -850,27 +963,47 @@ export default function PainelGeralUsuarios() {
                       </div>
 
                       <div className="grid grid-cols-2 gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openEditDialog(user)}
-                        >
-                          <Edit3 />
-                          Editar
-                        </Button>
+                        {!showingInactiveUsers && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openEditDialog(user)}
+                          >
+                            <Edit3 />
+                            Editar
+                          </Button>
+                        )}
 
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => requestDelete(user)}
-                          disabled={isCurrentUser}
-                          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                        >
-                          <Trash2 />
-                          Excluir
-                        </Button>
+                        {showingInactiveUsers ? (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => void handleActivateUser(user)}
+                            disabled={activatingUserId === user.id}
+                            className="text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+                          >
+                            {activatingUserId === user.id ? (
+                              <Loader2 className="animate-spin" />
+                            ) : (
+                              <UserCheck />
+                            )}
+                            Reativar
+                          </Button>
+                        ) : (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => requestInactivate(user)}
+                            disabled={isCurrentUser}
+                            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          >
+                            <UserX />
+                            Inativar
+                          </Button>
+                        )}
                       </div>
                     </article>
                   );
@@ -1159,20 +1292,22 @@ export default function PainelGeralUsuarios() {
       </Dialog>
 
       <AlertDialog
-        open={Boolean(userToDelete)}
+        open={Boolean(userToInactivate)}
         onOpenChange={(open) => {
           if (!open && !deleting) {
-            setUserToDelete(null);
+            setUserToInactivate(null);
           }
         }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir usuário?</AlertDialogTitle>
+            <AlertDialogTitle>Inativar usuário?</AlertDialogTitle>
             <AlertDialogDescription>
               O usuário{" "}
-              <strong className="text-foreground">{userToDelete?.name}</strong>{" "}
-              perderá o acesso ao sistema. Esta ação não pode ser desfeita.
+              <strong className="text-foreground">
+                {userToInactivate?.name}
+              </strong>{" "}
+              perderá o acesso ao sistema e seus tokens serão revogados.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
@@ -1181,13 +1316,13 @@ export default function PainelGeralUsuarios() {
             <AlertDialogAction
               onClick={(event) => {
                 event.preventDefault();
-                void confirmDelete();
+                void confirmInactivate();
               }}
               disabled={deleting}
               className="bg-destructive text-destructive-foreground hover:bg-[var(--destructive-hover)]"
             >
               {deleting && <Loader2 className="animate-spin" />}
-              Sim, excluir usuário
+              Sim, inativar usuário
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1,6 +1,7 @@
 import {
   Heart,
   Package,
+  Building2,
   Users,
   Home,
   ClipboardList,
@@ -43,6 +44,18 @@ export const menuParoquiaItems = [
     id: "estoque",
     label: "Estoque Paroquial",
     icon: Package,
+    allowedRoles: [
+      "diocese_admin",
+      "atendente_social",
+      "responsavel_estoque",
+      "responsavel_bazar",
+      "user",
+    ],
+  },
+  {
+    id: "paroquias",
+    label: "Paróquias",
+    icon: Building2,
     allowedRoles: [
       "diocese_admin",
       "atendente_social",

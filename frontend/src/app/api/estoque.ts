@@ -11,6 +11,7 @@ import type {
   BasketTemplatesListResponse,
   CreateBasketDeliveryPayload,
   CreateBasketTemplatePayload,
+  CreateParishInventoryRepassePayload,
   CreateParishInventoryItemPayload,
   CreateParishInventoryPayload,
   ExpiredItemsResponse,
@@ -20,6 +21,10 @@ import type {
   ParishInventoryItem,
   ParishInventoryItemResponse,
   ParishInventoryItemsListResponse,
+  ParishInventoryRepasse,
+  ParishInventoryRepasseFilters,
+  ParishInventoryRepasseResponse,
+  ParishInventoryRepassesListResponse,
   ParishInventoryResponse,
   UpdateBasketTemplatePayload,
   UpdateParishInventoryItemPayload,
@@ -86,6 +91,17 @@ export async function listParishInventoryItems(): Promise<
   return response.data.data;
 }
 
+/** Lista os itens de estoque de uma paróquia específica. */
+export async function listParishInventoryItemsByParish(
+  parishId: number,
+): Promise<ParishInventoryItem[]> {
+  const response = await api.get<ParishInventoryItemsListResponse>(
+    `/parish-inventory-items/${parishId}`,
+  );
+
+  return response.data.data;
+}
+
 /** Cria um item e registra o primeiro lote com quantidade e validade. */
 export async function createParishInventoryItem(
   payload: CreateParishInventoryItemPayload,
@@ -132,6 +148,45 @@ export async function deleteParishInventoryItem(
   parishInventoryItemId: number,
 ): Promise<void> {
   await api.delete(`/parish-inventory-items/${parishInventoryItemId}`);
+}
+
+// -----------------------------------------------------------------------------
+// Repasses de estoque
+// -----------------------------------------------------------------------------
+
+/** Lista repasses. Diocese pode filtrar por paróquia. */
+export async function listParishInventoryRepasses(
+  filters: ParishInventoryRepasseFilters = {},
+): Promise<ParishInventoryRepasse[]> {
+  const response = await api.get<ParishInventoryRepassesListResponse>(
+    "/parish-inventory-repasses",
+    { params: filters },
+  );
+
+  return response.data.data;
+}
+
+/** Registra um repasse para uma paróquia. Apenas token da diocese pode criar. */
+export async function createParishInventoryRepasse(
+  payload: CreateParishInventoryRepassePayload,
+): Promise<ParishInventoryRepasse> {
+  const response = await api.post<ParishInventoryRepasseResponse>(
+    "/parish-inventory-repasses",
+    payload,
+  );
+
+  return response.data.data;
+}
+
+/** Detalha um repasse de estoque. */
+export async function getParishInventoryRepasse(
+  repasseId: number,
+): Promise<ParishInventoryRepasse> {
+  const response = await api.get<ParishInventoryRepasseResponse>(
+    `/parish-inventory-repasses/${repasseId}`,
+  );
+
+  return response.data.data;
 }
 
 // -----------------------------------------------------------------------------

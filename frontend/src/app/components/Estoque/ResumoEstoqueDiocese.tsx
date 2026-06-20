@@ -3,15 +3,12 @@ import {
   AlertTriangle,
   Boxes,
   Building2,
-  ClipboardList,
-  Gift,
+  Loader2,
   Package,
   Search,
 } from "lucide-react";
 
 import type {
-  BasketDelivery,
-  BasketTemplate,
   ExpiredParishInventoryItem,
   ExpiringParishInventoryItem,
   ParishInventory,
@@ -35,9 +32,8 @@ export interface ResumoEstoqueDioceseProps {
   items: ParishInventoryItem[];
   expiringItems: ExpiringParishInventoryItem[];
   expiredItems: ExpiredParishInventoryItem[];
-  templates: BasketTemplate[];
-  deliveries: BasketDelivery[];
-  onSelectParish: (parishId: number) => void;
+  onSelectParish: (parishId: number) => void | Promise<void>;
+  selectingParishId?: number | null;
 }
 
 interface ParishSummary {
@@ -47,8 +43,6 @@ interface ParishSummary {
   totalQuantity: number;
   expiringQuantity: number;
   expiredQuantity: number;
-  templatesCount: number;
-  deliveriesCount: number;
 }
 
 function normalizeSearch(value: string): string {
@@ -61,9 +55,8 @@ export default function ResumoEstoqueDiocese({
   items,
   expiringItems,
   expiredItems,
-  templates,
-  deliveries,
   onSelectParish,
+  selectingParishId = null,
 }: ResumoEstoqueDioceseProps) {
   const [search, setSearch] = useState("");
 
@@ -102,12 +95,6 @@ export default function ResumoEstoqueDiocese({
             (total, item) => total + item.expired_quantity,
             0,
           ),
-          templatesCount: templates.filter(
-            (template) => template.parish_id === parish.id,
-          ).length,
-          deliveriesCount: deliveries.filter(
-            (delivery) => delivery.parish_id === parish.id,
-          ).length,
         };
       })
       .sort((first, second) => {
@@ -121,7 +108,7 @@ export default function ResumoEstoqueDiocese({
 
         return first.parish.name.localeCompare(second.parish.name, "pt-BR");
       });
-  }, [deliveries, expiredItems, expiringItems, inventories, items, parishes, templates]);
+  }, [expiredItems, expiringItems, inventories, items, parishes]);
 
   const filteredSummaries = useMemo(() => {
     const normalized = normalizeSearch(search);
@@ -146,9 +133,8 @@ export default function ResumoEstoqueDiocese({
           <div>
             <CardTitle>Visão consolidada por paróquia</CardTitle>
             <CardDescription>
-              Acompanhe saldos, alertas, modelos e entregas de todas as
-              paróquias em um único painel. Para alterar dados, abra uma
-              paróquia específica.
+              Acompanhe saldos e alertas de todas as paróquias em um único
+              painel. Abra uma paróquia para listar os itens do estoque dela.
             </CardDescription>
           </div>
 
@@ -198,6 +184,8 @@ export default function ResumoEstoqueDiocese({
             {filteredSummaries.map((summary) => {
               const hasAlert =
                 summary.expiringQuantity > 0 || summary.expiredQuantity > 0;
+              const selectingThisParish =
+                selectingParishId === summary.parish.id;
 
               return (
                 <article
@@ -217,7 +205,7 @@ export default function ResumoEstoqueDiocese({
                         )}
                       </div>
 
-                      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+                      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                         <div className="rounded-lg bg-muted/50 px-3 py-2">
                           <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                             <Boxes className="size-3.5" aria-hidden="true" />
@@ -261,38 +249,19 @@ export default function ResumoEstoqueDiocese({
                             {summary.expiringQuantity + summary.expiredQuantity}
                           </p>
                         </div>
-
-                        <div className="rounded-lg bg-muted/50 px-3 py-2">
-                          <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <ClipboardList
-                              className="size-3.5"
-                              aria-hidden="true"
-                            />
-                            Modelos
-                          </p>
-                          <p className="font-semibold text-foreground">
-                            {summary.templatesCount}
-                          </p>
-                        </div>
-
-                        <div className="rounded-lg bg-muted/50 px-3 py-2">
-                          <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <Gift className="size-3.5" aria-hidden="true" />
-                            Entregas
-                          </p>
-                          <p className="font-semibold text-foreground">
-                            {summary.deliveriesCount}
-                          </p>
-                        </div>
                       </div>
                     </div>
 
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => onSelectParish(summary.parish.id)}
+                      onClick={() => void onSelectParish(summary.parish.id)}
+                      disabled={selectingParishId !== null}
                     >
-                      Gerenciar paróquia
+                      {selectingThisParish && (
+                        <Loader2 className="animate-spin" aria-hidden="true" />
+                      )}
+                      {selectingThisParish ? "Carregando..." : "Listar estoque"}
                     </Button>
                   </div>
                 </article>
