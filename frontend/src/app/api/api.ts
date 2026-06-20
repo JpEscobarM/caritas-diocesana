@@ -3,7 +3,7 @@ import { getAuthSession } from "./auth";
 
 //CRIA UMA INSTANCIA DO AXIOS PARA OS REQUEST's
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: "/api",
   headers: {
     Accept: "application/json",
     "Content-Type": "application/json",
