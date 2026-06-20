@@ -11,7 +11,28 @@ import {
 } from "lucide-react";
 import { getParoquias, loginParoquia, setAuthSession } from "../api/auth";
 import { toast, Toaster } from "sonner";
-import type { AuthSession, Parish } from "../types/types";
+import type { AuthSession, Parish, ParishRole } from "../types/types";
+
+const PARISH_ROLES: ParishRole[] = ["member", "admin", "admin_no_visits"];
+
+function isParishRole(role: unknown): role is ParishRole {
+  return typeof role === "string" && PARISH_ROLES.includes(role as ParishRole);
+}
+
+function getParishRoleFromLoginResponse(
+  response: any,
+  parishId: number,
+): ParishRole | undefined {
+  const role =
+    response?.parish_role ??
+    response?.user?.parish_role ??
+    response?.parish?.role ??
+    response?.parish_user?.role ??
+    response?.user?.parishes?.find((parish: Parish) => parish.id === parishId)
+      ?.role;
+
+  return isParishRole(role) ? role : undefined;
+}
 
 export default function ParoquiaLoginPage() {
   const [listaParoquias, setListaParoquias] = useState<Parish[]>([]);
@@ -97,6 +118,10 @@ export default function ParoquiaLoginPage() {
         senhaLimpa,
         paroquiaSelecionada,
       );
+      const parishRole = getParishRoleFromLoginResponse(
+        response,
+        paroquiaSelecionada,
+      );
 
       const session: AuthSession = {
         token_type: response.token_type,
@@ -104,6 +129,7 @@ export default function ParoquiaLoginPage() {
         abilities: response.abilities,
         user: response.user,
         parish: response.parish,
+        parish_role: parishRole,
       };
 
       setAuthSession(session);

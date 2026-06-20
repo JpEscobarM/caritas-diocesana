@@ -1,91 +1,58 @@
 import {
-  Heart,
   Package,
   Building2,
   Users,
   Home,
   ClipboardList,
   DollarSign,
-  LogOut,
-  Bell,
-  ChevronLeft,
-  ChevronRight,
-  AlertTriangle,
-  Calendar,
-  TrendingUp,
 } from "lucide-react";
+import type { ParishRole } from "../types/types";
+
+const PARISH_SYSTEM_ROLES = ["user", "diocese_admin"];
+const ALL_PARISH_ROLES: ParishRole[] = ["member", "admin", "admin_no_visits"];
+const PARISH_ROLES_WITH_VISITS: ParishRole[] = ["member", "admin"];
 
 export const menuParoquiaItems = [
   {
     id: "geral",
     label: "Painel Geral",
     icon: Home,
-    allowedRoles: [
-      "diocese_admin",
-      "atendente_social",
-      "responsavel_estoque",
-      "responsavel_bazar",
-      "user", // é o que retorna ao criar um usuario admin
-    ],
+    allowedRoles: PARISH_SYSTEM_ROLES,
+    allowedParishRoles: ALL_PARISH_ROLES,
   },
   {
     id: "nucleos",
     label: "Núcleos Familiares",
     icon: Users,
-    allowedRoles: [
-      "diocese_admin",
-      "atendente_social",
-      "responsavel_estoque",
-      "responsavel_bazar",
-      "user",
-    ],
+    allowedRoles: PARISH_SYSTEM_ROLES,
+    allowedParishRoles: ALL_PARISH_ROLES,
   },
   {
     id: "estoque",
     label: "Estoque Paroquial",
     icon: Package,
-    allowedRoles: [
-      "diocese_admin",
-      "atendente_social",
-      "responsavel_estoque",
-      "responsavel_bazar",
-      "user",
-    ],
+    allowedRoles: PARISH_SYSTEM_ROLES,
+    allowedParishRoles: ALL_PARISH_ROLES,
   },
   {
     id: "paroquias",
     label: "Paróquias",
     icon: Building2,
-    allowedRoles: [
-      "diocese_admin",
-      "atendente_social",
-      "responsavel_estoque",
-      "responsavel_bazar",
-      "user",
-    ],
+    allowedRoles: PARISH_SYSTEM_ROLES,
+    allowedParishRoles: ALL_PARISH_ROLES,
   },
   {
     id: "visitas",
     label: "Visitas Domiciliares",
     icon: ClipboardList,
-    allowedRoles: [
-      "diocese_admin",
-      "atendente_social",
-      "responsavel_estoque",
-      "responsavel_bazar",
-      "user",
-    ],
+    allowedRoles: PARISH_SYSTEM_ROLES,
+    allowedParishRoles: PARISH_ROLES_WITH_VISITS,
   },
   {
     id: "prestacao",
     label: "Prestação de Contas",
     icon: DollarSign,
-    allowedRoles: [
-      "diocese_admin",
-      "atendente_social",
-      "responsavel_estoque",
-      "responsavel_bazar",
-      "user",
-    ],
+    allowedRoles: PARISH_SYSTEM_ROLES,
+    allowedParishRoles: ALL_PARISH_ROLES,
   },
 ];

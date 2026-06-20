@@ -1,5 +1,7 @@
 export type Profile = "diocese" | "paroquia";
 
+export type ParishRole = "member" | "admin" | "admin_no_visits";
+
 // ---- Tipo de paroquia ----
 export type Parish = {
   id: number;
@@ -37,7 +39,7 @@ export type ApiResponse<T> = {
 
 // ---- Tipo de paroquia vinculada ao usuario ----
 export type UserParish = Parish & {
-  role: string;
+  role: ParishRole;
 };
 //------------------------------------------------
 
@@ -48,6 +50,7 @@ export type AuthUser = {
   name: string;
   email: string;
   system_role: string;
+  parish_role?: ParishRole;
   parishes?: UserParish[];
 };
 //---------------------------------------
@@ -60,6 +63,7 @@ export type AuthSession = {
   abilities: string[];
   user: AuthUser;
   parish: Parish | null;
+  parish_role?: ParishRole;
 };
 //----------------------------------------
 

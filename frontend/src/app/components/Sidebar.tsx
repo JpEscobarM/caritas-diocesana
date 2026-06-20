@@ -1,10 +1,12 @@
 import type { LucideIcon } from "lucide-react";
+import type { ParishRole } from "../types/types";
 
 export type SidebarItem = {
   id: string;
   label: string;
   icon: LucideIcon;
   allowedRoles: string[];
+  allowedParishRoles?: ParishRole[];
 };
 
 type SidebarProps = {

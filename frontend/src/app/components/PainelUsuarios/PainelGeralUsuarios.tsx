@@ -118,6 +118,10 @@ const FALLBACK_ROLES: RolesData = {
       value: "admin",
       label: "Admin da paróquia",
     },
+    {
+      value: "admin_no_visits",
+      label: "Admin da paróquia sem visitas",
+    },
   ],
 };
 

@@ -46,6 +46,7 @@ import {
 
 type PainelGeralParoquiaProps = {
   onNavigate: (tabId: string) => void;
+  canViewVisits?: boolean;
 };
 
 type SummaryCardProps = {
@@ -111,6 +112,7 @@ function SummaryCard({ title, value, description, icon }: SummaryCardProps) {
 
 export default function PainelGeralParoquia({
   onNavigate,
+  canViewVisits = true,
 }: PainelGeralParoquiaProps) {
   const session = getAuthSession();
   const parish = getSessionParish();
@@ -124,6 +126,10 @@ export default function PainelGeralParoquia({
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
 
   const visitsWithFamily = useMemo<HomeVisitWithFamily[]>(() => {
+    if (!canViewVisits) {
+      return [];
+    }
+
     const familyById = new Map(families.map((family) => [family.id, family]));
 
     return visits
@@ -135,7 +141,7 @@ export default function PainelGeralParoquia({
           (session?.user.id === visit.user_id ? session.user : null),
       }))
       .sort(sortHomeVisitsForDisplay);
-  }, [families, visits, session]);
+  }, [canViewVisits, families, visits, session]);
 
   const dashboardData = useMemo(() => {
     const activeFamilies = families.filter((family) => family.is_active !== false);
@@ -234,8 +240,8 @@ export default function PainelGeralParoquia({
       ] = await Promise.allSettled([
         listFamilies(false),
         getInactiveFamilies(false),
-        listRecentHomeVisits(),
-        listHomeVisitsHistory(),
+        canViewVisits ? listRecentHomeVisits() : Promise.resolve([]),
+        canViewVisits ? listHomeVisitsHistory() : Promise.resolve([]),
       ]);
 
       const failedSections: string[] = [];
@@ -252,24 +258,33 @@ export default function PainelGeralParoquia({
         failedSections.push("famílias desativadas");
       }
 
-      const loadedVisits = [
-        recentVisitsResult.status === "fulfilled" ? recentVisitsResult.value : [],
-        historyVisitsResult.status === "fulfilled" ? historyVisitsResult.value : [],
-      ].flat();
+      if (canViewVisits) {
+        const loadedVisits = [
+          recentVisitsResult.status === "fulfilled"
+            ? recentVisitsResult.value
+            : [],
+          historyVisitsResult.status === "fulfilled"
+            ? historyVisitsResult.value
+            : [],
+        ].flat();
 
-      if (
-        recentVisitsResult.status === "rejected" &&
-        historyVisitsResult.status === "rejected"
-      ) {
-        failedSections.push("visitas");
+        if (
+          recentVisitsResult.status === "rejected" &&
+          historyVisitsResult.status === "rejected"
+        ) {
+          failedSections.push("visitas");
+        }
+
+        setVisits(mergeHomeVisits(loadedVisits));
+      } else {
+        setVisits([]);
       }
-
-      setVisits(mergeHomeVisits(loadedVisits));
 
       if (
         familiesResult.status === "rejected" &&
-        recentVisitsResult.status === "rejected" &&
-        historyVisitsResult.status === "rejected"
+        (!canViewVisits ||
+          (recentVisitsResult.status === "rejected" &&
+            historyVisitsResult.status === "rejected"))
       ) {
         throw familiesResult.reason;
       }
@@ -302,7 +317,7 @@ export default function PainelGeralParoquia({
   const hasNoData =
     !loading &&
     dashboardData.activeFamilies.length === 0 &&
-    visitsWithFamily.length === 0;
+    (!canViewVisits || visitsWithFamily.length === 0);
 
   return (
     <div className="space-y-6">
@@ -317,7 +332,7 @@ export default function PainelGeralParoquia({
             <p className="mt-2 max-w-3xl text-lg leading-relaxed text-slate-700">
               Aqui estão as principais informações da{" "}
               <strong>{parish?.name ?? "sua paróquia"}</strong> para ajudar no
-              acompanhamento das famílias e visitas.
+              acompanhamento das famílias{canViewVisits ? " e visitas" : ""}.
             </p>
           </div>
 
@@ -352,7 +367,8 @@ export default function PainelGeralParoquia({
             Carregando painel da paróquia
           </h3>
           <p className="mt-2 text-base text-slate-600">
-            Buscando famílias, membros cadastrados e visitas domiciliares.
+            Buscando famílias, membros cadastrados
+            {canViewVisits ? " e visitas domiciliares" : ""}.
           </p>
         </section>
       ) : null}
@@ -409,7 +425,9 @@ export default function PainelGeralParoquia({
       {!loading ? (
         <>
           <section
-            className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5"
+            className={`grid gap-4 sm:grid-cols-2 ${
+              canViewVisits ? "xl:grid-cols-5" : "xl:grid-cols-2"
+            }`}
             aria-label="Resumo da paróquia"
           >
             <SummaryCard
@@ -426,26 +444,32 @@ export default function PainelGeralParoquia({
               icon={<Home className="h-7 w-7" aria-hidden="true" />}
             />
 
-            <SummaryCard
-              title="Visitas marcadas"
-              value={dashboardData.visitTotals.pending}
-              description="Visitas ainda pendentes de realização."
-              icon={<CalendarClock className="h-7 w-7" aria-hidden="true" />}
-            />
+            {canViewVisits && (
+              <>
+                <SummaryCard
+                  title="Visitas marcadas"
+                  value={dashboardData.visitTotals.pending}
+                  description="Visitas ainda pendentes de realização."
+                  icon={
+                    <CalendarClock className="h-7 w-7" aria-hidden="true" />
+                  }
+                />
 
-            <SummaryCard
-              title="Visitas realizadas"
-              value={dashboardData.visitTotals.completed}
-              description="Visitas já registradas como concluídas."
-              icon={<CheckCircle className="h-7 w-7" aria-hidden="true" />}
-            />
+                <SummaryCard
+                  title="Visitas realizadas"
+                  value={dashboardData.visitTotals.completed}
+                  description="Visitas já registradas como concluídas."
+                  icon={<CheckCircle className="h-7 w-7" aria-hidden="true" />}
+                />
 
-            <SummaryCard
-              title="Visitas canceladas"
-              value={dashboardData.visitTotals.canceled}
-              description="Visitas canceladas no histórico da paróquia."
-              icon={<XCircle className="h-7 w-7" aria-hidden="true" />}
-            />
+                <SummaryCard
+                  title="Visitas canceladas"
+                  value={dashboardData.visitTotals.canceled}
+                  description="Visitas canceladas no histórico da paróquia."
+                  icon={<XCircle className="h-7 w-7" aria-hidden="true" />}
+                />
+              </>
+            )}
           </section>
 
           <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
@@ -478,27 +502,31 @@ export default function PainelGeralParoquia({
                   Consultar famílias
                 </Button>
 
-                <Button
-                  type="button"
-                  size="lg"
-                  variant="outline"
-                  onClick={() => onNavigate("visitas")}
-                  className="min-h-16 justify-start text-left"
-                >
-                  <CalendarCheck className="h-5 w-5" aria-hidden="true" />
-                  Agendar visita
-                </Button>
+                {canViewVisits && (
+                  <>
+                    <Button
+                      type="button"
+                      size="lg"
+                      variant="outline"
+                      onClick={() => onNavigate("visitas")}
+                      className="min-h-16 justify-start text-left"
+                    >
+                      <CalendarCheck className="h-5 w-5" aria-hidden="true" />
+                      Agendar visita
+                    </Button>
 
-                <Button
-                  type="button"
-                  size="lg"
-                  variant="outline"
-                  onClick={() => onNavigate("visitas")}
-                  className="min-h-16 justify-start text-left"
-                >
-                  <ClipboardList className="h-5 w-5" aria-hidden="true" />
-                  Ver visitas domiciliares
-                </Button>
+                    <Button
+                      type="button"
+                      size="lg"
+                      variant="outline"
+                      onClick={() => onNavigate("visitas")}
+                      className="min-h-16 justify-start text-left"
+                    >
+                      <ClipboardList className="h-5 w-5" aria-hidden="true" />
+                      Ver visitas domiciliares
+                    </Button>
+                  </>
+                )}
               </CardContent>
             </Card>
 
@@ -513,27 +541,29 @@ export default function PainelGeralParoquia({
               </CardHeader>
 
               <CardContent className="space-y-3">
-                {dashboardData.overdueVisits.length > 0 ? (
-                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-                    <p className="font-bold text-amber-900">
-                      {dashboardData.overdueVisits.length} visita(s) marcada(s)
-                      com data passada.
-                    </p>
-                    <p className="mt-1 text-sm leading-relaxed text-amber-800">
-                      Verifique se a visita foi realizada, cancelada ou precisa
-                      ser reagendada.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-                    <p className="font-bold text-emerald-900">
-                      Nenhuma visita vencida encontrada.
-                    </p>
-                    <p className="mt-1 text-sm leading-relaxed text-emerald-800">
-                      As visitas marcadas estão sem pendências de data passada.
-                    </p>
-                  </div>
-                )}
+                {canViewVisits &&
+                  (dashboardData.overdueVisits.length > 0 ? (
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                      <p className="font-bold text-amber-900">
+                        {dashboardData.overdueVisits.length} visita(s)
+                        marcada(s) com data passada.
+                      </p>
+                      <p className="mt-1 text-sm leading-relaxed text-amber-800">
+                        Verifique se a visita foi realizada, cancelada ou
+                        precisa ser reagendada.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+                      <p className="font-bold text-emerald-900">
+                        Nenhuma visita vencida encontrada.
+                      </p>
+                      <p className="mt-1 text-sm leading-relaxed text-emerald-800">
+                        As visitas marcadas estão sem pendências de data
+                        passada.
+                      </p>
+                    </div>
+                  ))}
 
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                   <div className="flex items-center gap-2">
@@ -551,81 +581,85 @@ export default function PainelGeralParoquia({
           </section>
 
           <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-            <Card className="border-slate-200 bg-white shadow-sm">
-              <CardHeader>
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <CardTitle className="text-2xl font-bold text-slate-900">
-                      Próximas visitas
-                    </CardTitle>
-                    <CardDescription className="text-base">
-                      Visitas marcadas para os próximos dias.
-                    </CardDescription>
+            {canViewVisits && (
+              <Card className="border-slate-200 bg-white shadow-sm">
+                <CardHeader>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <CardTitle className="text-2xl font-bold text-slate-900">
+                        Próximas visitas
+                      </CardTitle>
+                      <CardDescription className="text-base">
+                        Visitas marcadas para os próximos dias.
+                      </CardDescription>
+                    </div>
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => onNavigate("visitas")}
+                    >
+                      Ver todas
+                    </Button>
                   </div>
+                </CardHeader>
 
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => onNavigate("visitas")}
-                  >
-                    Ver todas
-                  </Button>
-                </div>
-              </CardHeader>
+                <CardContent>
+                  {dashboardData.nextVisits.length > 0 ? (
+                    <div className="space-y-3">
+                      {dashboardData.nextVisits.map((visit) => (
+                        <article
+                          key={visit.id}
+                          className="rounded-xl border border-slate-200 bg-slate-50 p-4"
+                        >
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                              <h3 className="text-lg font-bold text-slate-900">
+                                {getFamilyName(visit)}
+                              </h3>
+                              <p className="mt-1 text-base text-slate-700">
+                                Responsável familiar:{" "}
+                                <strong>
+                                  {getFamilyResponsibleName(visit)}
+                                </strong>
+                              </p>
+                            </div>
 
-              <CardContent>
-                {dashboardData.nextVisits.length > 0 ? (
-                  <div className="space-y-3">
-                    {dashboardData.nextVisits.map((visit) => (
-                      <article
-                        key={visit.id}
-                        className="rounded-xl border border-slate-200 bg-slate-50 p-4"
-                      >
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                          <div>
-                            <h3 className="text-lg font-bold text-slate-900">
-                              {getFamilyName(visit)}
-                            </h3>
-                            <p className="mt-1 text-base text-slate-700">
-                              Responsável familiar:{" "}
-                              <strong>{getFamilyResponsibleName(visit)}</strong>
-                            </p>
+                            <Badge variant="outline" className="text-sm">
+                              Visita marcada
+                            </Badge>
                           </div>
 
-                          <Badge variant="outline" className="text-sm">
-                            Visita marcada
-                          </Badge>
-                        </div>
-
-                        <p className="mt-3 text-base font-semibold text-[var(--primary)]">
-                          {formatDateTime(visit.visit_date)}
-                        </p>
-
-                        {visit.notes ? (
-                          <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                            {visit.notes}
+                          <p className="mt-3 text-base font-semibold text-[var(--primary)]">
+                            {formatDateTime(visit.visit_date)}
                           </p>
-                        ) : null}
-                      </article>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
-                    <CalendarClock
-                      className="mx-auto h-10 w-10 text-slate-400"
-                      aria-hidden="true"
-                    />
-                    <h3 className="mt-3 text-lg font-bold text-slate-900">
-                      Nenhuma próxima visita marcada
-                    </h3>
-                    <p className="mt-1 text-base text-slate-600">
-                      Use a ação rápida “Agendar visita” para criar um novo
-                      agendamento.
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+
+                          {visit.notes ? (
+                            <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                              {visit.notes}
+                            </p>
+                          ) : null}
+                        </article>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
+                      <CalendarClock
+                        className="mx-auto h-10 w-10 text-slate-400"
+                        aria-hidden="true"
+                      />
+                      <h3 className="mt-3 text-lg font-bold text-slate-900">
+                        Nenhuma próxima visita marcada
+                      </h3>
+                      <p className="mt-1 text-base text-slate-600">
+                        Use a ação rápida “Agendar visita” para criar um novo
+                        agendamento.
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             <Card className="border-slate-200 bg-white shadow-sm">
               <CardHeader>
@@ -703,8 +737,9 @@ export default function PainelGeralParoquia({
                 Ainda não há dados para mostrar
               </h3>
               <p className="mx-auto mt-2 max-w-2xl text-base leading-relaxed text-slate-600">
-                Quando a paróquia cadastrar famílias ou agendar visitas, os
-                números principais aparecerão automaticamente neste painel.
+                Quando a paróquia cadastrar famílias
+                {canViewVisits ? " ou agendar visitas" : ""}, os números
+                principais aparecerão automaticamente neste painel.
               </p>
             </section>
           ) : null}

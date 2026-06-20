@@ -13,6 +13,26 @@ import {
   EstoqueConsultaParoquias,
   EstoqueParoquia,
 } from "../components/Estoque";
+import type { AuthSession, Parish, ParishRole } from "../types/types";
+
+const PARISH_ROLES: ParishRole[] = ["member", "admin", "admin_no_visits"];
+
+function isParishRole(role: string | null | undefined): role is ParishRole {
+  return PARISH_ROLES.includes(role as ParishRole);
+}
+
+function getCurrentParishRole(session: AuthSession): ParishRole | null {
+  const parishId = session.parish?.id;
+  const selectedParish = session.parish as (Parish & { role?: string }) | null;
+  const role =
+    session.parish_role ??
+    session.user.parish_role ??
+    session.user.parishes?.find((parish) => parish.id === parishId)?.role ??
+    selectedParish?.role ??
+    null;
+
+  return isParishRole(role) ? role : null;
+}
 
 export default function ParoquiaPage() {
   const navigate = useNavigate();
@@ -41,19 +61,43 @@ export default function ParoquiaPage() {
   };
 
   const userRole = session.user.system_role;
+  const parishRole = getCurrentParishRole(session);
+  const effectiveParishRole = parishRole ?? "admin_no_visits";
+  const canViewVisits = effectiveParishRole !== "admin_no_visits";
 
-  const visibleMenuItems = menuParoquiaItems.filter((item) =>
-    item.allowedRoles.includes(userRole),
-  );
+  const visibleMenuItems = menuParoquiaItems.filter((item) => {
+    const hasSystemRole = item.allowedRoles.includes(userRole);
+    const hasParishRole =
+      !item.allowedParishRoles ||
+      item.allowedParishRoles.includes(effectiveParishRole) ||
+      (userRole === "diocese_admin" && parishRole === null);
 
+    return hasSystemRole && hasParishRole;
+  });
+
+  const visibleMenuIds = new Set(visibleMenuItems.map((item) => item.id));
+  const activeMenuId = visibleMenuIds.has(activeTab)
+    ? activeTab
+    : visibleMenuItems[0]?.id ?? "sem-acesso";
   const activeMenuLabel =
-    visibleMenuItems.find((item) => item.id === activeTab)?.label ??
-    "Painel Geral";
+    visibleMenuItems.find((item) => item.id === activeMenuId)?.label ??
+    "Acesso restrito";
+
+  const handleChangeTab = (tabId: string) => {
+    if (visibleMenuIds.has(tabId)) {
+      setActiveTab(tabId);
+    }
+  };
 
   const renderTabContent = () => {
-    switch (activeTab) {
+    switch (activeMenuId) {
       case "geral":
-        return <PainelGeralParoquia onNavigate={setActiveTab} />;
+        return (
+          <PainelGeralParoquia
+            onNavigate={handleChangeTab}
+            canViewVisits={canViewVisits}
+          />
+        );
       case "nucleos":
         return <NucleoFamiliar />;
       case "estoque":
@@ -72,8 +116,8 @@ export default function ParoquiaPage() {
       default:
         return (
           <EmDesenvolvimento
-            title="Conteúdo não encontrado"
-            description="Volte ao menu principal e escolha uma das opções disponíveis."
+            title="Acesso restrito"
+            description="Seu perfil nesta paróquia não possui permissão para acessar este módulo."
           />
         );
     }
@@ -130,8 +174,8 @@ export default function ParoquiaPage() {
         <div className="min-h-0 flex-1 overflow-y-auto">
           <Sidebar
             items={visibleMenuItems}
-            activeTab={activeTab}
-            onChangeTab={setActiveTab}
+            activeTab={activeMenuId}
+            onChangeTab={handleChangeTab}
             collapsed={sidebarCollapsed}
           />
         </div>

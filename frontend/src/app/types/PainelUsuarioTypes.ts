@@ -1,6 +1,8 @@
-export type SystemRole = "user" | "diocese_admin";
+import type { ParishRole } from "./types";
 
-export type ParishRole = "member" | "admin";
+export type { ParishRole } from "./types";
+
+export type SystemRole = "user" | "diocese_admin";
 
 export type RoleOption<T extends string = string> = {
   value: T;
