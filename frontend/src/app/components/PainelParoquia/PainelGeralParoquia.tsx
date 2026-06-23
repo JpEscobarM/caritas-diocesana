@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { CaixaParoquiaCard } from "../Caixa/CaixaParoquiaCard";
 import {
   AlertTriangle,
   CalendarCheck,
@@ -21,10 +22,7 @@ import {
   listHomeVisitsHistory,
   listRecentHomeVisits,
 } from "../VisitaDomiciliar/api";
-import type {
-  HomeVisit,
-  HomeVisitWithFamily,
-} from "../VisitaDomiciliar/types";
+import type { HomeVisit, HomeVisitWithFamily } from "../VisitaDomiciliar/types";
 import {
   formatDateTime,
   getFamilyName,
@@ -144,7 +142,9 @@ export default function PainelGeralParoquia({
   }, [canViewVisits, families, visits, session]);
 
   const dashboardData = useMemo(() => {
-    const activeFamilies = families.filter((family) => family.is_active !== false);
+    const activeFamilies = families.filter(
+      (family) => family.is_active !== false,
+    );
 
     const totalMembers = activeFamilies.reduce(
       (total, family) => total + countFamilyMembers(family),
@@ -191,7 +191,8 @@ export default function PainelGeralParoquia({
       })
       .sort((firstVisit, secondVisit) => {
         const firstDate = parseVisitDate(firstVisit.visit_date)?.getTime() ?? 0;
-        const secondDate = parseVisitDate(secondVisit.visit_date)?.getTime() ?? 0;
+        const secondDate =
+          parseVisitDate(secondVisit.visit_date)?.getTime() ?? 0;
         return firstDate - secondDate;
       })
       .slice(0, 5);
@@ -324,7 +325,6 @@ export default function PainelGeralParoquia({
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div>
-
             <h2 className="text-3xl font-bold text-[var(--primary)]">
               Olá, {session?.user.name ?? "bem-vindo(a)"}!
             </h2>
@@ -471,6 +471,15 @@ export default function PainelGeralParoquia({
               </>
             )}
           </section>
+
+          {parish ? (
+            <CaixaParoquiaCard
+              parishId={parish.id}
+              parishName={parish.name}
+              families={dashboardData.activeFamilies}
+              className="border-slate-200 bg-white shadow-sm"
+            />
+          ) : null}
 
           <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
             <Card className="border-slate-200 bg-white shadow-sm">
@@ -709,7 +718,9 @@ export default function PainelGeralParoquia({
                           </p>
                           <p className="mt-1 text-sm text-slate-600">
                             Responsável:{" "}
-                            <strong>{family.responsible?.name ?? "Não informado"}</strong>
+                            <strong>
+                              {family.responsible?.name ?? "Não informado"}
+                            </strong>
                           </p>
                           <p className="mt-1 text-sm text-slate-600">
                             Membros cadastrados: {countFamilyMembers(family)}
