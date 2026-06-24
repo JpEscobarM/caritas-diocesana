@@ -1,6 +1,6 @@
 # Cáritas Diocesana — Frontend
 
-Frontend do sistema **Cáritas Diocesana**, desenvolvido para apoiar a gestão de paróquias, famílias acompanhadas, visitas, estoque, entregas de cestas, caixa, bazar e demais funcionalidades administrativas.
+Frontend do sistema **Cáritas Diocesana**, desenvolvido para apoiar a gestão de paróquias, famílias acompanhadas, visitas, estoque, entregas de cestas, caixa e demais funcionalidades administrativas.
 
 O projeto foi desenvolvido com **React**, **TypeScript**, **Vite** e **Tailwind CSS**, consumindo uma API Laravel hospedada em ambiente externo.
 
