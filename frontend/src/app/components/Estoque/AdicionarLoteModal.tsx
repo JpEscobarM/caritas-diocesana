@@ -60,8 +60,7 @@ export default function AdicionarLoteModal({
   }, [open, item?.id]);
 
   const parsedQuantity = Number(quantity);
-  const quantityValid =
-    Number.isInteger(parsedQuantity) && parsedQuantity > 0;
+  const quantityValid = Number.isInteger(parsedQuantity) && parsedQuantity > 0;
   const validUntilValid = /^\d{4}-\d{2}-\d{2}$/.test(validUntil);
   const formValid = Boolean(item && quantityValid && validUntilValid);
 
@@ -89,7 +88,7 @@ export default function AdicionarLoteModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+      <DialogContent className="max-h-[calc(100dvh-1rem)] overflow-y-auto sm:max-w-xl">
         <form
           onSubmit={(event) => void handleSubmit(event)}
           className="space-y-5"
@@ -112,7 +111,9 @@ export default function AdicionarLoteModal({
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   Item
                 </p>
-                <p className="mt-1 font-semibold text-foreground">{item.name}</p>
+                <p className="mt-1 font-semibold text-foreground">
+                  {item.name}
+                </p>
               </div>
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -138,7 +139,10 @@ export default function AdicionarLoteModal({
               role="alert"
               className="flex items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
             >
-              <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+              <AlertCircle
+                className="mt-0.5 size-4 shrink-0"
+                aria-hidden="true"
+              />
               <span>{error}</span>
             </div>
           )}
@@ -223,9 +227,10 @@ export default function AdicionarLoteModal({
           )}
 
           <p className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
-            A API registrará um novo lote e somará a quantidade ao total geral do
-            item automaticamente. Mesmo quando a validade coincidir com uma já
-            existente, a nova entrada continuará registrada no histórico de lotes.
+            A API registrará um novo lote e somará a quantidade ao total geral
+            do item automaticamente. Mesmo quando a validade coincidir com uma
+            já existente, a nova entrada continuará registrada no histórico de
+            lotes.
           </p>
 
           <DialogFooter>
@@ -238,7 +243,9 @@ export default function AdicionarLoteModal({
               Cancelar
             </Button>
             <Button type="submit" disabled={saving || !formValid}>
-              {saving && <Loader2 className="animate-spin" aria-hidden="true" />}
+              {saving && (
+                <Loader2 className="animate-spin" aria-hidden="true" />
+              )}
               Registrar entrada
             </Button>
           </DialogFooter>

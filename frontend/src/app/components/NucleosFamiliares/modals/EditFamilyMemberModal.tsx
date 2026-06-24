@@ -83,16 +83,16 @@ export function EditFamilyMemberModal({
 
   const handleChange =
     (field: keyof EditFamilyMemberFormState) =>
-      (
-        event: React.ChangeEvent<
-          HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-        >,
-      ) => {
-        setFormData((current) => ({
-          ...current,
-          [field]: event.target.value,
-        }));
-      };
+    (
+      event: React.ChangeEvent<
+        HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+      >,
+    ) => {
+      setFormData((current) => ({
+        ...current,
+        [field]: event.target.value,
+      }));
+    };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -106,7 +106,9 @@ export function EditFamilyMemberModal({
         relationship: formData.relationship.trim(),
         age: Number(formData.age.replace(/\D/g, "") || 0),
         registration_status: formData.registration_status,
-        personal_income: Number(formData.personal_income.replace(",", ".") || 0),
+        personal_income: Number(
+          formData.personal_income.replace(",", ".") || 0,
+        ),
       });
 
       onSave(updatedMember);
@@ -124,9 +126,9 @@ export function EditFamilyMemberModal({
   return (
     <div
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-black/40 px-3 py-3 sm:px-4 sm:py-4"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-2 sm:p-4"
     >
-      <div className="max-h-[calc(100dvh-1rem)] w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+      <div className="grid max-h-[calc(100dvh-1rem)] w-full max-w-2xl grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
         <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-4 py-4 sm:px-6 sm:py-5">
           <div>
             <h2 className="caritas-mobile-safe pr-2 text-xl font-semibold text-[var(--primary)] sm:text-2xl">
@@ -147,7 +149,11 @@ export function EditFamilyMemberModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="max-h-[calc(100dvh-7rem)] space-y-6 overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
+        <form
+          id="edit-family-member-form"
+          onSubmit={handleSubmit}
+          className="min-h-0 space-y-6 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6 sm:py-6"
+        >
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">CPF</label>
@@ -238,7 +244,9 @@ export function EditFamilyMemberModal({
 
             <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 md:col-span-2">
               <p className="text-sm font-medium text-slate-700">Nome da mãe</p>
-              <p className="mt-1 text-sm text-slate-600">{member.mother_name}</p>
+              <p className="mt-1 text-sm text-slate-600">
+                {member.mother_name}
+              </p>
             </div>
 
             <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 md:col-span-2">
@@ -250,25 +258,26 @@ export function EditFamilyMemberModal({
               </p>
             </div>
           </div>
-
-          <div className="grid gap-3 border-t border-slate-200 pt-4 sm:flex sm:items-center sm:justify-end">
-            <button
-              type="button"
-              onClick={onClose}
-              className="min-h-12 rounded-xl border border-slate-200 bg-white px-4 py-3 font-bold text-slate-700"
-            >
-              Cancelar
-            </button>
-
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="min-h-12 rounded-xl bg-[var(--primary)] px-4 py-3 font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isSubmitting ? "Salvando..." : "Salvar"}
-            </button>
-          </div>
         </form>
+
+        <div className="grid grid-cols-2 gap-2 border-t border-slate-200 bg-white px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_20px_rgba(15,23,42,0.08)] sm:flex sm:items-center sm:justify-end sm:gap-3 sm:px-6 sm:py-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="min-h-12 rounded-xl border border-slate-200 bg-white px-4 py-3 font-bold text-slate-700"
+          >
+            Cancelar
+          </button>
+
+          <button
+            form="edit-family-member-form"
+            type="submit"
+            disabled={isSubmitting}
+            className="min-h-12 rounded-xl bg-[var(--primary)] px-4 py-3 font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isSubmitting ? "Salvando..." : "Salvar"}
+          </button>
+        </div>
       </div>
     </div>
   );

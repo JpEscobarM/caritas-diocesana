@@ -13,7 +13,7 @@ import { CreateFamilyMemberModal } from "./CreateFamilyMemberModal";
 import StepResponsible from "../steps/StepResponsible";
 import StepSearch from "../steps/StepSearch";
 import StepHeader from "../steps/StepHeader";
-import { searchByCpf } from "../../../api/families"
+import { searchByCpf } from "../../../api/families";
 
 type CreateFamilyModalProps = {
   open: boolean;
@@ -60,8 +60,9 @@ export default function CreateFamilyModal({
   const [searchForm, setSearchForm] = useState<SearchFormState>(
     initialSearchFormState,
   );
-  const [foundMember, setFoundMember] =
-    useState<AssistedFamilyMember | null>(null);
+  const [foundMember, setFoundMember] = useState<AssistedFamilyMember | null>(
+    null,
+  );
   const [familyForm, setFamilyForm] = useState<FamilyFormState>(
     initialFamilyFormState,
   );
@@ -111,21 +112,21 @@ export default function CreateFamilyModal({
 
   const handleSearchChange =
     (field: keyof SearchFormState) =>
-      (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchForm((current) => ({
-          ...current,
-          [field]: event.target.value,
-        }));
-      };
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchForm((current) => ({
+        ...current,
+        [field]: event.target.value,
+      }));
+    };
 
   const handleFamilyChange =
     (field: keyof FamilyFormState) =>
-      (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setFamilyForm((current) => ({
-          ...current,
-          [field]: event.target.value,
-        }));
-      };
+    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setFamilyForm((current) => ({
+        ...current,
+        [field]: event.target.value,
+      }));
+    };
 
   const isCpf = (query: string) => {
     if (!query.trim()) {
@@ -133,7 +134,7 @@ export default function CreateFamilyModal({
     }
     const firstChar = query[0];
     return firstChar >= "0" && firstChar <= "9";
-  }
+  };
 
   const handleSearch = async () => {
     if (!searchForm.query.trim()) {
@@ -150,22 +151,19 @@ export default function CreateFamilyModal({
           toast.error("O cpf buscado é inválido, verifique e tente novamente");
           setFoundMember(null);
           setRequiredSearch(false);
-        }
-        else if (error.response.status === 404) {
-          toast.success("Pesquisa realizada, o cpf não está cadastrado no sistema");
+        } else if (error.response.status === 404) {
+          toast.success(
+            "Pesquisa realizada, o cpf não está cadastrado no sistema",
+          );
           setFoundMember(null);
           setRequiredSearch(true);
         }
       }
-
-
-    }
-    else { // Aqui tratar outros metodos de pesquisa caso seja disponibilizado posteriormente
+    } else {
+      // Aqui tratar outros metodos de pesquisa caso seja disponibilizado posteriormente
       toast.error("Busca por nome ainda nao implementada, digite um cpf");
       setRequiredSearch(true);
     }
-
-
   };
 
   const handleSaveResponsible = (
@@ -225,7 +223,7 @@ export default function CreateFamilyModal({
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 px-2 py-3 sm:items-center sm:px-4">
+      <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-2 sm:p-4">
         <div className="flex max-h-[calc(100dvh-1rem)] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white">
           <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-4 py-4 sm:px-6 sm:py-5">
             <h2 className="text-xl font-semibold leading-tight text-slate-900 sm:text-2xl">
@@ -384,7 +382,7 @@ export default function CreateFamilyModal({
             )}
           </div>
 
-          <div className="sticky bottom-0 z-10 grid gap-3 border-t border-slate-200 bg-white px-4 py-4 shadow-[0_-8px_20px_rgba(15,23,42,0.06)] sm:flex sm:items-center sm:justify-between sm:px-6 sm:py-5">
+          <div className="sticky bottom-0 z-10 grid gap-3 border-t border-slate-200 bg-white px-4 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-[0_-8px_20px_rgba(15,23,42,0.06)] sm:flex sm:items-center sm:justify-between sm:px-6 sm:py-5">
             <button
               type="button"
               onClick={currentStep === 1 ? onClose : handlePrevious}

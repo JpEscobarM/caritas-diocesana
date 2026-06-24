@@ -113,7 +113,7 @@ export default function VisitReportModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 px-3 py-4 sm:items-center sm:px-4"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-2 sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="visit-report-title"
@@ -128,7 +128,8 @@ export default function VisitReportModal({
               Registrar resultado da visita
             </h2>
             <p className="mt-2 text-base leading-relaxed text-slate-700">
-              {visit.family?.name ?? `Família #${visit.family_id}`} — visita de {formatDateTime(visit.visit_date)}
+              {visit.family?.name ?? `Família #${visit.family_id}`} — visita de{" "}
+              {formatDateTime(visit.visit_date)}
             </p>
           </div>
 
@@ -142,7 +143,10 @@ export default function VisitReportModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4 sm:px-6">
+        <form
+          onSubmit={handleSubmit}
+          className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4 sm:px-6"
+        >
           <div className="space-y-2">
             <label
               htmlFor="visit-notes"
@@ -198,10 +202,12 @@ export default function VisitReportModal({
           </div>
 
           <div className="rounded-xl border-2 border-emerald-100 bg-emerald-50 px-4 py-4 text-base leading-relaxed text-emerald-950">
-            Ao salvar, a visita será marcada como <strong>Visita realizada</strong> e continuará no histórico da família.
+            Ao salvar, a visita será marcada como{" "}
+            <strong>Visita realizada</strong> e continuará no histórico da
+            família.
           </div>
 
-          <div className="sticky bottom-0 z-10 -mx-5 -mb-4 grid gap-3 border-t border-slate-200 bg-white px-5 py-4 sm:-mx-6 sm:flex sm:justify-end sm:px-6">
+          <div className="sticky bottom-0 z-10 -mx-5 -mb-4 grid gap-3 border-t border-slate-200 bg-white px-5 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:-mx-6 sm:flex sm:justify-end sm:px-6">
             <button
               type="button"
               onClick={onClose}

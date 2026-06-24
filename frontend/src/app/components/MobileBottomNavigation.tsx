@@ -62,7 +62,7 @@ export default function MobileBottomNavigation({
     <>
       <nav
         aria-label={ariaLabel}
-        className="fixed inset-x-0 bottom-0 z-[70] border-t border-border bg-card/95 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 shadow-[0_-8px_24px_rgba(15,23,42,0.12)] backdrop-blur md:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 shadow-[0_-8px_24px_rgba(15,23,42,0.12)] backdrop-blur md:hidden"
       >
         <div
           className="grid gap-1"
@@ -158,7 +158,10 @@ export default function MobileBottomNavigation({
                           : "border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground"
                       }`}
                     >
-                      <item.icon className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
+                      <item.icon
+                        className="h-5 w-5 flex-shrink-0"
+                        aria-hidden="true"
+                      />
                       <span>{item.label}</span>
                     </button>
                   );
@@ -169,7 +172,10 @@ export default function MobileBottomNavigation({
                   onClick={onLogout}
                   className="mt-2 flex min-h-14 w-full items-center gap-3 rounded-2xl border border-border bg-background px-4 py-3 text-left text-base font-bold text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
                 >
-                  <LogOut className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
+                  <LogOut
+                    className="h-5 w-5 flex-shrink-0"
+                    aria-hidden="true"
+                  />
                   <span>Sair</span>
                 </button>
               </div>

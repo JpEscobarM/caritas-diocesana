@@ -191,11 +191,12 @@ export default function RegistrarEntregaModal({
           .includes(normalized);
       })
       .sort((first, second) => {
-        const inventoryComparison =
-          (inventoryNames.get(first.parish_inventory_id) ?? "").localeCompare(
-            inventoryNames.get(second.parish_inventory_id) ?? "",
-            "pt-BR",
-          );
+        const inventoryComparison = (
+          inventoryNames.get(first.parish_inventory_id) ?? ""
+        ).localeCompare(
+          inventoryNames.get(second.parish_inventory_id) ?? "",
+          "pt-BR",
+        );
 
         if (inventoryComparison !== 0) {
           return inventoryComparison;
@@ -297,10 +298,7 @@ export default function RegistrarEntregaModal({
     });
   }
 
-  function updateItemState(
-    itemId: number,
-    patch: Partial<DeliveryItemState>,
-  ) {
+  function updateItemState(itemId: number, patch: Partial<DeliveryItemState>) {
     setItemsState((current) => ({
       ...current,
       [itemId]: {
@@ -383,36 +381,43 @@ export default function RegistrarEntregaModal({
         }
       }}
     >
-      <DialogContent className="max-h-[94vh] overflow-y-auto sm:max-w-5xl">
-        <form
-          onSubmit={(event) => void handleSubmit(event)}
-          className="space-y-6"
-        >
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Gift className="size-5" aria-hidden="true" />
-              Registrar entrega para família
-            </DialogTitle>
-            <DialogDescription>
-              Esta operação registra a saída da cesta e reduz os lotes do
-              estoque. Sem lote específico, a API baixa primeiro os lotes com
-              validade mais próxima.
-            </DialogDescription>
-          </DialogHeader>
+      <DialogContent className="grid max-h-[calc(100dvh-1rem)] grid-rows-[auto_minmax(0,1fr)_auto] gap-0 overflow-hidden p-0 sm:max-w-5xl">
+        <DialogHeader className="border-b px-4 py-4 sm:px-6">
+          <DialogTitle className="flex items-center gap-2">
+            <Gift className="size-5" aria-hidden="true" />
+            Registrar entrega para família
+          </DialogTitle>
+          <DialogDescription>
+            Esta operação registra a saída da cesta e reduz os lotes do estoque.
+            Sem lote específico, a API baixa primeiro os lotes com validade mais
+            próxima.
+          </DialogDescription>
+        </DialogHeader>
 
+        <form
+          id="registrar-entrega-form"
+          onSubmit={(event) => void handleSubmit(event)}
+          className="min-h-0 space-y-6 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6"
+        >
           {error && (
             <div
               role="alert"
               className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
             >
-              <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+              <AlertCircle
+                className="mt-0.5 size-4 shrink-0"
+                aria-hidden="true"
+              />
               <span>{error}</span>
             </div>
           )}
 
           <section className="space-y-3 rounded-xl border p-4">
             <div className="flex items-center gap-2">
-              <Users className="size-4 text-muted-foreground" aria-hidden="true" />
+              <Users
+                className="size-4 text-muted-foreground"
+                aria-hidden="true"
+              />
               <div>
                 <h3 className="font-semibold text-foreground">1. Família</h3>
                 <p className="text-sm text-muted-foreground">
@@ -461,7 +466,8 @@ export default function RegistrarEntregaModal({
                           {family.name}
                         </span>
                         <span className="block truncate text-xs text-muted-foreground">
-                          Responsável: {family.responsible?.name ?? "Não informado"}
+                          Responsável:{" "}
+                          {family.responsible?.name ?? "Não informado"}
                           {family.address ? ` · ${family.address}` : ""}
                         </span>
                       </span>
@@ -472,7 +478,9 @@ export default function RegistrarEntregaModal({
                             : "border-muted-foreground/30"
                         }`}
                       >
-                        {selected && <Check className="size-4" aria-hidden="true" />}
+                        {selected && (
+                          <Check className="size-4" aria-hidden="true" />
+                        )}
                       </span>
                     </button>
                   );
@@ -489,7 +497,9 @@ export default function RegistrarEntregaModal({
 
           <section className="space-y-4 rounded-xl border p-4">
             <div>
-              <h3 className="font-semibold text-foreground">2. Tipo de cesta</h3>
+              <h3 className="font-semibold text-foreground">
+                2. Tipo de cesta
+              </h3>
               <p className="text-sm text-muted-foreground">
                 Use um modelo ativo ou monte uma cesta personalizada.
               </p>
@@ -540,7 +550,9 @@ export default function RegistrarEntregaModal({
                 <Label htmlFor="basket-delivery-template">Modelo</Label>
                 <Select
                   value={selectedTemplateId?.toString() ?? ""}
-                  onValueChange={(value) => setSelectedTemplateId(Number(value))}
+                  onValueChange={(value) =>
+                    setSelectedTemplateId(Number(value))
+                  }
                   disabled={saving}
                 >
                   <SelectTrigger
@@ -551,7 +563,10 @@ export default function RegistrarEntregaModal({
                   </SelectTrigger>
                   <SelectContent>
                     {activeTemplates.map((template) => (
-                      <SelectItem key={template.id} value={template.id.toString()}>
+                      <SelectItem
+                        key={template.id}
+                        value={template.id.toString()}
+                      >
                         {template.name}
                       </SelectItem>
                     ))}
@@ -569,7 +584,9 @@ export default function RegistrarEntregaModal({
           <section className="space-y-4 rounded-xl border p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h3 className="font-semibold text-foreground">3. Itens e lotes</h3>
+                <h3 className="font-semibold text-foreground">
+                  3. Itens e lotes
+                </h3>
                 <p className="text-sm text-muted-foreground">
                   Ajuste as quantidades e escolha um lote específico somente
                   quando necessário.
@@ -583,7 +600,7 @@ export default function RegistrarEntregaModal({
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_15rem]">
+            <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_15rem]">
               <div className="relative">
                 <Search
                   className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
@@ -609,7 +626,10 @@ export default function RegistrarEntregaModal({
                 <SelectContent>
                   <SelectItem value="all">Todos os inventários</SelectItem>
                   {inventories.map((inventory) => (
-                    <SelectItem key={inventory.id} value={inventory.id.toString()}>
+                    <SelectItem
+                      key={inventory.id}
+                      value={inventory.id.toString()}
+                    >
                       {inventory.name}
                     </SelectItem>
                   ))}
@@ -632,10 +652,11 @@ export default function RegistrarEntregaModal({
                   const selectedLot =
                     state.lotId === "auto"
                       ? null
-                      : item.quantities.find(
+                      : (item.quantities.find(
                           (lot) => lot.id === Number(state.lotId),
-                        ) ?? null;
-                  const available = selectedLot?.quantity ?? item.total_quantity;
+                        ) ?? null);
+                  const available =
+                    selectedLot?.quantity ?? item.total_quantity;
                   const invalid =
                     state.selected &&
                     (!isPositiveInteger(state.quantity) ||
@@ -675,18 +696,28 @@ export default function RegistrarEntregaModal({
                               <p className="text-xs text-muted-foreground">
                                 {inventoryNames.get(item.parish_inventory_id) ??
                                   "Inventário"}
-                                {item.description ? ` · ${item.description}` : ""}
+                                {item.description
+                                  ? ` · ${item.description}`
+                                  : ""}
                               </p>
                             </div>
-                            <Badge variant={item.total_quantity > 0 ? "outline" : "destructive"}>
+                            <Badge
+                              variant={
+                                item.total_quantity > 0
+                                  ? "outline"
+                                  : "destructive"
+                              }
+                            >
                               Saldo: {item.total_quantity}
                             </Badge>
                           </div>
 
                           {state.selected && (
-                            <div className="mt-3 grid gap-3 sm:grid-cols-[9rem_minmax(0,1fr)]">
+                            <div className="mt-3 grid gap-3 md:grid-cols-[9rem_minmax(0,1fr)]">
                               <div className="space-y-1.5">
-                                <Label htmlFor={`delivery-item-quantity-${item.id}`}>
+                                <Label
+                                  htmlFor={`delivery-item-quantity-${item.id}`}
+                                >
                                   Quantidade
                                 </Label>
                                 <Input
@@ -727,7 +758,8 @@ export default function RegistrarEntregaModal({
                                         value={lot.id.toString()}
                                         disabled={lot.quantity <= 0}
                                       >
-                                        Lote #{lot.id} · {lot.quantity} un. · {formatDate(lot.valid_until)}
+                                        Lote #{lot.id} · {lot.quantity} un. ·{" "}
+                                        {formatDate(lot.valid_until)}
                                       </SelectItem>
                                     ))}
                                   </SelectContent>
@@ -738,7 +770,8 @@ export default function RegistrarEntregaModal({
 
                           {invalid && (
                             <p className="mt-2 text-sm text-destructive">
-                              Informe uma quantidade inteira entre 1 e {available}.
+                              Informe uma quantidade inteira entre 1 e{" "}
+                              {available}.
                             </p>
                           )}
                         </div>
@@ -764,7 +797,10 @@ export default function RegistrarEntregaModal({
 
           <section className="grid gap-4 rounded-xl border p-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="basket-delivery-date" className="flex items-center gap-2">
+              <Label
+                htmlFor="basket-delivery-date"
+                className="flex items-center gap-2"
+              >
                 <CalendarDays className="size-4" aria-hidden="true" />
                 Data e hora da entrega
               </Label>
@@ -808,31 +844,31 @@ export default function RegistrarEntregaModal({
               </div>
             </div>
           </section>
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={saving}
-            >
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={saving}>
-              {saving ? (
-                <>
-                  <Loader2 className="animate-spin" aria-hidden="true" />
-                  Registrando...
-                </>
-              ) : (
-                <>
-                  <Gift aria-hidden="true" />
-                  Confirmar entrega
-                </>
-              )}
-            </Button>
-          </DialogFooter>
         </form>
+
+        <DialogFooter className="border-t bg-background px-4 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:px-6">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={saving}
+          >
+            Cancelar
+          </Button>
+          <Button form="registrar-entrega-form" type="submit" disabled={saving}>
+            {saving ? (
+              <>
+                <Loader2 className="animate-spin" aria-hidden="true" />
+                Registrando...
+              </>
+            ) : (
+              <>
+                <Gift aria-hidden="true" />
+                Confirmar entrega
+              </>
+            )}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

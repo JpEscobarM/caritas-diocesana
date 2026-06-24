@@ -185,14 +185,15 @@ export default function HistoricoFamiliaModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl">
+      <DialogContent className="max-h-[calc(100dvh-1rem)] overflow-y-auto sm:max-w-5xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <History className="size-5" aria-hidden="true" />
             Histórico da família
           </DialogTitle>
           <DialogDescription>
-            Consulte as cestas já entregues e os lotes baixados para esta família.
+            Consulte as cestas já entregues e os lotes baixados para esta
+            família.
           </DialogDescription>
         </DialogHeader>
 
@@ -222,7 +223,9 @@ export default function HistoricoFamiliaModal({
             </div>
 
             <div className="rounded-xl border p-3">
-              <p className="text-xs text-muted-foreground">Unidades entregues</p>
+              <p className="text-xs text-muted-foreground">
+                Unidades entregues
+              </p>
               <p className="mt-1 text-2xl font-bold text-foreground">
                 {totalUnits}
               </p>
@@ -308,11 +311,7 @@ export default function HistoricoFamiliaModal({
             >
               <span>{error}</span>
               {onRetry && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={onRetry}
-                >
+                <Button type="button" variant="outline" onClick={onRetry}>
                   Tentar novamente
                 </Button>
               )}
@@ -336,19 +335,26 @@ export default function HistoricoFamiliaModal({
             </div>
           ) : deliveries.length === 0 && !error ? (
             <div className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-xl border border-dashed p-6 text-center">
-              <Gift className="size-9 text-muted-foreground" aria-hidden="true" />
+              <Gift
+                className="size-9 text-muted-foreground"
+                aria-hidden="true"
+              />
               <div>
                 <p className="font-semibold text-foreground">
                   Nenhuma entrega para esta família
                 </p>
                 <p className="max-w-md text-sm text-muted-foreground">
-                  Quando uma cesta for entregue para esta família, ela aparecerá neste histórico.
+                  Quando uma cesta for entregue para esta família, ela aparecerá
+                  neste histórico.
                 </p>
               </div>
             </div>
           ) : filteredDeliveries.length === 0 ? (
             <div className="flex min-h-52 flex-col items-center justify-center gap-3 rounded-xl border border-dashed p-6 text-center">
-              <Search className="size-9 text-muted-foreground" aria-hidden="true" />
+              <Search
+                className="size-9 text-muted-foreground"
+                aria-hidden="true"
+              />
               <div>
                 <p className="font-semibold text-foreground">
                   Nenhum registro encontrado
@@ -397,12 +403,16 @@ export default function HistoricoFamiliaModal({
 
                         <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
                           <span className="inline-flex items-center gap-1.5">
-                            <CalendarDays className="size-4" aria-hidden="true" />
+                            <CalendarDays
+                              className="size-4"
+                              aria-hidden="true"
+                            />
                             {formatDateTime(delivery.delivered_at)}
                           </span>
                           <span className="inline-flex items-center gap-1.5">
                             <Package className="size-4" aria-hidden="true" />
-                            {delivery.items.length} item(ns), {deliveryTotalUnits} unidade(s)
+                            {delivery.items.length} item(ns),{" "}
+                            {deliveryTotalUnits} unidade(s)
                           </span>
                         </div>
 
@@ -427,15 +437,21 @@ export default function HistoricoFamiliaModal({
 
                     <div className="mt-4 grid gap-2 md:grid-cols-2">
                       {delivery.items.slice(0, 6).map((item) => (
-                        <div key={item.id} className="rounded-lg border p-2 text-sm">
+                        <div
+                          key={item.id}
+                          className="rounded-lg border p-2 text-sm"
+                        >
                           <div className="flex items-center justify-between gap-2">
                             <span className="font-medium text-foreground">
                               {item.name}
                             </span>
-                            <Badge variant="secondary">{item.quantity} un.</Badge>
+                            <Badge variant="secondary">
+                              {item.quantity} un.
+                            </Badge>
                           </div>
                           <p className="mt-1 text-xs text-muted-foreground">
-                            Lote #{item.parish_inventory_item_quantity_id} · validade {item.valid_until}
+                            Lote #{item.parish_inventory_item_quantity_id} ·
+                            validade {item.valid_until}
                           </p>
                         </div>
                       ))}
@@ -443,7 +459,8 @@ export default function HistoricoFamiliaModal({
 
                     {delivery.items.length > 6 && (
                       <p className="mt-3 text-xs text-muted-foreground">
-                        + {delivery.items.length - 6} item(ns) no detalhe da entrega.
+                        + {delivery.items.length - 6} item(ns) no detalhe da
+                        entrega.
                       </p>
                     )}
                   </article>

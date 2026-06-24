@@ -108,7 +108,9 @@ export default function RepasseEstoqueForm({
     () =>
       [...parishes]
         .filter((parish) => parish.active)
-        .sort((first, second) => first.name.localeCompare(second.name, "pt-BR")),
+        .sort((first, second) =>
+          first.name.localeCompare(second.name, "pt-BR"),
+        ),
     [parishes],
   );
 
@@ -192,25 +194,32 @@ export default function RepasseEstoqueForm({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[94vh] overflow-y-auto sm:max-w-4xl">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <PackagePlus className="size-5" aria-hidden="true" />
-              Novo repasse
-            </DialogTitle>
-            <DialogDescription>
-              Registre os itens enviados pela diocese. Ao confirmar, eles entram
-              direto no estoque da paróquia selecionada.
-            </DialogDescription>
-          </DialogHeader>
+      <DialogContent className="grid max-h-[calc(100dvh-1rem)] grid-rows-[auto_minmax(0,1fr)_auto] gap-0 overflow-hidden p-0 sm:max-w-4xl">
+        <DialogHeader className="border-b px-4 py-4 sm:px-6">
+          <DialogTitle className="flex items-center gap-2">
+            <PackagePlus className="size-5" aria-hidden="true" />
+            Novo repasse
+          </DialogTitle>
+          <DialogDescription>
+            Registre os itens enviados pela diocese. Ao confirmar, eles entram
+            direto no estoque da paróquia selecionada.
+          </DialogDescription>
+        </DialogHeader>
 
+        <form
+          id="repasse-estoque-form"
+          onSubmit={handleSubmit}
+          className="min-h-0 space-y-6 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6"
+        >
           {displayError && (
             <div
               role="alert"
               className="flex gap-2 rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
             >
-              <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+              <AlertCircle
+                className="mt-0.5 size-4 shrink-0"
+                aria-hidden="true"
+              />
               <span>{displayError}</span>
             </div>
           )}
@@ -274,7 +283,9 @@ export default function RepasseEstoqueForm({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setItems((current) => [...current, createEmptyItem()])}
+                onClick={() =>
+                  setItems((current) => [...current, createEmptyItem()])
+                }
                 disabled={saving}
               >
                 <Plus aria-hidden="true" />
@@ -334,7 +345,9 @@ export default function RepasseEstoqueForm({
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor={`repasse-item-quantity-${item.clientId}`}>
+                        <Label
+                          htmlFor={`repasse-item-quantity-${item.clientId}`}
+                        >
                           Quantidade
                         </Label>
                         <Input
@@ -389,7 +402,9 @@ export default function RepasseEstoqueForm({
                     </div>
 
                     <div className="mt-3 space-y-2">
-                      <Label htmlFor={`repasse-item-description-${item.clientId}`}>
+                      <Label
+                        htmlFor={`repasse-item-description-${item.clientId}`}
+                      >
                         Descrição
                       </Label>
                       <Input
@@ -408,22 +423,26 @@ export default function RepasseEstoqueForm({
               })}
             </div>
           </section>
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={saving}
-            >
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={saving || activeParishes.length === 0}>
-              {saving && <Loader2 className="animate-spin" aria-hidden="true" />}
-              Registrar repasse
-            </Button>
-          </DialogFooter>
         </form>
+
+        <DialogFooter className="border-t bg-background px-4 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:px-6">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={saving}
+          >
+            Cancelar
+          </Button>
+          <Button
+            form="repasse-estoque-form"
+            type="submit"
+            disabled={saving || activeParishes.length === 0}
+          >
+            {saving && <Loader2 className="animate-spin" aria-hidden="true" />}
+            Registrar repasse
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

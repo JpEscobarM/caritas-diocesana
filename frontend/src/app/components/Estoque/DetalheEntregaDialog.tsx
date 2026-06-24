@@ -51,7 +51,7 @@ export default function DetalheEntregaDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className="max-h-[calc(100dvh-1rem)] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Gift className="size-5" aria-hidden="true" />
@@ -120,7 +120,10 @@ export default function DetalheEntregaDialog({
                     {delivery.items.length} item(ns), {totalUnits} unidade(s)
                   </p>
                 </div>
-                <Package className="size-5 text-muted-foreground" aria-hidden="true" />
+                <Package
+                  className="size-5 text-muted-foreground"
+                  aria-hidden="true"
+                />
               </div>
 
               <div className="space-y-2">
@@ -132,7 +135,8 @@ export default function DetalheEntregaDialog({
                     <div>
                       <p className="font-medium text-foreground">{item.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        Item #{item.parish_inventory_item_id} · Lote #{item.parish_inventory_item_quantity_id}
+                        Item #{item.parish_inventory_item_id} · Lote #
+                        {item.parish_inventory_item_quantity_id}
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2 text-sm">

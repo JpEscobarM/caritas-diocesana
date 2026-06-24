@@ -67,7 +67,7 @@ export default function DetalheRepasseDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className="max-h-[calc(100dvh-1rem)] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ArrowRightLeft className="size-5" aria-hidden="true" />
@@ -80,7 +80,10 @@ export default function DetalheRepasseDialog({
 
         {loading ? (
           <div className="flex min-h-48 flex-col items-center justify-center gap-3 text-center">
-            <Loader2 className="size-8 animate-spin text-primary" aria-hidden="true" />
+            <Loader2
+              className="size-8 animate-spin text-primary"
+              aria-hidden="true"
+            />
             <p className="text-sm text-muted-foreground">
               Carregando detalhes do repasse.
             </p>
@@ -128,7 +131,10 @@ export default function DetalheRepasseDialog({
                     {repasse.items.length} item(ns), {totalUnits} unidade(s)
                   </p>
                 </div>
-                <Package className="size-5 text-muted-foreground" aria-hidden="true" />
+                <Package
+                  className="size-5 text-muted-foreground"
+                  aria-hidden="true"
+                />
               </div>
 
               <div className="space-y-2">

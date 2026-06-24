@@ -95,8 +95,7 @@ export default function ModeloCestaForm({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [active, setActive] = useState(true);
-  const [itemQuantities, setItemQuantities] =
-    useState<ItemQuantitiesState>({});
+  const [itemQuantities, setItemQuantities] = useState<ItemQuantitiesState>({});
   const [search, setSearch] = useState("");
   const [inventoryFilter, setInventoryFilter] = useState("all");
   const [submitted, setSubmitted] = useState(false);
@@ -148,11 +147,12 @@ export default function ModeloCestaForm({
         return searchableText.includes(normalizedSearch);
       })
       .sort((first, second) => {
-        const inventoryComparison =
-          (inventoryNames.get(first.parish_inventory_id) ?? "").localeCompare(
-            inventoryNames.get(second.parish_inventory_id) ?? "",
-            "pt-BR",
-          );
+        const inventoryComparison = (
+          inventoryNames.get(first.parish_inventory_id) ?? ""
+        ).localeCompare(
+          inventoryNames.get(second.parish_inventory_id) ?? "",
+          "pt-BR",
+        );
 
         if (inventoryComparison !== 0) {
           return inventoryComparison;
@@ -178,9 +178,7 @@ export default function ModeloCestaForm({
   );
   const normalizedName = name.trim();
   const formValid =
-    normalizedName.length > 0 &&
-    selectedItems.length > 0 &&
-    selectedItemsValid;
+    normalizedName.length > 0 && selectedItems.length > 0 && selectedItemsValid;
 
   const nameInvalid = submitted && normalizedName.length === 0;
   const itemsInvalid = submitted && selectedItems.length === 0;
@@ -236,28 +234,33 @@ export default function ModeloCestaForm({
         }
       }}
     >
-      <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-3xl">
-        <form
-          onSubmit={(event) => void handleSubmit(event)}
-          className="space-y-5"
-        >
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <ClipboardList className="size-5" aria-hidden="true" />
-              {editing ? "Editar modelo de cesta" : "Novo modelo de cesta"}
-            </DialogTitle>
-            <DialogDescription>
-              Defina os produtos e a quantidade padrão de cada item em uma cesta.
-              O modelo não movimenta o estoque até que uma entrega seja registrada.
-            </DialogDescription>
-          </DialogHeader>
+      <DialogContent className="grid max-h-[calc(100dvh-1rem)] grid-rows-[auto_minmax(0,1fr)_auto] gap-0 overflow-hidden p-0 sm:max-w-3xl">
+        <DialogHeader className="border-b px-4 py-4 sm:px-6">
+          <DialogTitle className="flex items-center gap-2">
+            <ClipboardList className="size-5" aria-hidden="true" />
+            {editing ? "Editar modelo de cesta" : "Novo modelo de cesta"}
+          </DialogTitle>
+          <DialogDescription>
+            Defina os produtos e a quantidade padrão de cada item em uma cesta.
+            O modelo não movimenta o estoque até que uma entrega seja
+            registrada.
+          </DialogDescription>
+        </DialogHeader>
 
+        <form
+          id="modelo-cesta-form"
+          onSubmit={(event) => void handleSubmit(event)}
+          className="min-h-0 space-y-5 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6"
+        >
           {error && (
             <div
               role="alert"
               className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
             >
-              <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+              <AlertCircle
+                className="mt-0.5 size-4 shrink-0"
+                aria-hidden="true"
+              />
               <span>{error}</span>
             </div>
           )}
@@ -350,7 +353,7 @@ export default function ModeloCestaForm({
               </Badge>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_14rem]">
+            <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_14rem]">
               <div className="relative">
                 <Search
                   className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
@@ -413,7 +416,8 @@ export default function ModeloCestaForm({
                       Nenhum item disponível
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Cadastre itens no estoque antes de criar um modelo de cesta.
+                      Cadastre itens no estoque antes de criar um modelo de
+                      cesta.
                     </p>
                   </div>
                 </div>
@@ -431,12 +435,13 @@ export default function ModeloCestaForm({
                 filteredItems.map((item) => {
                   const selected = itemQuantities[item.id] !== undefined;
                   const quantity = itemQuantities[item.id] ?? "1";
-                  const quantityInvalid = selected && !isPositiveInteger(quantity);
+                  const quantityInvalid =
+                    selected && !isPositiveInteger(quantity);
 
                   return (
                     <div
                       key={item.id}
-                      className={`grid gap-3 rounded-lg border p-3 transition-colors sm:grid-cols-[minmax(0,1fr)_8rem] sm:items-center ${
+                      className={`grid gap-3 rounded-lg border p-3 transition-colors md:grid-cols-[minmax(0,1fr)_8rem] sm:items-center ${
                         selected ? "border-primary/40 bg-primary/5" : "bg-card"
                       }`}
                     >
@@ -464,7 +469,10 @@ export default function ModeloCestaForm({
                           </span>
                           <span className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                             <span className="inline-flex items-center gap-1">
-                              <Warehouse className="size-3.5" aria-hidden="true" />
+                              <Warehouse
+                                className="size-3.5"
+                                aria-hidden="true"
+                              />
                               {inventoryNames.get(item.parish_inventory_id) ??
                                 `Inventário ${item.parish_inventory_id}`}
                             </span>
@@ -517,22 +525,26 @@ export default function ModeloCestaForm({
             Paróquia vinculada: <strong>{parishId}</strong>. A composição poderá
             ser ajustada no momento da entrega, sem alterar este modelo.
           </div>
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={saving}
-            >
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={saving || !formValid}>
-              {saving && <Loader2 className="animate-spin" aria-hidden="true" />}
-              {editing ? "Salvar alterações" : "Criar modelo"}
-            </Button>
-          </DialogFooter>
         </form>
+
+        <DialogFooter className="border-t bg-background px-4 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:px-6">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={saving}
+          >
+            Cancelar
+          </Button>
+          <Button
+            form="modelo-cesta-form"
+            type="submit"
+            disabled={saving || !formValid}
+          >
+            {saving && <Loader2 className="animate-spin" aria-hidden="true" />}
+            {editing ? "Salvar alterações" : "Criar modelo"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

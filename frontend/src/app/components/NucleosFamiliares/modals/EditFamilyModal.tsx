@@ -74,7 +74,6 @@ export default function EditFamilyModal({
   }, [open, family]);
 
   useEffect(() => {
-
     if (!open) {
       return;
     }
@@ -102,12 +101,12 @@ export default function EditFamilyModal({
 
   const handleFamilyFieldChange =
     (field: "name" | "address" | "observations") =>
-      (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setFormData((current) => ({
-          ...current,
-          [field]: event.target.value,
-        }));
-      };
+    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setFormData((current) => ({
+        ...current,
+        [field]: event.target.value,
+      }));
+    };
 
   const handleRemoveMember = (memberId: number) => {
     setFormData((current) => {
@@ -220,8 +219,8 @@ export default function EditFamilyModal({
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 px-3 py-3 sm:px-4 sm:py-4">
-        <div className="max-h-[calc(100dvh-1rem)] w-full max-w-6xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+      <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-2 sm:p-4">
+        <div className="grid max-h-[calc(100dvh-1rem)] w-full max-w-6xl grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
           <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-4 py-4 sm:px-6 sm:py-5">
             <div>
               <h2 className="caritas-mobile-safe pr-2 text-xl font-semibold text-[var(--primary)] sm:text-2xl">
@@ -243,8 +242,9 @@ export default function EditFamilyModal({
           </div>
 
           <form
+            id="edit-family-form"
             onSubmit={handleSubmit}
-            className="max-h-[calc(100dvh-6rem)] overflow-y-auto px-4 py-5 sm:px-6 sm:py-6"
+            className="min-h-0 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6 sm:py-6"
           >
             <div className="space-y-6 sm:space-y-8">
               <section className="space-y-4">
@@ -432,25 +432,26 @@ export default function EditFamilyModal({
                   )}
                 </div>
               </section>
-
-              <div className="grid gap-3 border-t border-slate-200 pt-4 sm:flex sm:items-center sm:justify-end">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="min-h-12 rounded-xl border border-slate-200 bg-white px-4 py-3 font-bold text-slate-700"
-                >
-                  Cancelar
-                </button>
-
-                <button
-                  type="submit"
-                  className="min-h-12 rounded-xl bg-[var(--primary)] px-4 py-3 font-bold text-white"
-                >
-                  Salvar alterações
-                </button>
-              </div>
             </div>
           </form>
+
+          <div className="grid grid-cols-2 gap-2 border-t border-slate-200 bg-white px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_20px_rgba(15,23,42,0.08)] sm:flex sm:items-center sm:justify-end sm:gap-3 sm:px-6 sm:py-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="min-h-12 rounded-xl border border-slate-200 bg-white px-4 py-3 font-bold text-slate-700"
+            >
+              Cancelar
+            </button>
+
+            <button
+              form="edit-family-form"
+              type="submit"
+              className="min-h-12 rounded-xl bg-[var(--primary)] px-4 py-3 font-bold text-white"
+            >
+              Salvar alterações
+            </button>
+          </div>
         </div>
       </div>
 

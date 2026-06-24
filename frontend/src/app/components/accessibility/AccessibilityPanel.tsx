@@ -6,14 +6,7 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from "react";
-import {
-  Accessibility,
-  Eye,
-  Minus,
-  Plus,
-  RotateCcw,
-  X,
-} from "lucide-react";
+import { Accessibility, Eye, Minus, Plus, RotateCcw, X } from "lucide-react";
 import { cn } from "../ui/utils";
 import {
   DEFAULT_FONT_SCALE,
@@ -142,7 +135,8 @@ export default function AccessibilityPanel() {
     }
 
     const firstFocusableElement = focusableElements[0];
-    const lastFocusableElement = focusableElements[focusableElements.length - 1];
+    const lastFocusableElement =
+      focusableElements[focusableElements.length - 1];
 
     if (event.shiftKey && document.activeElement === firstFocusableElement) {
       event.preventDefault();
@@ -169,7 +163,7 @@ export default function AccessibilityPanel() {
         }
         aria-controls={PANEL_ID}
         aria-expanded={isPanelOpen}
-        className="fixed bottom-24 right-4 z-[80] inline-flex min-h-14 items-center gap-3 rounded-full border-2 border-white bg-primary px-4 py-3 text-base font-bold text-primary-foreground shadow-2xl transition-transform hover:scale-[1.03] focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-ring active:scale-95 md:bottom-5 md:right-5 md:px-5 sm:right-6"
+        className="fixed bottom-24 right-4 z-40 inline-flex min-h-14 items-center gap-3 rounded-full border-2 border-white bg-primary px-4 py-3 text-base font-bold text-primary-foreground shadow-2xl transition-transform hover:scale-[1.03] focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-ring active:scale-95 md:bottom-5 md:right-5 md:px-5 sm:right-6"
       >
         <Accessibility className="h-6 w-6" aria-hidden="true" />
         <span className="hidden sm:inline">Acessibilidade</span>
@@ -179,7 +173,7 @@ export default function AccessibilityPanel() {
         <>
           <div
             aria-hidden="true"
-            className="fixed inset-0 z-[85] bg-black/40 sm:hidden"
+            className="fixed inset-0 z-[45] bg-black/40 sm:hidden"
             onClick={closePanel}
           />
 
@@ -190,7 +184,7 @@ export default function AccessibilityPanel() {
             aria-modal="true"
             aria-labelledby={PANEL_TITLE_ID}
             onKeyDown={handlePanelKeyDown}
-            className="fixed inset-y-0 right-0 z-[90] flex w-full max-w-sm flex-col border-l-2 border-border bg-card text-card-foreground shadow-2xl"
+            className="fixed inset-y-0 right-0 z-[46] flex w-full max-w-sm flex-col border-l-2 border-border bg-card text-card-foreground shadow-2xl"
           >
             <div className="border-b border-border p-5">
               <div className="flex items-start justify-between gap-4">
