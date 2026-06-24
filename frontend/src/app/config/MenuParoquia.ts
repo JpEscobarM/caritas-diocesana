@@ -16,6 +16,7 @@ export const menuParoquiaItems = [
   {
     id: "geral",
     label: "Painel Geral",
+    mobilePrimary: true,
     icon: Home,
     allowedRoles: PARISH_SYSTEM_ROLES,
     allowedParishRoles: ALL_PARISH_ROLES,
@@ -23,6 +24,7 @@ export const menuParoquiaItems = [
   {
     id: "nucleos",
     label: "Núcleos Familiares",
+    mobilePrimary: true,
     icon: Users,
     allowedRoles: PARISH_SYSTEM_ROLES,
     allowedParishRoles: ALL_PARISH_ROLES,
@@ -30,6 +32,7 @@ export const menuParoquiaItems = [
   {
     id: "estoque",
     label: "Estoque Paroquial",
+    mobilePrimary: true,
     icon: Package,
     allowedRoles: PARISH_SYSTEM_ROLES,
     allowedParishRoles: ALL_PARISH_ROLES,
@@ -43,7 +46,8 @@ export const menuParoquiaItems = [
   },
   {
     id: "visitas",
-    label: "Visitas Domiciliares",
+    label: "Visitas",
+    mobilePrimary: true,
     icon: ClipboardList,
     allowedRoles: PARISH_SYSTEM_ROLES,
     allowedParishRoles: PARISH_ROLES_WITH_VISITS,

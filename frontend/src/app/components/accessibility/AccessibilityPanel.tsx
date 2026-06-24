@@ -169,7 +169,7 @@ export default function AccessibilityPanel() {
         }
         aria-controls={PANEL_ID}
         aria-expanded={isPanelOpen}
-        className="fixed bottom-5 right-5 z-[80] inline-flex min-h-14 items-center gap-3 rounded-full border-2 border-white bg-primary px-5 py-3 text-base font-bold text-primary-foreground shadow-2xl transition-transform hover:scale-[1.03] focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-ring active:scale-95 sm:right-6"
+        className="fixed bottom-24 right-4 z-[80] inline-flex min-h-14 items-center gap-3 rounded-full border-2 border-white bg-primary px-4 py-3 text-base font-bold text-primary-foreground shadow-2xl transition-transform hover:scale-[1.03] focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-ring active:scale-95 md:bottom-5 md:right-5 md:px-5 sm:right-6"
       >
         <Accessibility className="h-6 w-6" aria-hidden="true" />
         <span className="hidden sm:inline">Acessibilidade</span>

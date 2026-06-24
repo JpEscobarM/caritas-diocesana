@@ -6,6 +6,7 @@ import EmDesenvolvimento from "../components/EmDesenvolvimento";
 import NucleoFamiliar from "../components/NucleosFamiliares/NucleoFamiliar";
 import { clearAuthSession, getAuthSession } from "../api/auth";
 import Sidebar from "../components/Sidebar";
+import MobileBottomNavigation from "../components/MobileBottomNavigation";
 import { menuParoquiaItems } from "../config/MenuParoquia";
 import VisitaDomiciliar from "../components/VisitaDomiciliar";
 import PainelGeralParoquia from "../components/PainelParoquia/PainelGeralParoquia";
@@ -124,7 +125,7 @@ export default function ParoquiaPage() {
   };
 
   return (
-    <div className="h-screen w-full overflow-hidden bg-background text-foreground">
+    <div className="h-dvh w-full overflow-hidden bg-background text-foreground">
       <a
         href="#conteudo-principal"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-card focus:px-4 focus:py-3 focus:text-foreground focus:shadow-lg focus:outline-3 focus:outline-ring"
@@ -133,7 +134,7 @@ export default function ParoquiaPage() {
       </a>
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex h-screen flex-col overflow-hidden bg-sidebar text-sidebar-foreground transition-[width] duration-200 ${
+        className={`fixed inset-y-0 left-0 z-40 hidden h-dvh flex-col overflow-hidden bg-sidebar text-sidebar-foreground transition-[width] duration-200 md:flex ${
           sidebarCollapsed ? "w-20" : "w-72"
         }`}
         aria-label="Navegação da Cáritas Paroquial"
@@ -196,11 +197,11 @@ export default function ParoquiaPage() {
       </aside>
 
       <div
-        className={`flex h-screen min-w-0 flex-col transition-[margin] duration-200 ${
-          sidebarCollapsed ? "ml-20" : "ml-72"
+        className={`flex h-dvh min-w-0 flex-col transition-[margin] duration-200 ${
+          sidebarCollapsed ? "md:ml-20" : "md:ml-72"
         }`}
       >
-        <header className="shrink-0 flex items-center justify-between border-b border-border bg-card px-6 py-4">
+        <header className="flex shrink-0 items-center justify-between border-b border-border bg-card px-4 py-3 md:px-6 md:py-4">
           <div className="flex items-center gap-4">
             <button
               type="button"
@@ -208,7 +209,7 @@ export default function ParoquiaPage() {
               aria-label={
                 sidebarCollapsed ? "Abrir menu lateral" : "Fechar menu lateral"
               }
-              className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring"
+              className="hidden min-h-11 min-w-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring md:flex"
             >
               {sidebarCollapsed ? (
                 <ChevronRight className="h-5 w-5" aria-hidden="true" />
@@ -221,7 +222,7 @@ export default function ParoquiaPage() {
               <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Cáritas Paroquial
               </p>
-              <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
+              <h1 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">
                 {activeMenuLabel}
               </h1>
             </div>
@@ -230,11 +231,19 @@ export default function ParoquiaPage() {
 
         <main
           id="conteudo-principal"
-          className="min-h-0 flex-1 overflow-y-auto bg-muted/30 p-6"
+          className="min-h-0 flex-1 overflow-y-auto bg-muted/30 p-4 pb-28 md:p-6 md:pb-6"
         >
           {renderTabContent()}
         </main>
       </div>
+
+      <MobileBottomNavigation
+        items={visibleMenuItems}
+        activeTab={activeMenuId}
+        onChangeTab={handleChangeTab}
+        onLogout={handleLogout}
+        ariaLabel="Menu inferior da Cáritas Paroquial"
+      />
     </div>
   );
 }

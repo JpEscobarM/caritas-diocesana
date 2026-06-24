@@ -7,6 +7,7 @@ export type SidebarItem = {
   icon: LucideIcon;
   allowedRoles: string[];
   allowedParishRoles?: ParishRole[];
+  mobilePrimary?: boolean;
 };
 
 type SidebarProps = {
