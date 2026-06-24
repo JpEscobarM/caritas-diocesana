@@ -184,21 +184,21 @@ export default function NucleoFamiliar() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-6">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <h2 className="text-3xl font-semibold text-[var(--primary)]">
+          <h2 className="text-2xl font-semibold leading-tight text-[var(--primary)] sm:text-3xl">
             {showingInactiveFamilies
               ? "Famílias desativadas"
               : "Famílias cadastradas"}
           </h2>
-          <p className="mt-2 text-slate-600">
+          <p className="mt-2 max-w-3xl text-base leading-relaxed text-slate-600">
             {showingInactiveFamilies
               ? "Visualize famílias desativadas vinculadas à sua paróquia."
               : "Cadastre, edite e desative famílias vinculadas à sua paróquia."}
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="caritas-mobile-actions">
           <button
             type="button"
             onClick={
@@ -207,7 +207,7 @@ export default function NucleoFamiliar() {
                 : carregarFamiliasAtivas
             }
             disabled={loadingFamilies}
-            className="group flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 font-medium text-[var(--primary)] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md active:translate-y-0 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+            className="group flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-center font-bold text-[var(--primary)] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md active:translate-y-0 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
           >
             <RefreshCcw
               className={`transition-transform duration-200 ${
@@ -227,7 +227,7 @@ export default function NucleoFamiliar() {
 
               setModalCadastroAberto(true);
             }}
-            className="group flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[var(--chart-3)] px-4 py-2 font-medium text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-md active:translate-y-0 active:scale-[0.98]"
+            className="group flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[var(--chart-3)] px-4 py-3 text-center font-bold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-md active:translate-y-0 active:scale-[0.98]"
           >
             <HousePlus className="h-5 w-5" />
             Cadastrar família
@@ -240,7 +240,7 @@ export default function NucleoFamiliar() {
                 ? carregarFamiliasAtivas
                 : handleLoadInactiveFamilies
             }
-            className={`group flex cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2 font-medium text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-md active:translate-y-0 active:scale-[0.98] ${
+            className={`group flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-3 text-center font-bold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-md active:translate-y-0 active:scale-[0.98] ${
               showingInactiveFamilies ? "bg-emerald-600" : "bg-[var(--primary)]"
             }`}
           >
@@ -256,14 +256,14 @@ export default function NucleoFamiliar() {
           Buscar família
         </h3>
 
-        <div className="flex items-center gap-3 rounded-xl bg-slate-100 px-4 py-3">
+        <div className="flex min-h-14 items-center gap-3 rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 sm:px-4 sm:py-3">
           <Search className="h-5 w-5 text-slate-500" />
           <input
             type="text"
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
             placeholder="Digite o nome do responsável"
-            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[var(--primary)] outline-none transition-all duration-200 placeholder:text-slate-500 hover:border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/15 focus:shadow-sm"
+            className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base text-[var(--primary)] outline-none transition-all duration-200 placeholder:text-slate-500 hover:border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/15 focus:shadow-sm"
           />
         </div>
       </div>

@@ -603,7 +603,7 @@ export default function PainelGeralUsuarios() {
           </p>
         </div>
 
-        <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="caritas-mobile-actions">
           <Button
             type="button"
             variant="outline"
@@ -926,7 +926,7 @@ export default function PainelGeralUsuarios() {
                   const isCurrentUser = user.id === currentUserId;
 
                   return (
-                    <article key={user.id} className="space-y-4 p-5">
+                    <article key={user.id} className="space-y-4 p-4 sm:p-5">
                       <div className="flex items-start gap-3">
                         <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">
                           {getInitials(user.name)}
@@ -934,7 +934,7 @@ export default function PainelGeralUsuarios() {
 
                         <div className="min-w-0 flex-1">
                           <p className="font-semibold">{user.name}</p>
-                          <p className="mt-0.5 truncate text-sm text-muted-foreground">
+                          <p className="mt-0.5 break-all text-sm text-muted-foreground">
                             {user.email}
                           </p>
                         </div>
@@ -966,7 +966,7 @@ export default function PainelGeralUsuarios() {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid gap-2 sm:grid-cols-2">
                         {!showingInactiveUsers && (
                           <Button
                             type="button"
@@ -1031,9 +1031,9 @@ export default function PainelGeralUsuarios() {
         <DialogContent className="overflow-hidden p-0 sm:max-w-2xl">
           <form
             onSubmit={handleSubmit}
-            className="grid max-h-[85vh] grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden"
+            className="grid max-h-[calc(100dvh-1rem)] grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden"
           >
-            <DialogHeader className="px-6 pt-6">
+            <DialogHeader className="px-4 pt-5 sm:px-6 sm:pt-6">
               <DialogTitle>
                 {editingUser ? "Editar usuário" : "Cadastrar usuário"}
               </DialogTitle>
@@ -1046,7 +1046,7 @@ export default function PainelGeralUsuarios() {
 
             <div
               ref={formScrollRef}
-              className="min-h-0 overflow-y-auto px-6 py-5"
+              className="min-h-0 overflow-y-auto px-4 py-5 sm:px-6"
             >
               <div className="grid gap-5">
                 <div className="grid gap-2">
@@ -1268,7 +1268,7 @@ export default function PainelGeralUsuarios() {
               </div>
             </div>
 
-            <DialogFooter className="border-t bg-background px-6 py-4">
+            <DialogFooter className="border-t bg-background px-4 py-4 sm:px-6">
               <Button
                 type="button"
                 variant="outline"

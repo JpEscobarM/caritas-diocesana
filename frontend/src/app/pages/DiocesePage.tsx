@@ -158,8 +158,8 @@ export default function DiocesePage() {
           sidebarCollapsed ? "md:ml-20" : "md:ml-72"
         }`}
       >
-        <header className="flex shrink-0 items-center justify-between border-b border-border bg-card px-4 py-3 md:px-6 md:py-4">
-          <div className="flex items-center gap-4">
+        <header className="flex shrink-0 items-center justify-between border-b border-border bg-card px-3 py-3 sm:px-4 md:px-6 md:py-4">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
             <button
               type="button"
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -175,11 +175,11 @@ export default function DiocesePage() {
               )}
             </button>
 
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            <div className="min-w-0">
+              <p className="truncate text-xs font-semibold uppercase tracking-wide text-muted-foreground sm:text-sm">
                 Cáritas Diocesana
               </p>
-              <h1 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">
+              <h1 className="caritas-mobile-safe text-lg font-bold text-foreground sm:text-2xl md:text-3xl">
                 {activeMenuLabel}
               </h1>
             </div>
@@ -188,7 +188,7 @@ export default function DiocesePage() {
 
         <main
           id="conteudo-principal"
-          className="min-h-0 flex-1 overflow-y-auto bg-muted/30 p-4 pb-28 md:p-6 md:pb-6"
+          className="min-h-0 flex-1 overflow-y-auto bg-muted/30 p-3 pb-28 sm:p-4 md:p-6 md:pb-6"
         >
           {renderTabContent()}
         </main>

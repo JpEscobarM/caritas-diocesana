@@ -54,7 +54,7 @@ export default function VisitTable({
   if (loading) {
     return (
       <div
-        className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm"
+        className="rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm sm:p-8"
         role="status"
         aria-live="polite"
       >
@@ -70,7 +70,7 @@ export default function VisitTable({
 
   if (filteredVisits.length === 0) {
     return (
-      <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-white p-8 text-center shadow-sm">
+      <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-white p-5 text-center shadow-sm sm:p-8">
         <CalendarClock className="mx-auto h-12 w-12 text-slate-400" />
         <h3 className="mt-3 text-xl font-bold text-slate-900">
           {emptyTitle}
@@ -87,7 +87,7 @@ export default function VisitTable({
       className="rounded-2xl border border-slate-200 bg-white shadow-sm"
       aria-labelledby="visitas-lista-titulo"
     >
-      <div className="border-b border-slate-200 bg-slate-50 px-5 py-4">
+      <div className="border-b border-slate-200 bg-slate-50 px-4 py-4 sm:px-5">
         <h3 id="visitas-lista-titulo" className="text-xl font-bold text-slate-900">
           {listTitle}
         </h3>
@@ -96,7 +96,7 @@ export default function VisitTable({
         </p>
       </div>
 
-      <div className="space-y-4 p-4">
+      <div className="space-y-4 p-3 sm:p-4">
         {filteredVisits.map((visit) => {
           const isExpanded = expandedVisitId === visit.id;
           const isPending = isVisitStatus(visit.status, "pending");
@@ -106,7 +106,7 @@ export default function VisitTable({
           return (
             <article
               key={visit.id}
-              className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-slate-300"
+              className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-slate-300"
               aria-labelledby={`visita-${visit.id}-titulo`}
             >
               <div className="flex flex-col gap-3 border-b border-slate-100 pb-4 lg:flex-row lg:items-start lg:justify-between">
@@ -116,7 +116,7 @@ export default function VisitTable({
                   </p>
                   <h4
                     id={`visita-${visit.id}-titulo`}
-                    className="mt-1 text-xl font-bold text-slate-950"
+                    className="mt-1 break-words text-xl font-bold text-slate-950"
                   >
                     {getFamilyName(visit)}
                   </h4>
@@ -241,7 +241,7 @@ export default function VisitTable({
                     <p className="text-sm font-bold uppercase tracking-wide text-slate-600">
                       Observações da visita
                     </p>
-                    <p className="mt-2 whitespace-pre-wrap text-base leading-relaxed text-slate-800">
+                    <p className="mt-2 break-words whitespace-pre-wrap text-base leading-relaxed text-slate-800">
                       {visit.notes || "Nenhuma observação registrada."}
                     </p>
                   </div>
@@ -250,7 +250,7 @@ export default function VisitTable({
                     <p className="text-sm font-bold uppercase tracking-wide text-slate-600">
                       Encaminhamento
                     </p>
-                    <p className="mt-2 whitespace-pre-wrap text-base leading-relaxed text-slate-800">
+                    <p className="mt-2 break-words whitespace-pre-wrap text-base leading-relaxed text-slate-800">
                       {visit.forwarding || "Nenhum encaminhamento registrado."}
                     </p>
                   </div>

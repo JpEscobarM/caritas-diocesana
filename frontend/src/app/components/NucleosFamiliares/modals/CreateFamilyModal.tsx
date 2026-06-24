@@ -225,28 +225,28 @@ export default function CreateFamilyModal({
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-        <div className="flex h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white">
-          <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
-            <h2 className="text-2xl font-semibold text-slate-900">
+      <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 px-2 py-3 sm:items-center sm:px-4">
+        <div className="flex max-h-[calc(100dvh-1rem)] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white">
+          <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-4 py-4 sm:px-6 sm:py-5">
+            <h2 className="text-xl font-semibold leading-tight text-slate-900 sm:text-2xl">
               Cadastro de Núcleo Familiar
             </h2>
 
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+              className="flex min-h-10 min-w-10 items-center justify-center rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
               aria-label="Fechar modal"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
 
-          <div className="border-b border-slate-200 px-6 py-5">
+          <div className="border-b border-slate-200 px-4 py-4 sm:px-6 sm:py-5">
             <StepHeader currentStep={currentStep} />
           </div>
 
-          <div className="flex-1 overflow-y-auto px-6 py-8">
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6 sm:py-8">
             {currentStep === 1 && (
               <StepSearch
                 query={searchForm.query}
@@ -267,7 +267,7 @@ export default function CreateFamilyModal({
             {currentStep === 3 && (
               <div className="mx-auto max-w-4xl space-y-6">
                 <div>
-                  <h3 className="text-2xl font-medium text-slate-900">
+                  <h3 className="text-xl font-medium leading-tight text-slate-900 sm:text-2xl">
                     Informações complementares
                   </h3>
                   <p className="mt-1 text-slate-500">
@@ -284,7 +284,7 @@ export default function CreateFamilyModal({
                       type="text"
                       value={familyForm.address}
                       onChange={handleFamilyChange("address")}
-                      className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-600"
+                      className="min-h-12 w-full rounded-xl border border-slate-200 px-4 py-3 text-base outline-none focus:border-[var(--primary)]"
                       placeholder="Digite o endereço"
                     />
                   </div>
@@ -297,7 +297,7 @@ export default function CreateFamilyModal({
                       value={familyForm.observations}
                       onChange={handleFamilyChange("observations")}
                       rows={4}
-                      className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-600"
+                      className="min-h-12 w-full rounded-xl border border-slate-200 px-4 py-3 text-base outline-none focus:border-[var(--primary)]"
                       placeholder="Digite observações relevantes"
                     />
                   </div>
@@ -308,7 +308,7 @@ export default function CreateFamilyModal({
             {currentStep === 4 && (
               <div className="mx-auto max-w-4xl space-y-6">
                 <div>
-                  <h3 className="text-2xl font-medium text-slate-900">
+                  <h3 className="text-xl font-medium leading-tight text-slate-900 sm:text-2xl">
                     Revisão
                   </h3>
                   <p className="mt-1 text-slate-500">
@@ -384,11 +384,11 @@ export default function CreateFamilyModal({
             )}
           </div>
 
-          <div className="flex items-center justify-between border-t border-slate-200 px-6 py-5">
+          <div className="sticky bottom-0 z-10 grid gap-3 border-t border-slate-200 bg-white px-4 py-4 shadow-[0_-8px_20px_rgba(15,23,42,0.06)] sm:flex sm:items-center sm:justify-between sm:px-6 sm:py-5">
             <button
               type="button"
               onClick={currentStep === 1 ? onClose : handlePrevious}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-slate-700"
+              className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-center font-bold text-slate-700 sm:w-auto"
             >
               <ArrowLeft className="h-4 w-4" />
               {currentStep === 1 ? "Cancelar" : "Voltar"}
@@ -399,7 +399,7 @@ export default function CreateFamilyModal({
                 type="button"
                 onClick={handleNext}
                 disabled={!canGoNext()}
-                className="inline-flex items-center gap-2 rounded-xl bg-[var(--primary)] px-5 py-3 text-white disabled:opacity-60"
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-5 py-3 text-center font-bold text-white disabled:opacity-60 sm:w-auto"
               >
                 Próximo
                 <ArrowRight className="h-4 w-4" />
@@ -408,7 +408,7 @@ export default function CreateFamilyModal({
               <button
                 type="button"
                 onClick={handleSubmit}
-                className="inline-flex items-center gap-2 rounded-xl bg-[var(--primary)] px-5 py-3 text-white"
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-5 py-3 text-center font-bold text-white sm:w-auto"
               >
                 Salvar cadastro
               </button>

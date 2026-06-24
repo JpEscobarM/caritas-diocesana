@@ -60,13 +60,13 @@ export default function CancelVisitModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 px-4 py-6"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 px-3 py-4 sm:items-center sm:px-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="cancel-visit-title"
     >
-      <div className="w-full max-w-xl rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5">
+      <div className="max-h-[calc(100dvh-2rem)] w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-2xl">
+        <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-4 py-4 sm:gap-4 sm:px-6 sm:py-5">
           <div className="flex items-start gap-3">
             <div className="mt-1 rounded-full bg-amber-100 p-2 text-amber-800">
               <AlertTriangle className="h-6 w-6" />
@@ -74,7 +74,7 @@ export default function CancelVisitModal({
             <div>
               <h2
                 id="cancel-visit-title"
-                className="text-2xl font-bold text-[var(--primary)]"
+                className="caritas-mobile-safe pr-1 text-xl font-bold text-[var(--primary)] sm:text-2xl"
               >
                 Cancelar visita
               </h2>
@@ -87,14 +87,14 @@ export default function CancelVisitModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
+            className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
             aria-label="Fechar janela de cancelamento"
           >
             <X className="h-6 w-6" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5 px-6 py-5">
+        <form onSubmit={handleSubmit} className="max-h-[calc(100dvh-8rem)] space-y-5 overflow-y-auto px-4 py-5 sm:px-6">
           <div className="rounded-xl border-2 border-amber-100 bg-amber-50 px-4 py-4">
             <p className="text-lg font-bold text-amber-950">
               Tem certeza que deseja cancelar esta visita?
@@ -105,7 +105,7 @@ export default function CancelVisitModal({
             </p>
           </div>
 
-          <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end">
+          <div className="grid gap-3 border-t border-slate-200 pt-5 sm:flex sm:justify-end">
             <button
               type="button"
               onClick={onClose}

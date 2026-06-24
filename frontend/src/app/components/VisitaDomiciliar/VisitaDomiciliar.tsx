@@ -64,7 +64,7 @@ const VISIT_VIEW_STORAGE_KEY = "caritas.homeVisits.viewMode";
 
 function SummaryCard({ title, value, description, icon }: SummaryCardProps) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-base font-bold text-slate-700">{title}</p>
@@ -356,17 +356,17 @@ export default function VisitaDomiciliar() {
     <div className="space-y-6 text-slate-900">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-[var(--primary)]">
+          <h2 className="text-2xl font-bold leading-tight text-[var(--primary)] sm:text-3xl">
             Visitas domiciliares
           </h2>
         </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="caritas-mobile-actions">
           <button
             type="button"
             onClick={handleRefresh}
             disabled={loadingVisits || loadingFamilies}
-            className="group flex min-h-12 items-center justify-center gap-2 rounded-xl border-2 border-slate-300 bg-white px-5 text-base font-bold text-[var(--primary)] shadow-sm transition-all duration-200 hover:bg-slate-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
+            className="group flex min-h-12 items-center justify-center gap-2 rounded-xl border-2 border-slate-300 bg-white px-5 py-3 text-base font-bold text-[var(--primary)] shadow-sm transition-all duration-200 hover:bg-slate-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
           >
             <RefreshCcw
               className={`h-5 w-5 transition-transform duration-200 ${
@@ -381,7 +381,7 @@ export default function VisitaDomiciliar() {
           <button
             type="button"
             onClick={() => setScheduleModalOpen(true)}
-            className="group flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[var(--chart-3)] px-5 text-base font-bold text-white shadow-sm transition-all duration-200 hover:opacity-95 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--chart-3)]"
+            className="group flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[var(--chart-3)] px-5 py-3 text-base font-bold text-white shadow-sm transition-all duration-200 hover:opacity-95 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--chart-3)]"
           >
             <Plus className="h-5 w-5" />
             Nova visita
@@ -391,7 +391,7 @@ export default function VisitaDomiciliar() {
 
       <section
         aria-labelledby="visitas-escopo-titulo"
-        className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+        className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
       >
         <h3 id="visitas-escopo-titulo" className="text-xl font-bold text-slate-900">
           O que você quer ver?
@@ -471,7 +471,7 @@ export default function VisitaDomiciliar() {
 
       <section
         aria-label="Filtros para encontrar visitas domiciliares"
-        className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+        className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
       >
         <h3 className="text-xl font-bold text-slate-900">Encontrar visitas</h3>
         <p className="mt-1 text-base text-slate-600">

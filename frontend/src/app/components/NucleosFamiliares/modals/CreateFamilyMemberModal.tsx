@@ -167,167 +167,163 @@ export function CreateFamilyMemberModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4 py-4">
-      <div className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white">
-        <div className="flex items-start justify-between border-b border-slate-200 px-5 py-4">
-          <div></div>
+  <div className="fixed inset-0 z-[60] bg-black/40 sm:flex sm:items-start sm:justify-center sm:overflow-y-auto sm:px-4 sm:py-4">
+    <div className="fixed inset-0 z-[70] flex h-screen max-h-screen w-screen flex-col overflow-hidden bg-white shadow-2xl sm:relative sm:inset-auto sm:h-auto sm:max-h-[calc(100vh-2rem)] sm:w-full sm:max-w-2xl sm:rounded-2xl sm:border sm:border-slate-200">
+      <div className="flex shrink-0 items-start justify-between gap-3 border-b border-slate-200 px-4 py-3 sm:px-5 sm:py-4">
+        <div className="min-w-0">
+          <h2 className="text-lg font-semibold leading-tight text-slate-900 sm:text-xl">
+            Cadastrar responsável
+          </h2>
+          <p className="mt-1 text-sm leading-snug text-slate-500">
+            Preencha os dados principais do responsável familiar.
+          </p>
+        </div>
 
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+          aria-label="Fechar modal"
+        >
+          <X className="h-5 w-5" />
+        </button>
+      </div>
+
+      <form
+        onSubmit={handleSubmit}
+        className="flex min-h-0 flex-1 flex-col"
+      >
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3 pb-32 sm:px-5 sm:py-4 sm:pb-5">
+          <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-sm font-medium text-slate-700">
+                Nome
+              </label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={handleChange("name")}
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none focus:border-[var(--primary)]"
+                placeholder="Nome do responsável"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                CPF <span className="text-slate-400">(opcional)</span>
+              </label>
+              <input
+                type="text"
+                value={formData.cpf}
+                onChange={handleChange("cpf")}
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none focus:border-[var(--primary)]"
+                placeholder="000.000.000-00"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                Data de nascimento
+              </label>
+              <input
+                type="date"
+                value={formData.birth_date}
+                onChange={handleChange("birth_date")}
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none focus:border-[var(--primary)]"
+                required
+              />
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-sm font-medium text-slate-700">
+                Nome da mãe
+              </label>
+              <input
+                type="text"
+                value={formData.mother_name}
+                onChange={handleChange("mother_name")}
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none focus:border-[var(--primary)]"
+                placeholder="Nome da mãe"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                Vínculo
+              </label>
+              <input
+                type="text"
+                value={forceResponsible ? "Responsável" : formData.relationship}
+                onChange={handleChange("relationship")}
+                disabled={forceResponsible}
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none focus:border-[var(--primary)] disabled:bg-slate-100 disabled:text-slate-500"
+                placeholder="Ex.: Mãe, Pai, Avó"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                Idade
+              </label>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={formData.age}
+                onChange={handleChange("age")}
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none focus:border-[var(--primary)]"
+                placeholder="Digite a idade"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                Status cadastral
+              </label>
+              <select
+                value={formData.registration_status}
+                onChange={handleChange("registration_status")}
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none focus:border-[var(--primary)]"
+              >
+                <option value="ATIVO">ATIVO</option>
+                <option value="INATIVO">INATIVO</option>
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                Renda pessoal
+              </label>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={formData.personal_income}
+                onChange={handlePersonalIncome}
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none focus:border-[var(--primary)]"
+                placeholder="0,00"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="fixed inset-x-0 bottom-0 z-[80] grid grid-cols-2 gap-2 border-t border-slate-200 bg-white px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_20px_rgba(15,23,42,0.12)] sm:static sm:flex sm:items-center sm:justify-end sm:gap-3 sm:px-5 sm:py-4">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
-            aria-label="Fechar modal"
+            className="min-h-12 rounded-xl border border-slate-200 bg-white px-3 py-3 text-base font-bold text-slate-700"
           >
-            <X className="h-5 w-5" />
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            className="min-h-12 rounded-xl bg-[var(--primary)] px-3 py-3 text-base font-bold text-white"
+          >
+            Salvar
           </button>
         </div>
-
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-1 flex-col overflow-hidden"
-        >
-          <div className="flex-1 overflow-y-auto px-5 py-4">
-            <div className="grid gap-3 md:grid-cols-2">
-              <div className="space-y-2 md:col-span-2">
-                <label className="text-sm font-medium text-slate-700">
-                  Nome
-                </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={handleChange("name")}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-800 outline-none focus:border-[var(--primary)]"
-                  placeholder="Nome do responsável"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">
-                  CPF <span className="text-slate-400">(opcional)</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.cpf}
-                  onChange={handleChange("cpf")}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-800 outline-none focus:border-[var(--primary)]"
-                  placeholder="000.000.000-00"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">
-                  Data de nascimento
-                </label>
-                <input
-                  type="date"
-                  value={formData.birth_date}
-                  onChange={handleChange("birth_date")}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-800 outline-none focus:border-[var(--primary)]"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2 md:col-span-2">
-                <label className="text-sm font-medium text-slate-700">
-                  Nome da mãe
-                </label>
-                <input
-                  type="text"
-                  value={formData.mother_name}
-                  onChange={handleChange("mother_name")}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-800 outline-none focus:border-[var(--primary)]"
-                  placeholder="Nome da mãe"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">
-                  Vínculo
-                </label>
-                <input
-                  type="text"
-                  value={
-                    forceResponsible ? "Responsável" : formData.relationship
-                  }
-                  onChange={handleChange("relationship")}
-                  disabled={forceResponsible}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-800 outline-none focus:border-[var(--primary)] disabled:bg-slate-100 disabled:text-slate-500"
-                  placeholder="Ex.: Mãe, Pai, Avó"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">
-                  Idade
-                </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={formData.age}
-                  onChange={handleChange("age")}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-800 outline-none focus:border-[var(--primary)]"
-                  placeholder="Digite a idade"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">
-                  Status cadastral
-                </label>
-                <select
-                  value={formData.registration_status}
-                  onChange={handleChange("registration_status")}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-800 outline-none focus:border-[var(--primary)]"
-                >
-                  <option value="ATIVO">ATIVO</option>
-                  <option value="INATIVO">INATIVO</option>
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">
-                  Renda pessoal
-                </label>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={formData.personal_income}
-                  onChange={handlePersonalIncome}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-800 outline-none focus:border-[var(--primary)]"
-                  placeholder="0,00"
-                />
-              </div>
-
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 md:col-span-2">
-                <p className="text-sm font-medium text-slate-700">
-                  Data de cadastro
-                </p>
-                <p className="mt-1 text-sm text-slate-600">
-                  Será definida automaticamente ao salvar.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-5 py-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 font-medium text-slate-700"
-            >
-              Cancelar
-            </button>
-
-            <button
-              type="submit"
-              className="rounded-xl bg-[var(--primary)] px-4 py-2.5 font-medium text-white"
-            >
-              Salvar
-            </button>
-          </div>
-        </form>
-      </div>
+      </form>
     </div>
-  );
+  </div>
+);
 }

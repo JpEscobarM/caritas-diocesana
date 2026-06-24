@@ -118,12 +118,12 @@ export default function VisitReportModal({
       aria-modal="true"
       aria-labelledby="visit-report-title"
     >
-      <div className="flex max-h-[calc(100vh-2rem)] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
-        <div className="shrink-0 flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 sm:px-6">
+      <div className="flex max-h-[calc(100dvh-2rem)] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+        <div className="shrink-0 flex items-start justify-between gap-3 border-b border-slate-200 px-4 py-4 sm:gap-4 sm:px-6">
           <div>
             <h2
               id="visit-report-title"
-              className="text-2xl font-bold text-[var(--primary)]"
+              className="caritas-mobile-safe pr-1 text-xl font-bold text-[var(--primary)] sm:text-2xl"
             >
               Registrar resultado da visita
             </h2>
@@ -135,7 +135,7 @@ export default function VisitReportModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
+            className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
             aria-label="Fechar janela de registro da visita"
           >
             <X className="h-5 w-5" />
@@ -201,7 +201,7 @@ export default function VisitReportModal({
             Ao salvar, a visita será marcada como <strong>Visita realizada</strong> e continuará no histórico da família.
           </div>
 
-          <div className="sticky bottom-0 z-10 -mx-5 -mb-4 flex flex-col-reverse gap-3 border-t border-slate-200 bg-white px-5 py-4 sm:-mx-6 sm:flex-row sm:justify-end sm:px-6">
+          <div className="sticky bottom-0 z-10 -mx-5 -mb-4 grid gap-3 border-t border-slate-200 bg-white px-5 py-4 sm:-mx-6 sm:flex sm:justify-end sm:px-6">
             <button
               type="button"
               onClick={onClose}

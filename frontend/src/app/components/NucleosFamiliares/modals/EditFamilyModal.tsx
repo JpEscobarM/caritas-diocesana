@@ -220,14 +220,14 @@ export default function EditFamilyModal({
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-        <div className="max-h-[90vh] w-full max-w-6xl overflow-hidden rounded-2xl border border-slate-200 bg-white">
-          <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
+      <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 px-3 py-3 sm:px-4 sm:py-4">
+        <div className="max-h-[calc(100dvh-1rem)] w-full max-w-6xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+          <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-4 py-4 sm:px-6 sm:py-5">
             <div>
-              <h2 className="text-2xl font-semibold text-[var(--primary)]">
+              <h2 className="caritas-mobile-safe pr-2 text-xl font-semibold text-[var(--primary)] sm:text-2xl">
                 Editar família
               </h2>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-base leading-relaxed text-slate-500 sm:text-sm">
                 Atualize os dados da família e gerencie os membros assistidos.
               </p>
             </div>
@@ -235,7 +235,7 @@ export default function EditFamilyModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+              className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700"
               aria-label="Fechar modal"
             >
               <X className="h-5 w-5" />
@@ -244,9 +244,9 @@ export default function EditFamilyModal({
 
           <form
             onSubmit={handleSubmit}
-            className="max-h-[calc(90vh-88px)] overflow-y-auto px-6 py-6"
+            className="max-h-[calc(100dvh-6rem)] overflow-y-auto px-4 py-5 sm:px-6 sm:py-6"
           >
-            <div className="space-y-8">
+            <div className="space-y-6 sm:space-y-8">
               <section className="space-y-4">
                 <h3 className="text-sm font-semibold uppercase tracking-wide text-[var(--primary)]">
                   Dados da família
@@ -354,7 +354,7 @@ export default function EditFamilyModal({
               </section>
 
               <section className="space-y-4">
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center sm:gap-4">
                   <h3 className="text-sm font-semibold uppercase tracking-wide text-[var(--primary)]">
                     Membros assistidos
                   </h3>
@@ -363,7 +363,7 @@ export default function EditFamilyModal({
                     type="button"
                     onClick={() => setCreateMemberModalOpen(true)}
                     disabled={isCreatingMember}
-                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-base font-bold text-slate-700 disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-0 sm:px-3 sm:py-2 sm:text-sm"
                   >
                     <Plus className="h-4 w-4" />
                     {isCreatingMember ? "Adicionando..." : "Adicionar membro"}
@@ -383,7 +383,7 @@ export default function EditFamilyModal({
                       >
                         <div className="grid gap-4 lg:grid-cols-[2fr_1.4fr_1fr_auto] lg:items-center">
                           <div className="space-y-1">
-                            <p className="font-medium text-slate-900">
+                            <p className="caritas-mobile-safe font-medium text-slate-900">
                               {member.name}
                             </p>
                             <p className="text-sm text-slate-600">
@@ -407,11 +407,11 @@ export default function EditFamilyModal({
                             </p>
                           </div>
 
-                          <div className="flex flex-wrap justify-end gap-2">
+                          <div className="grid gap-2 sm:flex sm:flex-wrap sm:justify-end">
                             <button
                               type="button"
                               onClick={() => setMemberBeingEdited(member)}
-                              className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700"
+                              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700"
                             >
                               <Pencil className="h-4 w-4" />
                               Editar
@@ -420,7 +420,7 @@ export default function EditFamilyModal({
                             <button
                               type="button"
                               onClick={() => handleRemoveMember(member.id)}
-                              className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-600"
+                              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-bold text-red-600"
                             >
                               <Trash2 className="h-4 w-4" />
                               Remover
@@ -433,18 +433,18 @@ export default function EditFamilyModal({
                 </div>
               </section>
 
-              <div className="flex items-center justify-end gap-3 border-t border-slate-200 pt-4">
+              <div className="grid gap-3 border-t border-slate-200 pt-4 sm:flex sm:items-center sm:justify-end">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 font-medium text-slate-700"
+                  className="min-h-12 rounded-xl border border-slate-200 bg-white px-4 py-3 font-bold text-slate-700"
                 >
                   Cancelar
                 </button>
 
                 <button
                   type="submit"
-                  className="rounded-xl bg-[var(--primary)] px-4 py-2.5 font-medium text-white"
+                  className="min-h-12 rounded-xl bg-[var(--primary)] px-4 py-3 font-bold text-white"
                 >
                   Salvar alterações
                 </button>

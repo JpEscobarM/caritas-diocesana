@@ -1545,7 +1545,7 @@ export default function EstoquePage({
               }}
             >
               <SelectTrigger
-                className="w-full min-w-64 sm:w-80"
+                className="w-full max-w-full sm:w-80"
                 aria-label="Selecionar paróquia"
               >
                 <SelectValue placeholder="Selecione uma paróquia" />

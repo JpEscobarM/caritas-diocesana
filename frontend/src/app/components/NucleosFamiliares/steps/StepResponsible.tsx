@@ -22,7 +22,7 @@ export default function StepResponsible({
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <div>
-        <h3 className="text-2xl font-medium text-slate-900">
+        <h3 className="text-xl font-medium leading-tight text-slate-900 sm:text-2xl">
           Responsável familiar
         </h3>
         <p className="mt-1 text-slate-500">
@@ -31,7 +31,7 @@ export default function StepResponsible({
       </div>
 
       {responsible ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6">
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <p className="text-xs font-medium uppercase text-slate-500">
@@ -77,11 +77,11 @@ export default function StepResponsible({
             </div>
           </div>
 
-          <div className="mt-6 flex items-center gap-3">
+          <div className="mt-6 grid gap-3 sm:flex sm:items-center">
             <button
               type="button"
               onClick={onOpenCreateModal}
-              className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700"
+              className="min-h-12 rounded-xl border border-slate-200 bg-white px-4 py-3 text-base font-bold text-slate-700"
             >
               Editar responsável
             </button>
@@ -89,14 +89,14 @@ export default function StepResponsible({
             <button
               type="button"
               onClick={onNextStep}
-              className="rounded-xl bg-[var(--primary)] px-4 py-3 text-sm font-medium text-white"
+              className="min-h-12 rounded-xl bg-[var(--primary)] px-4 py-3 text-base font-bold text-white"
             >
               Avançar para membros
             </button>
           </div>
         </div>
       ) : (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-center sm:p-8">
           <p className="text-slate-600">
             Nenhum responsável cadastrado até o momento.
           </p>
@@ -104,7 +104,7 @@ export default function StepResponsible({
           <button
             type="button"
             onClick={onOpenCreateModal}
-            className="mt-4 rounded-xl bg-[var(--primary)] px-5 py-3 text-sm font-medium text-white"
+            className="mt-4 min-h-12 rounded-xl bg-[var(--primary)] px-5 py-3 text-base font-bold text-white"
           >
             Cadastrar responsável
           </button>

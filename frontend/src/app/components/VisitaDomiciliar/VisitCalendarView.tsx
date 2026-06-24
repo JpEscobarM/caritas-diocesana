@@ -289,7 +289,7 @@ export default function VisitCalendarView({
   if (loading) {
     return (
       <div
-        className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm"
+        className="rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm sm:p-8"
         role="status"
         aria-live="polite"
       >
@@ -305,7 +305,7 @@ export default function VisitCalendarView({
 
   if (filteredVisits.length === 0) {
     return (
-      <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-white p-8 text-center shadow-sm">
+      <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-white p-5 text-center shadow-sm sm:p-8">
         <CalendarClock className="mx-auto h-12 w-12 text-slate-400" />
         <h3 className="mt-3 text-xl font-bold text-slate-900">
           {emptyTitle}
@@ -322,7 +322,7 @@ export default function VisitCalendarView({
       className="rounded-2xl border border-slate-200 bg-white shadow-sm"
       aria-labelledby="visitas-agenda-titulo"
     >
-      <div className="border-b border-slate-200 bg-slate-50 px-5 py-4">
+      <div className="border-b border-slate-200 bg-slate-50 px-4 py-4 sm:px-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h3 id="visitas-agenda-titulo" className="text-xl font-bold text-slate-900">
@@ -333,16 +333,16 @@ export default function VisitCalendarView({
             </p>
           </div>
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="grid gap-2 sm:flex sm:flex-row sm:items-center">
             <button
               type="button"
               onClick={goToCurrentMonth}
-              className="min-h-11 rounded-xl border-2 border-slate-300 bg-white px-4 text-base font-bold text-slate-800 shadow-sm transition-all hover:bg-slate-100 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
+              className="min-h-11 rounded-xl border-2 border-slate-300 bg-white px-4 py-2 text-base font-bold text-slate-800 shadow-sm transition-all hover:bg-slate-100 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
             >
               Hoje
             </button>
 
-            <div className="flex items-center justify-between gap-2 rounded-xl border-2 border-slate-300 bg-white p-1">
+            <div className="flex min-w-0 items-center justify-between gap-2 rounded-xl border-2 border-slate-300 bg-white p-1">
               <button
                 type="button"
                 onClick={goToPreviousMonth}
@@ -352,7 +352,7 @@ export default function VisitCalendarView({
                 <ChevronLeft className="h-5 w-5" aria-hidden="true" />
               </button>
 
-              <p className="min-w-44 text-center text-base font-bold capitalize text-slate-900" aria-live="polite">
+              <p className="min-w-0 flex-1 text-center text-base font-bold capitalize text-slate-900 sm:min-w-44" aria-live="polite">
                 {formatMonthLabel(currentMonth)}
               </p>
 
@@ -369,7 +369,7 @@ export default function VisitCalendarView({
         </div>
       </div>
 
-      <div className="p-4">
+      <div className="p-3 sm:p-4">
         <div className="hidden overflow-hidden rounded-2xl border border-slate-200 lg:block">
           <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-100">
             {weekDays.map((weekDay) => (
@@ -436,7 +436,7 @@ export default function VisitCalendarView({
 
         <div className="space-y-4 lg:hidden">
           {monthVisitsByDay.length === 0 ? (
-            <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-6 text-center">
+            <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-5 text-center sm:p-6">
               <p className="text-lg font-bold text-slate-900">
                 Nenhuma visita neste mês
               </p>

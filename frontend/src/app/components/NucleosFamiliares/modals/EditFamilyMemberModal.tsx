@@ -124,15 +124,15 @@ export function EditFamilyMemberModal({
   return (
     <div
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4"
+      className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-black/40 px-3 py-3 sm:px-4 sm:py-4"
     >
-      <div className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white">
-        <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
+      <div className="max-h-[calc(100dvh-1rem)] w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+        <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-4 py-4 sm:px-6 sm:py-5">
           <div>
-            <h2 className="text-2xl font-semibold text-[var(--primary)]">
+            <h2 className="caritas-mobile-safe pr-2 text-xl font-semibold text-[var(--primary)] sm:text-2xl">
               Editar membro
             </h2>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-base leading-relaxed text-slate-500 sm:text-sm">
               Atualize apenas os dados que a API permite alterar.
             </p>
           </div>
@@ -140,14 +140,14 @@ export function EditFamilyMemberModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+            className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700"
             aria-label="Fechar modal"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6 px-6 py-6">
+        <form onSubmit={handleSubmit} className="max-h-[calc(100dvh-7rem)] space-y-6 overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">CPF</label>
@@ -155,7 +155,7 @@ export function EditFamilyMemberModal({
                 type="text"
                 value={formData.cpf}
                 onChange={handleChange("cpf")}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 outline-none focus:border-[var(--primary)]"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none focus:border-[var(--primary)]"
                 placeholder="000.000.000-00"
                 required
               />
@@ -169,7 +169,7 @@ export function EditFamilyMemberModal({
                 type="date"
                 value={formData.birth_date}
                 onChange={handleChange("birth_date")}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 outline-none focus:border-[var(--primary)]"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none focus:border-[var(--primary)]"
                 required
               />
             </div>
@@ -182,7 +182,7 @@ export function EditFamilyMemberModal({
                 type="text"
                 value={formData.relationship}
                 onChange={handleChange("relationship")}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 outline-none focus:border-[var(--primary)]"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none focus:border-[var(--primary)]"
                 placeholder="Ex.: Filho, Cônjuge"
                 required
               />
@@ -197,7 +197,7 @@ export function EditFamilyMemberModal({
                 inputMode="numeric"
                 value={formData.age}
                 onChange={handleChange("age")}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 outline-none focus:border-[var(--primary)]"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none focus:border-[var(--primary)]"
                 placeholder="Digite a idade"
                 required
               />
@@ -210,7 +210,7 @@ export function EditFamilyMemberModal({
               <select
                 value={formData.registration_status}
                 onChange={handleChange("registration_status")}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 outline-none focus:border-[var(--primary)]"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none focus:border-[var(--primary)]"
               >
                 <option value="ATIVO">ATIVO</option>
                 <option value="INATIVO">INATIVO</option>
@@ -226,7 +226,7 @@ export function EditFamilyMemberModal({
                 inputMode="decimal"
                 value={formData.personal_income}
                 onChange={handleChange("personal_income")}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 outline-none focus:border-[var(--primary)]"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-800 outline-none focus:border-[var(--primary)]"
                 placeholder="R$ 0,00"
               />
             </div>
@@ -251,11 +251,11 @@ export function EditFamilyMemberModal({
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 border-t border-slate-200 pt-4">
+          <div className="grid gap-3 border-t border-slate-200 pt-4 sm:flex sm:items-center sm:justify-end">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 font-medium text-slate-700"
+              className="min-h-12 rounded-xl border border-slate-200 bg-white px-4 py-3 font-bold text-slate-700"
             >
               Cancelar
             </button>
@@ -263,7 +263,7 @@ export function EditFamilyMemberModal({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="rounded-xl bg-[var(--primary)] px-4 py-2.5 font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+              className="min-h-12 rounded-xl bg-[var(--primary)] px-4 py-3 font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting ? "Salvando..." : "Salvar"}
             </button>

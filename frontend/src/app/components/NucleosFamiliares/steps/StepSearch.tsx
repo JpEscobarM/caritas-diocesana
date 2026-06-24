@@ -15,29 +15,29 @@ export default function StepSearch({
   foundedMember,
 }: StepSearchProps) {
   return (
-    <div className="mx-auto flex max-w-4xl flex-col items-center gap-8">
-      <Search className="h-16 w-16 text-blue-600" />
+    <div className="mx-auto flex max-w-4xl flex-col items-center gap-6 sm:gap-8">
+      <Search className="h-12 w-12 text-[var(--primary)] sm:h-16 sm:w-16" />
 
       <div className="text-center">
-        <h3 className="text-3xl font-medium text-slate-900">
+        <h3 className="text-2xl font-medium leading-tight text-slate-900 sm:text-3xl">
           Verificar Cadastro Existente
         </h3>
-        <p className="mt-2 text-lg text-slate-500">Busque nome</p>
+        <p className="mt-2 text-base text-slate-500 sm:text-lg">Busque nome</p>
       </div>
 
-      <div className="flex w-full items-center gap-4">
+      <div className="grid w-full gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-4">
         <input
           type="text"
           value={query}
           onChange={onChangeQuery}
-          className="w-full rounded-xl border border-slate-300 px-4 py-4 text-slate-800 outline-none focus:border-blue-600"
+          className="min-h-12 w-full rounded-xl border border-slate-300 px-4 py-3 text-base text-slate-800 outline-none focus:border-[var(--primary)] sm:py-4"
           placeholder="Digite CPF ou nome do responsável"
         />
 
         <button
           type="button"
           onClick={onSearch}
-          className="cursor-pointer rounded-xl bg-blue-600 px-6 py-4 text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5  hover:shadow-md active:translate-y-0 active:scale-[0.98]"
+          className="flex min-h-12 cursor-pointer items-center justify-center rounded-xl bg-[var(--primary)] px-6 py-3 text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-[0.98] sm:py-4"
         >
           <Search className="h-5 w-5" />
         </button>

@@ -48,22 +48,22 @@ export default function DioceseLoginPage() {
   };
 
   return (
-    <main className="min-h-screen bg-background px-5 py-8 text-foreground">
-      <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-xl flex-col items-center justify-center gap-6">
+    <main className="min-h-screen bg-background px-3 py-5 text-foreground sm:px-5 sm:py-8">
+      <div className="mx-auto flex min-h-[calc(100vh-2.5rem)] max-w-xl flex-col items-center justify-center gap-5 sm:min-h-[calc(100vh-4rem)] sm:gap-6">
         <div className="flex flex-col items-center justify-center gap-4 text-center">
-          <div className="rounded-2xl bg-white px-6 py-4 shadow-sm ring-1 ring-border">
+          <div className="rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-border sm:px-6 sm:py-4">
             <BrandLogo
               variant="vertical"
               alt="Cáritas Brasileira"
-              className="h-32 w-auto"
+              className="h-24 w-auto sm:h-32"
             />
           </div>
 
           <div>
-            <h1 className="text-3xl font-bold text-foreground sm:text-4xl">
+            <h1 className="text-2xl font-bold text-foreground sm:text-4xl">
               Sistema Cáritas
             </h1>
-            <p className="mt-2 text-lg text-muted-foreground">
+            <p className="mt-2 text-base text-muted-foreground sm:text-lg">
               Gestão integrada de assistência social
             </p>
           </div>
@@ -71,9 +71,9 @@ export default function DioceseLoginPage() {
 
         <section
           aria-labelledby="diocese-login-title"
-          className="w-full rounded-3xl border border-border bg-card p-6 caritas-card-shadow sm:p-8"
+          className="w-full rounded-3xl border border-border bg-card p-4 caritas-card-shadow sm:p-8"
         >
-          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex items-start gap-3">
               <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
                 <Building2 className="h-6 w-6" aria-hidden="true" />
@@ -81,7 +81,7 @@ export default function DioceseLoginPage() {
               <div>
                 <h2
                   id="diocese-login-title"
-                  className="text-2xl font-bold text-foreground"
+                  className="text-xl font-bold text-foreground sm:text-2xl"
                 >
                   Acesso da Diocese
                 </h2>

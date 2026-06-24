@@ -234,7 +234,7 @@ export default function ParishesManagementByDiocese() {
             </CardDescription>
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="caritas-mobile-actions">
             <Button
               type="button"
               variant="outline"
@@ -280,81 +280,133 @@ export default function ParishesManagementByDiocese() {
               <Loader2 className="h-6 w-6 animate-spin" aria-hidden="true" />
               <span className="text-lg font-semibold">Carregando paróquias...</span>
             </div>
+          ) : filteredParishes.length === 0 ? (
+            <div className="flex min-h-56 flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-muted/40 px-4 py-10 text-center text-muted-foreground">
+              <AlertCircle className="h-8 w-8" aria-hidden="true" />
+              <strong className="text-foreground">Nenhuma paróquia encontrada.</strong>
+              <span>Revise o termo buscado ou atualize a lista.</span>
+            </div>
           ) : (
-            <Table>
-              <TableCaption>
-                Lista de paróquias cadastradas na Cáritas Diocesana.
-              </TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>CNPJ</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
+            <>
+              <div className="space-y-3 md:hidden">
+                <p className="text-sm text-muted-foreground">
+                  Lista de paróquias cadastradas na Cáritas Diocesana.
+                </p>
 
-              <TableBody>
-                {filteredParishes.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={4}
-                      className="py-10 text-center text-muted-foreground"
-                    >
-                      <div className="flex flex-col items-center gap-2">
-                        <AlertCircle className="h-7 w-7" aria-hidden="true" />
-                        <strong className="text-foreground">Nenhuma paróquia encontrada.</strong>
-                        <span>Revise o termo buscado ou atualize a lista.</span>
+                {filteredParishes.map((parish) => (
+                  <article
+                    key={parish.id}
+                    className="rounded-2xl border border-border bg-background p-4 shadow-sm"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                          Paróquia
+                        </p>
+                        <h3 className="mt-1 break-words text-xl font-bold text-foreground">
+                          {parish.name}
+                        </h3>
+                        <p className="mt-2 text-base text-muted-foreground">
+                          CNPJ: {parish.cnpj ?? "Não informado"}
+                        </p>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredParishes.map((parish) => (
-                    <TableRow key={parish.id}>
-                      <TableCell className="font-semibold text-foreground">
-                        {parish.name}
-                      </TableCell>
 
-                      <TableCell>{parish.cnpj ?? "Não informado"}</TableCell>
+                      {parish.active ? (
+                        <Badge>Ativa</Badge>
+                      ) : (
+                        <Badge variant="secondary">Inativa</Badge>
+                      )}
+                    </div>
 
-                      <TableCell>
-                        {parish.active ? (
-                          <Badge>Ativa</Badge>
-                        ) : (
-                          <Badge variant="secondary">Inativa</Badge>
-                        )}
-                      </TableCell>
+                    <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => openEditDialog(parish)}
+                        disabled={saving}
+                      >
+                        <Edit className="h-5 w-5" aria-hidden="true" />
+                        Editar
+                      </Button>
 
-                      <TableCell>
-                        <div className="flex flex-wrap justify-end gap-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => openEditDialog(parish)}
-                            disabled={saving}
-                          >
-                            <Edit className="h-5 w-5" aria-hidden="true" />
-                            Editar
-                          </Button>
+                      {parish.active && (
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          onClick={() => requestDeactivate(parish)}
+                          disabled={saving}
+                        >
+                          <PowerOff className="h-5 w-5" aria-hidden="true" />
+                          Desativar
+                        </Button>
+                      )}
+                    </div>
+                  </article>
+                ))}
+              </div>
 
-                          {parish.active && (
+              <div className="hidden md:block">
+                <Table>
+                  <TableCaption>
+                    Lista de paróquias cadastradas na Cáritas Diocesana.
+                  </TableCaption>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>CNPJ</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+
+                  <TableBody>
+                    {filteredParishes.map((parish) => (
+                      <TableRow key={parish.id}>
+                        <TableCell className="whitespace-normal font-semibold text-foreground">
+                          {parish.name}
+                        </TableCell>
+
+                        <TableCell>{parish.cnpj ?? "Não informado"}</TableCell>
+
+                        <TableCell>
+                          {parish.active ? (
+                            <Badge>Ativa</Badge>
+                          ) : (
+                            <Badge variant="secondary">Inativa</Badge>
+                          )}
+                        </TableCell>
+
+                        <TableCell>
+                          <div className="flex flex-wrap justify-end gap-2">
                             <Button
                               type="button"
-                              variant="destructive"
-                              onClick={() => requestDeactivate(parish)}
+                              variant="outline"
+                              onClick={() => openEditDialog(parish)}
                               disabled={saving}
                             >
-                              <PowerOff className="h-5 w-5" aria-hidden="true" />
-                              Desativar
+                              <Edit className="h-5 w-5" aria-hidden="true" />
+                              Editar
                             </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+
+                            {parish.active && (
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                onClick={() => requestDeactivate(parish)}
+                                disabled={saving}
+                              >
+                                <PowerOff className="h-5 w-5" aria-hidden="true" />
+                                Desativar
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
