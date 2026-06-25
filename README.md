@@ -1,8 +1,22 @@
 # Cáritas Diocesana — Frontend
 
-Frontend do sistema **Cáritas Diocesana**, desenvolvido para apoiar a gestão de paróquias, famílias acompanhadas, visitas, estoque, entregas de cestas, caixa e demais funcionalidades administrativas.
+Frontend do sistema **Cáritas Diocesana**, desenvolvido como projeto acadêmico na disciplina de **Laboratório de Software**, com o objetivo de apoiar a gestão de doações, famílias acompanhadas, paróquias, visitas, estoque, entregas de cestas, caixa e demais funcionalidades administrativas.
 
-O projeto foi desenvolvido com **React**, **TypeScript**, **Vite** e **Tailwind CSS**, consumindo uma API Laravel hospedada em ambiente externo.
+O projeto busca aplicar, em um contexto real, práticas de desenvolvimento de software voltadas ao levantamento de requisitos, organização de funcionalidades, implementação, validação e entrega de uma solução com impacto social.
+
+## Projeto acadêmico
+
+Este sistema foi desenvolvido por estudantes como parte das atividades da disciplina de **Laboratório de Software**, em parceria com a **Cáritas de Caxias do Sul**.
+
+## Equipe
+
+| Integrante                 | GitHub                                                 |
+| -------------------------- | ------------------------------------------------------ |
+| Anderson Pastore Rizzi     | [@andersonprizzi](https://github.com/andersonprizzi)   |
+| Davi dos Santos            | [@Davi193](https://github.com/Davi193)                 |
+| João Paulo Escobar Martins | [@JpEscobarM](https://github.com/JpEscobarM)           |
+| Lucas Schiochet            | [@LucasSchiochet2](https://github.com/LucasSchiochet2) |
+| Yuri Sabedot Venturin      | [@YSVenturin](https://github.com/YSVenturin)           |
 
 ## Links do projeto
 
@@ -17,6 +31,23 @@ O projeto foi desenvolvido com **React**, **TypeScript**, **Vite** e **Tailwind 
 - Tailwind CSS
 - Axios
 - pnpm
+
+## Funcionalidades principais
+
+O sistema Cáritas Diocesana possui funcionalidades voltadas para o acompanhamento e organização das atividades realizadas pela diocese e pelas paróquias.
+
+Entre os principais módulos estão:
+
+- autenticação por tipo de acesso;
+- painel geral da diocese;
+- painel geral da paróquia;
+- gestão de paróquias;
+- gestão de usuários;
+- cadastro e acompanhamento de núcleos familiares;
+- gestão de visitas;
+- estoque paroquial;
+- entregas de cestas;
+- movimentações de caixa da paróquia.
 
 ## Pré-requisitos
 
@@ -147,23 +178,6 @@ Depois, acesse:
 http://localhost:5173/
 ```
 
-## Funcionalidades principais
-
-O sistema Cáritas Diocesana possui funcionalidades voltadas para o acompanhamento e organização das atividades realizadas pela diocese e pelas paróquias.
-
-Entre os principais módulos estão:
-
-- autenticação por tipo de acesso;
-- painel geral da diocese;
-- painel geral da paróquia;
-- gestão de paróquias;
-- gestão de usuários;
-- cadastro e acompanhamento de núcleos familiares;
-- gestão de visitas;
-- estoque paroquial;
-- entregas de cestas;
-- movimentações de caixa da paróquia;
-
 ## Screenshots
 
 ### Tela inicial
@@ -178,21 +192,6 @@ Entre os principais módulos estão:
 
 ![Painel geral da paróquia](docs/images/painel-paroquial.png)
 
-## Observações importantes
+## Finalidade
 
-- Todos os comandos devem ser executados dentro da pasta `frontend`.
-- O projeto utiliza `pnpm` como gerenciador de pacotes padrão.
-- Rodar `pnpm dev` na raiz do repositório pode não funcionar caso o `package.json` esteja apenas dentro da pasta `frontend`.
-- O script `dev` executa o Vite.
-- A URL da API deve estar configurada corretamente no arquivo `.env`.
-- Não versionar arquivos sensíveis de ambiente com dados privados.
-- Em produção, o servidor deve estar preparado para servir aplicações SPA.
-
-## Autores
-
-| Autor                  | GitHub                                                 | Participação |
-| ---------------------- | ------------------------------------------------------ | ------------ |
-| Anderson Pastore Rizzi | [@andersonprizzi](https://github.com/andersonprizzi)   | Collaborator |
-| Davi dos Santos        | [@Davi193](https://github.com/Davi193)                 | Collaborator |
-| Lucas Schiochet        | [@LucasSchiochet2](https://github.com/LucasSchiochet2) | Collaborator |
-| Yuri Sabedot Venturin  | [@YSVenturin](https://github.com/YSVenturin)           | Collaborator |
+Este projeto tem finalidade acadêmica e social, aproximando a universidade da comunidade por meio do desenvolvimento de uma solução tecnológica voltada ao apoio das atividades realizadas pela Cáritas Diocesana de Caxias do Sul.
