@@ -24,7 +24,7 @@ export const menuDioceseItems = [
   },
   {
     id: "paroquias",
-    label: "Gerenciar paróquias/comunidades",
+    label: "Gerenciar paróquias e comunidades",
     mobilePrimary: true,
     icon: Church,
     allowedRoles: ["diocese_admin"],
