@@ -23,10 +23,7 @@ import {
   listDioceseRecentHomeVisits,
 } from "../../api/dioceseDashboard";
 import type { Family, Parish } from "../../types/types";
-import type {
-  HomeVisit,
-  HomeVisitWithFamily,
-} from "../VisitaDomiciliar/types";
+import type { HomeVisit, HomeVisitWithFamily } from "../VisitaDomiciliar/types";
 import {
   formatDateTime,
   getFamilyName,
@@ -109,7 +106,9 @@ function getParishNameFromVisit(
   }
 
   if (visit.family?.parish_id) {
-    return parishById.get(visit.family.parish_id)?.name ?? "Paróquia não informada";
+    return (
+      parishById.get(visit.family.parish_id)?.name ?? "Paróquia não informada"
+    );
   }
 
   return "Paróquia não informada";
@@ -174,7 +173,9 @@ export default function PainelGeralDiocese({
   const dashboardData = useMemo(() => {
     const activeParishes = parishes.filter((parish) => parish.active);
     const inactiveParishes = parishes.filter((parish) => !parish.active);
-    const activeFamilies = families.filter((family) => family.is_active !== false);
+    const activeFamilies = families.filter(
+      (family) => family.is_active !== false,
+    );
 
     const totalMembers = activeFamilies.reduce(
       (total, family) => total + countFamilyMembers(family),
@@ -221,7 +222,8 @@ export default function PainelGeralDiocese({
       })
       .sort((firstVisit, secondVisit) => {
         const firstDate = parseVisitDate(firstVisit.visit_date)?.getTime() ?? 0;
-        const secondDate = parseVisitDate(secondVisit.visit_date)?.getTime() ?? 0;
+        const secondDate =
+          parseVisitDate(secondVisit.visit_date)?.getTime() ?? 0;
         return firstDate - secondDate;
       })
       .slice(0, 5);
@@ -277,7 +279,7 @@ export default function PainelGeralDiocese({
     return [
       {
         tabId: "paroquias",
-        title: "Gerenciar paróquias",
+        title: "Gerenciar paróquias e Comunidades",
         description: "Cadastrar, editar ou desativar paróquias.",
         icon: <Church className="h-5 w-5" aria-hidden="true" />,
         enabled: userRole === "diocese_admin",
@@ -287,7 +289,8 @@ export default function PainelGeralDiocese({
         title: "Bazar diocesano",
         description: "Acompanhar estoque, vendas e caixa do bazar.",
         icon: <ShoppingBag className="h-5 w-5" aria-hidden="true" />,
-        enabled: userRole === "diocese_admin" || userRole === "responsavel_bazar",
+        enabled:
+          userRole === "diocese_admin" || userRole === "responsavel_bazar",
       },
       {
         tabId: "estoque",
@@ -353,8 +356,12 @@ export default function PainelGeralDiocese({
       }
 
       const loadedVisits = [
-        recentVisitsResult.status === "fulfilled" ? recentVisitsResult.value : [],
-        historyVisitsResult.status === "fulfilled" ? historyVisitsResult.value : [],
+        recentVisitsResult.status === "fulfilled"
+          ? recentVisitsResult.value
+          : [],
+        historyVisitsResult.status === "fulfilled"
+          ? historyVisitsResult.value
+          : [],
       ].flat();
 
       if (
@@ -402,7 +409,6 @@ export default function PainelGeralDiocese({
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div>
-
             <h2 className="text-3xl font-bold text-[var(--primary)]">
               {getGreeting()}, {session?.user.name ?? "bem-vindo(a)"}!
             </h2>
@@ -567,7 +573,9 @@ export default function PainelGeralDiocese({
                       key={action.tabId}
                       type="button"
                       size="lg"
-                      variant={action.tabId === "paroquias" ? "default" : "outline"}
+                      variant={
+                        action.tabId === "paroquias" ? "default" : "outline"
+                      }
                       onClick={() => onNavigate(action.tabId)}
                       className="min-h-20 justify-start text-left"
                     >
@@ -642,8 +650,8 @@ export default function PainelGeralDiocese({
                   </div>
                   <p className="mt-2 text-sm leading-relaxed text-slate-700">
                     Quando os endpoints estiverem integrados, este painel poderá
-                    mostrar estoque consolidado, campanhas, atendimentos e vendas
-                    do bazar.
+                    mostrar estoque consolidado, campanhas, atendimentos e
+                    vendas do bazar.
                   </p>
                 </div>
               </CardContent>
@@ -721,8 +729,8 @@ export default function PainelGeralDiocese({
                     </h3>
 
                     <p className="mt-1 text-base text-slate-600">
-                      Quando as paróquias agendarem visitas, elas poderão aparecer
-                      aqui.
+                      Quando as paróquias agendarem visitas, elas poderão
+                      aparecer aqui.
                     </p>
                   </div>
                 )}
@@ -773,8 +781,8 @@ export default function PainelGeralDiocese({
                     </h3>
 
                     <p className="mt-1 text-base text-slate-600">
-                      Quando houver famílias cadastradas com dados de paróquia, o
-                      ranking aparecerá aqui.
+                      Quando houver famílias cadastradas com dados de paróquia,
+                      o ranking aparecerá aqui.
                     </p>
                   </div>
                 )}

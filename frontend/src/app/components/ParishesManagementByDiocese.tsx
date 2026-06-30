@@ -111,7 +111,9 @@ export default function ParishesManagementByDiocese() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingParish, setEditingParish] = useState<Parish | null>(null);
   const [form, setForm] = useState<ParishFormState>(initialFormState);
-  const [deactivatingParish, setDeactivatingParish] = useState<Parish | null>(null);
+  const [deactivatingParish, setDeactivatingParish] = useState<Parish | null>(
+    null,
+  );
 
   async function loadParishes() {
     try {
@@ -214,7 +216,9 @@ export default function ParishesManagementByDiocese() {
         ),
       );
 
-      toast.success(`Paróquia "${deactivatingParish.name}" desativada com sucesso.`);
+      toast.success(
+        `Paróquia "${deactivatingParish.name}" desativada com sucesso.`,
+      );
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
@@ -228,9 +232,10 @@ export default function ParishesManagementByDiocese() {
       <Card className="caritas-card-shadow">
         <CardHeader className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
           <div>
-            <CardTitle>Paróquias cadastradas</CardTitle>
+            <CardTitle>Cadastros</CardTitle>
             <CardDescription>
-              Cadastre, edite e desative paróquias vinculadas à Cáritas Diocesana.
+              Cadastre, edite e desative paróquias e comunidades vinculadas à
+              Cáritas Diocesana.
             </CardDescription>
           </div>
 
@@ -278,12 +283,16 @@ export default function ParishesManagementByDiocese() {
               aria-live="polite"
             >
               <Loader2 className="h-6 w-6 animate-spin" aria-hidden="true" />
-              <span className="text-lg font-semibold">Carregando paróquias...</span>
+              <span className="text-lg font-semibold">
+                Carregando paróquias...
+              </span>
             </div>
           ) : filteredParishes.length === 0 ? (
             <div className="flex min-h-56 flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-muted/40 px-4 py-10 text-center text-muted-foreground">
               <AlertCircle className="h-8 w-8" aria-hidden="true" />
-              <strong className="text-foreground">Nenhuma paróquia encontrada.</strong>
+              <strong className="text-foreground">
+                Nenhuma paróquia encontrada.
+              </strong>
               <span>Revise o termo buscado ou atualize a lista.</span>
             </div>
           ) : (
@@ -395,7 +404,10 @@ export default function ParishesManagementByDiocese() {
                                 onClick={() => requestDeactivate(parish)}
                                 disabled={saving}
                               >
-                                <PowerOff className="h-5 w-5" aria-hidden="true" />
+                                <PowerOff
+                                  className="h-5 w-5"
+                                  aria-hidden="true"
+                                />
                                 Desativar
                               </Button>
                             )}
@@ -421,11 +433,12 @@ export default function ParishesManagementByDiocese() {
           <AlertDialogHeader>
             <AlertDialogTitle>Desativar paróquia</AlertDialogTitle>
             <AlertDialogDescription>
-              A paróquia <strong>"{deactivatingParish?.name}"</strong> deixará de
-              aparecer como opção de login. O cadastro não será apagado.
+              A paróquia <strong>"{deactivatingParish?.name}"</strong> deixará
+              de aparecer como opção de login. O cadastro não será apagado.
               <br />
               <br />
-              Confirme somente se tiver certeza de que esta paróquia deve ficar inativa.
+              Confirme somente se tiver certeza de que esta paróquia deve ficar
+              inativa.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
@@ -437,7 +450,9 @@ export default function ParishesManagementByDiocese() {
               disabled={saving}
               className="bg-destructive text-destructive-foreground hover:bg-[var(--destructive-hover)]"
             >
-              {saving && <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />}
+              {saving && (
+                <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
+              )}
               Sim, desativar
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -461,7 +476,8 @@ export default function ParishesManagementByDiocese() {
             </DialogTitle>
 
             <DialogDescription>
-              Preencha os dados principais. O campo CNPJ pode ficar em branco caso a informação ainda não esteja disponível.
+              Preencha os dados principais. O campo CNPJ pode ficar em branco
+              caso a informação ainda não esteja disponível.
             </DialogDescription>
           </DialogHeader>
 
@@ -521,7 +537,12 @@ export default function ParishesManagementByDiocese() {
               </Button>
 
               <Button type="submit" disabled={saving}>
-                {saving && <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />}
+                {saving && (
+                  <Loader2
+                    className="h-5 w-5 animate-spin"
+                    aria-hidden="true"
+                  />
+                )}
                 {editingParish ? "Salvar alterações" : "Cadastrar paróquia"}
               </Button>
             </DialogFooter>
